@@ -694,12 +694,13 @@ const UnifiedDashboard = () => {
       {/* Header */}
       <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="flex justify-between items-center py-4">
-            <div className="flex items-center space-x-4">
-              <h1 className="text-2xl font-bold text-gray-900">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-4 space-y-3 sm:space-y-0">
+            {/* Left section - Title and Status */}
+            <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
+              <h1 className="text-xl sm:text-2xl font-bold text-gray-900">
                 🏏 Cricket Auction
                 {isAdmin && (
-                  <span className={`text-sm px-2 py-1 rounded ml-2 ${roleStyles[userRole] || 'bg-gray-100 text-gray-800'}`}>
+                  <span className={`text-xs sm:text-sm px-2 py-1 rounded ml-2 ${roleStyles[userRole] || 'bg-gray-100 text-gray-800'}`}>
                     {userRole === 'super-admin' ? 'Super Admin' :
                      userRole === 'admin' ? 'Admin' :
                      userRole === 'sub-admin' ? 'Sub-Admin' :
@@ -707,43 +708,49 @@ const UnifiedDashboard = () => {
                   </span>
                 )}
               </h1>
-              <div className={`px-3 py-1 rounded-full text-sm font-medium ${
-                auctionData.auctionStatus === 'running' 
-                  ? 'bg-green-100 text-green-800 animate-pulse' 
-                  : auctionData.auctionStatus === 'fast-track'
-                  ? 'bg-orange-100 text-orange-800 animate-pulse'
-                  : auctionData.auctionStatus === 'finished'
-                  ? 'bg-blue-100 text-blue-800'
-                  : 'bg-gray-100 text-gray-800'
-              }`}>
-                {auctionData.auctionStatus === 'running' && '🔴 LIVE AUCTION'}
-                {auctionData.auctionStatus === 'fast-track' && '⚡ FAST TRACK'}
-                {auctionData.auctionStatus === 'finished' && '✅ COMPLETED'}
-                {auctionData.auctionStatus === 'stopped' && '⏸️ PAUSED'}
-              </div>
-              {auctionData.currentBid && (
-                <div className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 animate-pulse">
-                  💰 ₹{auctionData.currentBid.currentAmount}
+              
+              {/* Status indicators */}
+              <div className="flex items-center space-x-2">
+                <div className={`px-2 sm:px-3 py-1 rounded-full text-xs sm:text-sm font-medium ${
+                  auctionData.auctionStatus === 'running' 
+                    ? 'bg-green-100 text-green-800 animate-pulse' 
+                    : auctionData.auctionStatus === 'fast-track'
+                    ? 'bg-orange-100 text-orange-800 animate-pulse'
+                    : auctionData.auctionStatus === 'finished'
+                    ? 'bg-blue-100 text-blue-800'
+                    : 'bg-gray-100 text-gray-800'
+                }`}>
+                  {auctionData.auctionStatus === 'running' && '🔴 LIVE'}
+                  {auctionData.auctionStatus === 'fast-track' && '⚡ FAST'}
+                  {auctionData.auctionStatus === 'finished' && '✅ DONE'}
+                  {auctionData.auctionStatus === 'stopped' && '⏸️ PAUSED'}
                 </div>
-              )}
+                {auctionData.currentBid && (
+                  <div className="px-2 sm:px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 animate-pulse">
+                    💰 ₹{auctionData.currentBid.currentAmount}
+                  </div>
+                )}
+              </div>
             </div>
             
-            <div className="flex items-center space-x-3">
+            {/* Right section - Action buttons */}
+            <div className="flex items-center space-x-2 sm:space-x-3">
               {/* Download dropdown - available to both admin and spectators */}
               {auctionData.fileUploaded && (
                 <div className="relative download-dropdown">
                   <button
                     onClick={() => setShowDownloadDropdown(!showDownloadDropdown)}
-                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center space-x-2"
+                    className="bg-green-600 hover:bg-green-700 text-white px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium flex items-center space-x-1 sm:space-x-2"
                   >
-                    <span>📊 Download</span>
-                    <svg className={`w-4 h-4 transform transition-transform ${showDownloadDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <span className="hidden sm:inline">📊 Download</span>
+                    <span className="sm:hidden">📊</span>
+                    <svg className={`w-3 h-3 sm:w-4 sm:h-4 transform transition-transform ${showDownloadDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                     </svg>
                   </button>
                   
                   {showDownloadDropdown && (
-                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg z-50 border border-gray-200">
+                    <div className="absolute right-0 mt-2 w-56 sm:w-64 bg-white rounded-md shadow-lg z-50 border border-gray-200">
                       <div className="py-1">
                         <button
                           onClick={() => {
@@ -796,7 +803,7 @@ const UnifiedDashboard = () => {
                           }}
                           className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
                         >
-                          <span className="mr-3">�</span>
+                          <span className="mr-3">📄</span>
                           <div className="text-left">
                             <div className="font-medium">CSV Format</div>
                             <div className="text-xs text-gray-500">Alternative format (limited)</div>
@@ -811,16 +818,18 @@ const UnifiedDashboard = () => {
               {isAdmin ? (
                 <button
                   onClick={handleLogout}
-                  className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+                  className="bg-red-600 hover:bg-red-700 text-white px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium"
                 >
-                  Logout
+                  <span className="hidden sm:inline">Logout</span>
+                  <span className="sm:hidden">Exit</span>
                 </button>
               ) : (
                 <button
                   onClick={() => navigate('/')}
-                  className="bg-gray-600 hover:bg-gray-700 text-white px-4 py-2 rounded-md text-sm font-medium"
+                  className="bg-gray-600 hover:bg-gray-700 text-white px-3 sm:px-4 py-2 rounded-md text-xs sm:text-sm font-medium"
                 >
-                  ← Home
+                  <span className="hidden sm:inline">← Home</span>
+                  <span className="sm:hidden">←</span>
                 </button>
               )}
             </div>
