@@ -1,24 +1,27 @@
-import logo from './logo.svg';
-import './App.css';
+import React from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import HomePage from './components/HomePage';
+import AuctionSetup from './components/AuctionSetup';
+import UnifiedDashboard from './components/UnifiedDashboard';
+import './index.css';
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-    </div>
+    <Router>
+      <Routes>
+        {/* Home page with login options */}
+        <Route path="/" element={<HomePage />} />
+        
+        {/* NEW: Auction setup for admin */}
+        <Route path="/setup" element={<AuctionSetup />} />
+        
+        {/* Unified dashboard for both admin and spectators */}
+        <Route path="/dashboard" element={<UnifiedDashboard />} />
+        
+        {/* Fallback route */}
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Router>
   );
 }
 
