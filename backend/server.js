@@ -10,7 +10,10 @@ const server = http.createServer(app);
 // Socket.io setup
 const io = socketIo(server, {
   cors: {
-    origin: "http://localhost:3000",
+    origin: [
+      "http://localhost:3000",
+      "https://cricket-auction-live-awer.onrender.com"
+    ],
     methods: ["GET", "POST"]
   }
 });
