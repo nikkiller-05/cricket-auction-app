@@ -876,7 +876,9 @@ const UnifiedDashboard = () => {
                   {auctionData.teams?.map(team => {
                     const increment = 5;
                     const nextBidAmount = auctionData.currentBid.currentAmount + increment;
-                    const canBid = team.budget >= nextBidAmount;
+                    const hasMaxPlayers = team.players?.length >= (auctionData.settings?.maxPlayersPerTeam || 15);
+                    const hasSufficientBudget = team.budget >= nextBidAmount;
+                    const canBid = hasSufficientBudget && !hasMaxPlayers;
                     
                     return (
                       <button
@@ -894,7 +896,13 @@ const UnifiedDashboard = () => {
                             ? 'bg-white bg-opacity-20 hover:bg-opacity-30 text-white' 
                             : 'bg-gray-600 text-gray-300 cursor-not-allowed'
                         }`}
-                        title={!canBid ? `Insufficient budget (₹${team.budget})` : `Bid ₹${nextBidAmount} for ${cleanTeamName(team.name)}`}
+                        title={
+                          hasMaxPlayers 
+                            ? `Team full (${team.players?.length}/${auctionData.settings?.maxPlayersPerTeam || 15} players)` 
+                            : !hasSufficientBudget 
+                              ? `Insufficient budget (₹${team.budget})` 
+                              : `Bid ₹${nextBidAmount} for ${cleanTeamName(team.name)}`
+                        }
                       >
                         {cleanTeamName(team.name)}
                         <div className="text-xs opacity-75">₹{team.budget}</div>
