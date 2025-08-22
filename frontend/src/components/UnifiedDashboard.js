@@ -346,6 +346,12 @@ const UnifiedDashboard = () => {
   const [activeTab, setActiveTab] = useState('live');
   const [socket, setSocket] = useState(null);
   const [notifications, setNotifications] = useState([]);
+  
+  // Spectator filter state for All Players tab
+  const [spectatorPlayerFilter, setSpectatorPlayerFilter] = useState('all');
+  
+  // Download dropdown state
+  const [showDownloadDropdown, setShowDownloadDropdown] = useState(false);
 
   useEffect(() => {
     // Check if user is admin from location state or localStorage
@@ -422,7 +428,7 @@ const UnifiedDashboard = () => {
     });
 
     socketConnection.on('bidUndone', (data) => {
-      addNotification(`Bid cancelled: ${data.player} (₹${data.amount})`, 'warning');
+      addNotification(`Bid undone: ${data.player} (₹${data.revertedToAmount})`, 'warning');
     });
 
     // Cleanup on unmount
@@ -430,6 +436,20 @@ const UnifiedDashboard = () => {
       socketConnection.disconnect();
     };
   }, [location.state]);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showDownloadDropdown && !event.target.closest('.download-dropdown')) {
+        setShowDownloadDropdown(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showDownloadDropdown]);
 
   const addNotification = (message, type = 'info') => {
     const notification = {
@@ -490,6 +510,66 @@ const UnifiedDashboard = () => {
     } catch (error) {
       console.error('Error downloading results:', error);
       addNotification(`Error downloading ${format} results`, 'error');
+    }
+  };
+
+  const downloadTeamSquads = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/download-team-squads`, { responseType: 'blob' });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = 'team-squads.xlsx';
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        if (filenameMatch) {
+          filename = filenameMatch[1].replace(/['"]/g, '');
+        }
+      }
+      
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      
+      setTimeout(() => window.URL.revokeObjectURL(url), 100);
+      addNotification('Team squads downloaded successfully', 'success');
+    } catch (error) {
+      console.error('Error downloading team squads:', error);
+      addNotification('Error downloading team squads', 'error');
+    }
+  };
+
+  const downloadAuctionSummary = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/download-auction-summary`, { responseType: 'blob' });
+      
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = 'auction-summary.xlsx';
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        if (filenameMatch) {
+          filename = filenameMatch[1].replace(/['"]/g, '');
+        }
+      }
+      
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      
+      setTimeout(() => window.URL.revokeObjectURL(url), 100);
+      addNotification('Auction summary downloaded successfully', 'success');
+    } catch (error) {
+      console.error('Error downloading auction summary:', error);
+      addNotification('Error downloading auction summary', 'error');
     }
   };
 
@@ -649,22 +729,83 @@ const UnifiedDashboard = () => {
             </div>
             
             <div className="flex items-center space-x-3">
-              {/* Download buttons - available to both admin and spectators */}
+              {/* Download dropdown - available to both admin and spectators */}
               {auctionData.fileUploaded && (
-                <>
+                <div className="relative download-dropdown">
                   <button
-                    onClick={() => downloadResults('excel')}
-                    className="bg-green-600 hover:bg-green-700 text-white px-3 py-2 rounded-md text-sm font-medium"
+                    onClick={() => setShowDownloadDropdown(!showDownloadDropdown)}
+                    className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center space-x-2"
                   >
-                    📊 Excel
+                    <span>📊 Download</span>
+                    <svg className={`w-4 h-4 transform transition-transform ${showDownloadDropdown ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                    </svg>
                   </button>
-                  <button
-                    onClick={() => downloadResults('csv')}
-                    className="bg-blue-600 hover:bg-blue-700 text-white px-3 py-2 rounded-md text-sm font-medium"
-                  >
-                    📋 CSV
-                  </button>
-                </>
+                  
+                  {showDownloadDropdown && (
+                    <div className="absolute right-0 mt-2 w-64 bg-white rounded-md shadow-lg z-50 border border-gray-200">
+                      <div className="py-1">
+                        <button
+                          onClick={() => {
+                            downloadResults('excel');
+                            setShowDownloadDropdown(false);
+                          }}
+                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          <span className="mr-3">📊</span>
+                          <div className="text-left">
+                            <div className="font-medium">Complete Results (Excel)</div>
+                            <div className="text-xs text-gray-500">All sheets with detailed data</div>
+                          </div>
+                        </button>
+                        
+                        <button
+                          onClick={() => {
+                            downloadTeamSquads();
+                            setShowDownloadDropdown(false);
+                          }}
+                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          <span className="mr-3">🏏</span>
+                          <div className="text-left">
+                            <div className="font-medium">Team Squads</div>
+                            <div className="text-xs text-gray-500">Player name, role, price by team</div>
+                          </div>
+                        </button>
+                        
+                        <button
+                          onClick={() => {
+                            downloadAuctionSummary();
+                            setShowDownloadDropdown(false);
+                          }}
+                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          <span className="mr-3">📋</span>
+                          <div className="text-left">
+                            <div className="font-medium">Auction Summary</div>
+                            <div className="text-xs text-gray-500">Statistics and financial overview</div>
+                          </div>
+                        </button>
+                        
+                        <hr className="my-1" />
+                        
+                        <button
+                          onClick={() => {
+                            downloadResults('csv');
+                            setShowDownloadDropdown(false);
+                          }}
+                          className="flex items-center w-full px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        >
+                          <span className="mr-3">�</span>
+                          <div className="text-left">
+                            <div className="font-medium">CSV Format</div>
+                            <div className="text-xs text-gray-500">Alternative format (limited)</div>
+                          </div>
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
               )}
               
               {isAdmin ? (
@@ -892,6 +1033,26 @@ const UnifiedDashboard = () => {
             <div className="space-y-6">
               <h3 className="text-xl font-semibold text-gray-900">Live Auction Status</h3>
               
+              {/* Overview Stats */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="bg-white rounded-lg p-4 text-center shadow">
+                  <div className="text-2xl font-bold text-green-600">{soldPlayers.length}</div>
+                  <div className="text-sm text-gray-600">Sold</div>
+                </div>
+                <div className="bg-white rounded-lg p-4 text-center shadow">
+                  <div className="text-2xl font-bold text-red-600">{unsoldPlayers.length}</div>
+                  <div className="text-sm text-gray-600">Unsold</div>
+                </div>
+                <div className="bg-white rounded-lg p-4 text-center shadow">
+                  <div className="text-2xl font-bold text-yellow-600">{availablePlayers.length}</div>
+                  <div className="text-sm text-gray-600">Available</div>
+                </div>
+                <div className="bg-white rounded-lg p-4 text-center shadow">
+                  <div className="text-2xl font-bold text-purple-600">{captains.length}</div>
+                  <div className="text-sm text-gray-600">Captains</div>
+                </div>
+              </div>
+              
               {auctionData.auctionStatus === 'stopped' && !auctionData.currentBid && (
                 <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
                   <div className="flex">
@@ -933,6 +1094,29 @@ const UnifiedDashboard = () => {
                   )}
                 </div>
               </div>
+
+              {/* Unsold Players */}
+              {unsoldPlayers.length > 0 && (
+                <div className="bg-white rounded-lg shadow p-6">
+                  <h4 className="text-lg font-medium text-gray-900 mb-4">Unsold Players ({unsoldPlayers.length})</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                    {unsoldPlayers.map((player) => (
+                      <div key={player.id} className="border border-red-200 rounded-lg p-4 bg-red-50">
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="font-medium text-gray-900">{player.name}</span>
+                          <span className="px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                            {player.category === 'wicket-keeper' ? 'keeper' : player.category}
+                          </span>
+                        </div>
+                        <p className="text-sm text-gray-600 mb-2">{player.role}</p>
+                        <div className="flex items-center text-red-600">
+                          <span className="text-sm font-medium">❌ UNSOLD</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </div>
           )}
 
@@ -1021,81 +1205,277 @@ const UnifiedDashboard = () => {
                 ) : (
                   // Spectator view of players
                   <div className="space-y-6">
-                    <h3 className="text-xl font-semibold text-gray-900">All Players</h3>
-                    
-                    {/* Captains Section */}
-                    {captains.length > 0 && (
-                      <div className="bg-white rounded-lg shadow p-6">
-                        <h4 className="text-lg font-medium text-gray-900 mb-4">
-                          Captains ({captains.length}) - Auto-assigned
-                        </h4>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                          {captains.map((player) => {
-                            const team = auctionData.teams?.find(t => t.id === player.team);
-                            return (
-                              <div key={player.id} className="border rounded-lg p-4 bg-purple-50">
-                                <div className="flex justify-between items-start mb-2">
-                                  <h5 className="font-medium text-gray-900">{player.name}</h5>
-                                  <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
-                                    Captain
-                                  </span>
-                                </div>
-                                <p className="text-sm text-gray-600 mb-2">{player.role}</p>
-                                <div className="text-sm">
-                                  <p className="font-medium text-purple-600">Auto-assigned</p>
-                                  <p className="text-gray-500">{cleanTeamName(team?.name) || 'No Team'}</p>
-                                </div>
-                              </div>
-                            );
-                          })}
-                        </div>
-                      </div>
-                    )}
-                    
-                    {/* Other Players by Status */}
-                    {[
-                      { status: 'sold', title: 'Players Sold Through Bidding', players: soldPlayers },
-                      { status: 'available', title: 'Available for Bidding', players: availablePlayers },
-                      { status: 'unsold', title: 'Unsold Players', players: unsoldPlayers }
-                    ].map(({ status, title, players }) => {
-                      if (players.length === 0) return null;
+                    <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+                      <h3 className="text-xl font-semibold text-gray-900">All Players</h3>
                       
-                      return (
-                        <div key={status} className="bg-white rounded-lg shadow p-6">
-                          <h4 className="text-lg font-medium text-gray-900 mb-4">
-                            {title} ({players.length})
-                          </h4>
-                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                            {players.map((player) => {
-                              const team = auctionData.teams?.find(t => t.id === player.team);
-                              return (
-                                <div key={player.id} className="border rounded-lg p-4">
-                                  <div className="flex justify-between items-start mb-2">
-                                    <h5 className="font-medium text-gray-900">{player.name}</h5>
-                                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                      player.category === 'batter' ? 'bg-blue-100 text-blue-800' :
-                                      player.category === 'bowler' ? 'bg-red-100 text-red-800' :
-                                      player.category === 'allrounder' ? 'bg-orange-100 text-orange-800' :
-                                      player.category === 'wicket-keeper' ? 'bg-green-100 text-green-800' :
-                                      'bg-gray-100 text-gray-800'
-                                    }`}>
-                                      {player.category}
-                                    </span>
+                      {/* Filter Controls */}
+                      <div className="flex items-center gap-3">
+                        <label className="text-sm font-medium text-gray-700">Filter:</label>
+                        <select
+                          value={spectatorPlayerFilter}
+                          onChange={(e) => setSpectatorPlayerFilter(e.target.value)}
+                          className="px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500 text-sm"
+                        >
+                          <option value="all">All Players</option>
+                          <option value="sold">Players Sold Through Bidding</option>
+                          <option value="available">Available for Bidding</option>
+                          <option value="unsold">Unsold Players</option>
+                          <option value="captains">Captains</option>
+                        </select>
+                      </div>
+                    </div>
+                    
+                    {/* Filtered Content */}
+                    {(() => {
+                      // Filter logic based on selected filter
+                      if (spectatorPlayerFilter === 'captains') {
+                        return captains.length > 0 && (
+                          <div className="bg-white rounded-lg shadow p-6">
+                            <h4 className="text-lg font-medium text-gray-900 mb-4">
+                              Captains ({captains.length}) - Auto-assigned
+                            </h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                              {captains.map((player) => {
+                                const team = auctionData.teams?.find(t => t.id === player.team);
+                                return (
+                                  <div key={player.id} className="border rounded-lg p-4 bg-purple-50">
+                                    <div className="flex justify-between items-start mb-2">
+                                      <h5 className="font-medium text-gray-900">{player.name}</h5>
+                                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                        Captain
+                                      </span>
+                                    </div>
+                                    <p className="text-sm text-gray-600 mb-2">{player.role}</p>
+                                    <div className="text-sm">
+                                      <p className="font-medium text-purple-600">Auto-assigned</p>
+                                      <p className="text-gray-500">{cleanTeamName(team?.name) || 'No Team'}</p>
+                                    </div>
                                   </div>
-                                  <p className="text-sm text-gray-600 mb-2">{player.role}</p>
-                                  {status === 'sold' && (
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      }
+                      
+                      if (spectatorPlayerFilter === 'sold') {
+                        return soldPlayers.length > 0 && (
+                          <div className="bg-white rounded-lg shadow p-6">
+                            <h4 className="text-lg font-medium text-gray-900 mb-4">
+                              Players Sold Through Bidding ({soldPlayers.length})
+                            </h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                              {soldPlayers.map((player) => {
+                                const team = auctionData.teams?.find(t => t.id === player.team);
+                                return (
+                                  <div key={player.id} className="border rounded-lg p-4">
+                                    <div className="flex justify-between items-start mb-2">
+                                      <h5 className="font-medium text-gray-900">{player.name}</h5>
+                                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                        player.category === 'batter' ? 'bg-blue-100 text-blue-800' :
+                                        player.category === 'bowler' ? 'bg-red-100 text-red-800' :
+                                        player.category === 'allrounder' ? 'bg-orange-100 text-orange-800' :
+                                        player.category === 'wicket-keeper' ? 'bg-green-100 text-green-800' :
+                                        'bg-gray-100 text-gray-800'
+                                      }`}>
+                                        {player.category === 'wicket-keeper' ? 'keeper' : player.category}
+                                      </span>
+                                    </div>
+                                    <p className="text-sm text-gray-600 mb-2">{player.role}</p>
                                     <div className="text-sm">
                                       <p className="font-medium text-green-600">₹{player.finalBid}</p>
                                       <p className="text-gray-500">{cleanTeamName(team?.name)}</p>
                                     </div>
-                                  )}
-                                </div>
-                              );
-                            })}
+                                  </div>
+                                );
+                              })}
+                            </div>
                           </div>
-                        </div>
+                        );
+                      }
+                      
+                      if (spectatorPlayerFilter === 'available') {
+                        return availablePlayers.length > 0 && (
+                          <div className="bg-white rounded-lg shadow p-6">
+                            <h4 className="text-lg font-medium text-gray-900 mb-4">
+                              Available for Bidding ({availablePlayers.length})
+                            </h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                              {availablePlayers.map((player) => {
+                                return (
+                                  <div key={player.id} className="border rounded-lg p-4 bg-yellow-50">
+                                    <div className="flex justify-between items-start mb-2">
+                                      <h5 className="font-medium text-gray-900">{player.name}</h5>
+                                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                        player.category === 'batter' ? 'bg-blue-100 text-blue-800' :
+                                        player.category === 'bowler' ? 'bg-red-100 text-red-800' :
+                                        player.category === 'allrounder' ? 'bg-orange-100 text-orange-800' :
+                                        player.category === 'wicket-keeper' ? 'bg-green-100 text-green-800' :
+                                        'bg-gray-100 text-gray-800'
+                                      }`}>
+                                        {player.category === 'wicket-keeper' ? 'keeper' : player.category}
+                                      </span>
+                                    </div>
+                                    <p className="text-sm text-gray-600 mb-2">{player.role}</p>
+                                    <div className="text-sm">
+                                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                        Available
+                                      </span>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      }
+                      
+                      if (spectatorPlayerFilter === 'unsold') {
+                        return unsoldPlayers.length > 0 && (
+                          <div className="bg-white rounded-lg shadow p-6">
+                            <h4 className="text-lg font-medium text-gray-900 mb-4">
+                              Unsold Players ({unsoldPlayers.length})
+                            </h4>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                              {unsoldPlayers.map((player) => {
+                                return (
+                                  <div key={player.id} className="border border-red-200 rounded-lg p-4 bg-red-50">
+                                    <div className="flex justify-between items-start mb-2">
+                                      <h5 className="font-medium text-gray-900">{player.name}</h5>
+                                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                        player.category === 'batter' ? 'bg-blue-100 text-blue-800' :
+                                        player.category === 'bowler' ? 'bg-red-100 text-red-800' :
+                                        player.category === 'allrounder' ? 'bg-orange-100 text-orange-800' :
+                                        player.category === 'wicket-keeper' ? 'bg-green-100 text-green-800' :
+                                        'bg-gray-100 text-gray-800'
+                                      }`}>
+                                        {player.category === 'wicket-keeper' ? 'keeper' : player.category}
+                                      </span>
+                                    </div>
+                                    <p className="text-sm text-gray-600 mb-2">{player.role}</p>
+                                    <div className="flex items-center text-red-600">
+                                      <span className="text-sm font-medium">❌ UNSOLD</span>
+                                    </div>
+                                  </div>
+                                );
+                              })}
+                            </div>
+                          </div>
+                        );
+                      }
+                      
+                      // Default: Show all players
+                      return (
+                        <>
+                          {/* Captains Section */}
+                          {captains.length > 0 && (
+                            <div className="bg-white rounded-lg shadow p-6">
+                              <h4 className="text-lg font-medium text-gray-900 mb-4">
+                                Captains ({captains.length}) - Auto-assigned
+                              </h4>
+                              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {captains.map((player) => {
+                                  const team = auctionData.teams?.find(t => t.id === player.team);
+                                  return (
+                                    <div key={player.id} className="border rounded-lg p-4 bg-purple-50">
+                                      <div className="flex justify-between items-start mb-2">
+                                        <h5 className="font-medium text-gray-900">{player.name}</h5>
+                                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                          Captain
+                                        </span>
+                                      </div>
+                                      <p className="text-sm text-gray-600 mb-2">{player.role}</p>
+                                      <div className="text-sm">
+                                        <p className="font-medium text-purple-600">Auto-assigned</p>
+                                        <p className="text-gray-500">{cleanTeamName(team?.name) || 'No Team'}</p>
+                                      </div>
+                                    </div>
+                                  );
+                                })}
+                              </div>
+                            </div>
+                          )}
+                          
+                          {/* Other Players by Status */}
+                          {[
+                            { status: 'sold', title: 'Players Sold Through Bidding', players: soldPlayers },
+                            { status: 'available', title: 'Available for Bidding', players: availablePlayers },
+                            { status: 'unsold', title: 'Unsold Players', players: unsoldPlayers }
+                          ].map(({ status, title, players }) => {
+                            if (players.length === 0) return null;
+                            
+                            return (
+                              <div key={status} className="bg-white rounded-lg shadow p-6">
+                                <h4 className="text-lg font-medium text-gray-900 mb-4">
+                                  {title} ({players.length})
+                                </h4>
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                  {players.map((player) => {
+                                    const team = auctionData.teams?.find(t => t.id === player.team);
+                                    return (
+                                      <div key={player.id} className="border rounded-lg p-4">
+                                        <div className="flex justify-between items-start mb-2">
+                                          <h5 className="font-medium text-gray-900">{player.name}</h5>
+                                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
+                                            player.category === 'batter' ? 'bg-blue-100 text-blue-800' :
+                                            player.category === 'bowler' ? 'bg-red-100 text-red-800' :
+                                            player.category === 'allrounder' ? 'bg-orange-100 text-orange-800' :
+                                            player.category === 'wicket-keeper' ? 'bg-green-100 text-green-800' :
+                                            'bg-gray-100 text-gray-800'
+                                          }`}>
+                                            {player.category === 'wicket-keeper' ? 'keeper' : player.category}
+                                          </span>
+                                        </div>
+                                        <p className="text-sm text-gray-600 mb-2">{player.role}</p>
+                                        {status === 'sold' && (
+                                          <div className="text-sm">
+                                            <p className="font-medium text-green-600">₹{player.finalBid}</p>
+                                            <p className="text-gray-500">{cleanTeamName(team?.name)}</p>
+                                          </div>
+                                        )}
+                                        {status === 'unsold' && (
+                                          <div className="flex items-center text-red-600">
+                                            <span className="text-sm font-medium">❌ UNSOLD</span>
+                                          </div>
+                                        )}
+                                        {status === 'available' && (
+                                          <div className="text-sm">
+                                            <span className="px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                              Available
+                                            </span>
+                                          </div>
+                                        )}
+                                      </div>
+                                    );
+                                  })}
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </>
                       );
-                    })}
+                    })()}
+                    
+                    {/* No results message */}
+                    {spectatorPlayerFilter !== 'all' && (
+                      (() => {
+                        const isEmpty = 
+                          (spectatorPlayerFilter === 'captains' && captains.length === 0) ||
+                          (spectatorPlayerFilter === 'sold' && soldPlayers.length === 0) ||
+                          (spectatorPlayerFilter === 'available' && availablePlayers.length === 0) ||
+                          (spectatorPlayerFilter === 'unsold' && unsoldPlayers.length === 0);
+                        
+                        return isEmpty && (
+                          <div className="text-center py-12">
+                            <div className="text-4xl mb-4">🔍</div>
+                            <h3 className="text-lg font-medium text-gray-900 mb-2">No Players Found</h3>
+                            <p className="text-gray-600">
+                              No players match the selected filter criteria.
+                            </p>
+                          </div>
+                        );
+                      })()
+                    )}
                   </div>
                 )
               ) : (

@@ -38,6 +38,88 @@ const downloadController = {
     }
   },
 
+  // Download Team Squads only
+  async downloadTeamSquads(req, res) {
+    try {
+      console.log('downloadTeamSquads called');
+      const auctionData = dataService.getAuctionData();
+      
+      if (!auctionData || !auctionData.players || auctionData.players.length === 0) {
+        return res.status(400).json({ 
+          error: 'No auction data available for download' 
+        });
+      }
+
+      console.log('Checking if generateTeamSquadsExcel method exists...');
+      if (typeof excelService.generateTeamSquadsExcel !== 'function') {
+        throw new Error('generateTeamSquadsExcel method not found in excelService');
+      }
+
+      console.log('Generating Team Squads Excel');
+      const buffer = excelService.generateTeamSquadsExcel(auctionData);
+
+      // Set headers for file download
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+      const filename = `team-squads-${timestamp}.xlsx`;
+      
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Length', buffer.length);
+      
+      console.log(`Sending Team Squads file: ${filename}, size: ${buffer.length} bytes`);
+      
+      res.send(buffer);
+
+    } catch (error) {
+      console.error('Error generating Team Squads Excel:', error);
+      res.status(500).json({ 
+        error: 'Failed to generate Team Squads Excel file',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  },
+
+  // Download Auction Summary only
+  async downloadAuctionSummary(req, res) {
+    try {
+      console.log('downloadAuctionSummary called');
+      const auctionData = dataService.getAuctionData();
+      
+      if (!auctionData || !auctionData.players || auctionData.players.length === 0) {
+        return res.status(400).json({ 
+          error: 'No auction data available for download' 
+        });
+      }
+
+      console.log('Checking if generateAuctionSummaryExcel method exists...');
+      if (typeof excelService.generateAuctionSummaryExcel !== 'function') {
+        throw new Error('generateAuctionSummaryExcel method not found in excelService');
+      }
+
+      console.log('Generating Auction Summary Excel');
+      const buffer = excelService.generateAuctionSummaryExcel(auctionData);
+
+      // Set headers for file download
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+      const filename = `auction-summary-${timestamp}.xlsx`;
+      
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Length', buffer.length);
+      
+      console.log(`Sending Auction Summary file: ${filename}, size: ${buffer.length} bytes`);
+      
+      res.send(buffer);
+
+    } catch (error) {
+      console.error('Error generating Auction Summary Excel:', error);
+      res.status(500).json({ 
+        error: 'Failed to generate Auction Summary Excel file',
+        details: process.env.NODE_ENV === 'development' ? error.message : undefined
+      });
+    }
+  },
+
   // Download CSV results (as ZIP)
   async downloadCSV(req, res) {
     try {

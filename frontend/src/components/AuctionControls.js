@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import axios from 'axios';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
@@ -18,9 +18,7 @@ const AuctionControls = ({ auctionData, socket }) => {
   };
 
   const auctionStatus = auctionData?.auctionStatus || 'stopped';
-  const currentBid = auctionData?.currentBid;
   const teams = auctionData?.teams || [];
-  const players = auctionData?.players || [];
 
   const handleStartAuction = async () => {
     setLoading(true);
