@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const AuctionSetup = () => {
   const navigate = useNavigate();
@@ -79,7 +80,7 @@ const AuctionSetup = () => {
       const formData = new FormData();
       formData.append('playerFile', file);
 
-      const response = await axios.post('/api/players/validate', formData, {
+  const response = await axios.post(`${API_BASE_URL}/api/players/validate`, formData, {
         headers: { 'Content-Type': 'multipart/form-data' }
       });
 
@@ -116,13 +117,13 @@ const AuctionSetup = () => {
 
     try {
       // First, save auction settings
-      await axios.post('/api/auction/settings', config);
+  await axios.post(`${API_BASE_URL}/api/auction/settings`, config);
 
       // Then upload players file
       if (fileData.file) {
         const formData = new FormData();
         formData.append('playerFile', fileData.file);
-        await axios.post('/api/players/upload', formData, {
+  await axios.post(`${API_BASE_URL}/api/players/upload`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
       }

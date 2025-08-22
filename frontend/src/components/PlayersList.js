@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const PlayersList = ({ players, teams, currentBid, auctionStatus, userRole }) => {
   const [loading, setLoading] = useState(false);
@@ -19,7 +20,7 @@ const PlayersList = ({ players, teams, currentBid, auctionStatus, userRole }) =>
 
     setLoading(true);
     try {
-      await axios.post(`/api/auction/bidding/start/${playerId}`);
+  await axios.post(`${API_BASE_URL}/api/auction/bidding/start/${playerId}`);
     } catch (error) {
       alert(error.response?.data?.error || 'Error starting bidding');
     } finally {

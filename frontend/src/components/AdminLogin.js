@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const AdminLogin = ({ onLogin }) => {
   const [credentials, setCredentials] = useState({
@@ -16,7 +17,7 @@ const AdminLogin = ({ onLogin }) => {
 
     try {
       // FIXED: Updated route to match new backend structure
-      const response = await axios.post('/api/auth/login', credentials);
+  const response = await axios.post(`${API_BASE_URL}/api/auth/login`, credentials);
       onLogin(response.data.token);
     } catch (error) {
       console.error('Login error:', error);

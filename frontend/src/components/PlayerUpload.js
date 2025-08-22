@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const PlayerUpload = ({ onUploadSuccess, onDataRefresh }) => {
   const [file, setFile] = useState(null);
@@ -25,7 +26,7 @@ const PlayerUpload = ({ onUploadSuccess, onDataRefresh }) => {
     formData.append('playerFile', fileToValidate);
 
     try {
-      const response = await axios.post('/api/players/validate', formData, {
+  const response = await axios.post(`${API_BASE_URL}/api/players/validate`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -62,7 +63,7 @@ const PlayerUpload = ({ onUploadSuccess, onDataRefresh }) => {
 
     try {
       console.log('Uploading file...');
-      const response = await axios.post('/api/players/upload', formData, {
+  const response = await axios.post(`${API_BASE_URL}/api/players/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
@@ -98,7 +99,7 @@ const PlayerUpload = ({ onUploadSuccess, onDataRefresh }) => {
     }
 
     try {
-      await axios.post('/api/players/clear');
+  await axios.post(`${API_BASE_URL}/api/players/clear`);
       setMessage('Auction data cleared successfully');
       setFile(null);
       setValidationResult(null);

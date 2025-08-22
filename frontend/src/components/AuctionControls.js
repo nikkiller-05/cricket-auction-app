@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const AuctionControls = ({ auctionData, socket }) => {
   const [loading, setLoading] = useState(false);
@@ -24,7 +25,7 @@ const AuctionControls = ({ auctionData, socket }) => {
   const handleStartAuction = async () => {
     setLoading(true);
     try {
-      await axios.post('/api/auction/start');
+  await axios.post(`${API_BASE_URL}/api/auction/start`);
     } catch (error) {
       console.error('Error starting auction:', error);
       alert(error.response?.data?.error || 'Error starting auction');
@@ -36,7 +37,7 @@ const AuctionControls = ({ auctionData, socket }) => {
   const handleStopAuction = async () => {
     setLoading(true);
     try {
-      await axios.post('/api/auction/stop');
+  await axios.post(`${API_BASE_URL}/api/auction/stop`);
     } catch (error) {
       console.error('Error stopping auction:', error);
       alert(error.response?.data?.error || 'Error stopping auction');

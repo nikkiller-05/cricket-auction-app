@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const HomePage = () => {
   const navigate = useNavigate();
@@ -15,7 +16,7 @@ const HomePage = () => {
     setLoginError('');
 
     try {
-      const response = await axios.post('/api/auth/login', credentials);
+  const response = await axios.post(`${API_BASE_URL}/api/auth/login`, credentials);
       localStorage.setItem('adminToken', response.data.token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
       
