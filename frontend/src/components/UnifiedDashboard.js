@@ -667,10 +667,10 @@ const UnifiedDashboard = () => {
   const tabs = isAdmin ? adminTabs : spectatorTabs;
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       {/* Notifications */}
       {notifications.length > 0 && (
-        <div className="fixed top-4 right-4 space-y-2 z-50">
+        <div className="fixed top-4 right-4 left-4 sm:left-auto space-y-2 z-50 max-w-sm sm:max-w-sm">
           {notifications.map(notification => (
             <div
               key={notification.id}
@@ -701,8 +701,8 @@ const UnifiedDashboard = () => {
       )}
 
       {/* Header */}
-      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-40 overflow-visible">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 overflow-visible">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-4 space-y-3 sm:space-y-0">
             {/* Left section - Title and Status */}
             <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
@@ -743,7 +743,7 @@ const UnifiedDashboard = () => {
             </div>
             
             {/* Right section - Action buttons */}
-            <div className="flex items-center space-x-2 sm:space-x-3">
+            <div className="flex items-center justify-end space-x-2 sm:space-x-3 relative">
               {/* Download dropdown - available to both admin and spectators */}
               {auctionData.fileUploaded && (
                 <div className="relative download-dropdown">
@@ -759,7 +759,7 @@ const UnifiedDashboard = () => {
                   </button>
                   
                   {showDownloadDropdown && (
-                    <div className="absolute right-0 mt-2 w-56 sm:w-64 bg-white rounded-md shadow-lg z-50 border border-gray-200">
+                    <div className="absolute right-0 top-full mt-2 w-64 bg-white rounded-md shadow-lg z-[100] border border-gray-200 max-h-96 overflow-y-auto">
                       <div className="py-1">
                         <button
                           onClick={() => {
