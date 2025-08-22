@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+body {
+  margin: 0;
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
+    'Ubuntu', 'Cantarell', 'Fira Sans', 'Droid Sans', 'Helvetica Neue',
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+code {
+  font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
+    monospace;
+}
+
+.category-batter {
+  @apply bg-blue-100 text-blue-800 border-blue-200;
+}
+
+.category-bowler {
+  @apply bg-red-100 text-red-800 border-red-200;
+}
+
+.category-wicket-keeper {
+  @apply bg-green-100 text-green-800 border-green-200;
+}
+
+.category-allrounder {
+  @apply bg-orange-100 text-orange-800 border-orange-200;
+}
+
+.category-captain {
+  @apply bg-purple-100 text-purple-800 border-purple-200;
+}
+
+.category-other {
+  @apply bg-gray-100 text-gray-800 border-gray-200;
+}
