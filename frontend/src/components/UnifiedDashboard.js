@@ -1,12 +1,8 @@
+
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import io from 'socket.io-client';
 import axios from 'axios';
-
-// Use environment variable for backend URL, fallback to localhost for dev
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-
-// Import all the components
 import PlayerUpload from './PlayerUpload';
 import TeamManagement from './TeamManagement';
 import AuctionControls from './AuctionControls';
@@ -15,6 +11,9 @@ import PlayersList from './PlayersList';
 import StatsDisplay from './StatsDisplay';
 import SubAdminManagement from './SubAdminManagement';
 import UndoControls from './UndoControls';
+
+// Use environment variable for backend URL, fallback to localhost for dev
+const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 // Helper functions
 const cleanTeamName = (name) => {
