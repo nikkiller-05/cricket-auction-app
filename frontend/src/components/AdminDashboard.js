@@ -469,7 +469,7 @@ const AdminDashboard = ({ auctionData, onLogout, socket, onDataRefresh }) => {
                   <li>• Required column: <strong>Name</strong></li>
                   <li>• Optional columns: Sl.No, Role/Category, Role, Category</li>
                   <li>• Supported formats: .xlsx, .xls, .csv</li>
-                  <li>• Players with "Captain" in their role will be auto-assigned to teams</li>
+                  <li>• Players with "Captain" in their role will be available for manual assignment</li>
                   <li>• Files are processed in memory only - not saved permanently</li>
                 </ul>
               </div>
@@ -523,7 +523,12 @@ const AdminDashboard = ({ auctionData, onLogout, socket, onDataRefresh }) => {
             <div className="space-y-6">
               {auctionData.fileUploaded ? (
                 <>
-                  <TeamManagement teams={auctionData.teams || []} />
+                  <TeamManagement 
+                    teams={auctionData.teams || []} 
+                    auctionData={auctionData}
+                    onTeamsUpdate={onDataRefresh}
+                    onPlayersUpdate={onDataRefresh}
+                  />
                   <TeamsDisplay 
                     teams={auctionData.teams || []}
                     players={auctionData.players || []}

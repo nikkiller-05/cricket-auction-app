@@ -482,6 +482,15 @@ const UnifiedDashboard = () => {
     }
   };
 
+  // Callback functions for TeamManagement component
+  const handleTeamsUpdate = (updatedTeams) => {
+    setAuctionData(prev => ({ ...prev, teams: updatedTeams }));
+  };
+
+  const handlePlayersUpdate = (updatedPlayers) => {
+    setAuctionData(prev => ({ ...prev, players: updatedPlayers }));
+  };
+
   const downloadResults = async (format = 'excel') => {
     try {
   const endpoint = format === 'csv' ? `${API_BASE_URL}/api/download-results-csv` : `${API_BASE_URL}/api/download-results`;
@@ -1524,7 +1533,12 @@ const UnifiedDashboard = () => {
               {auctionData.fileUploaded ? (
                 <>
                   {/* Admin Team Management (only for admin/super-admin) */}
-                  {isAdmin && canConfigure && <TeamManagement teams={auctionData.teams || []} />}
+                  {isAdmin && canConfigure && <TeamManagement 
+                    teams={auctionData.teams || []} 
+                    auctionData={auctionData} 
+                    onTeamsUpdate={handleTeamsUpdate}
+                    onPlayersUpdate={handlePlayersUpdate}
+                  />}
                   
                   {/* Enhanced Role-Based Team Squad Viewer */}
                   <TeamSquadViewer 

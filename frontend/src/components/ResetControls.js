@@ -11,7 +11,7 @@ const ResetControls = ({ auctionData, onReset }) => {
       '• Move all players back to available status\n' +
       '• Reset all team budgets\n' +
       '• Clear all bids and purchases\n' +
-      '• Keep captains assigned to teams\n\n' +
+      '• Keep manually assigned captains with their teams\n\n' +
       'This action cannot be undone!'
     );
 
@@ -139,7 +139,7 @@ const ResetControls = ({ auctionData, onReset }) => {
           <h4 className="font-medium text-gray-900 mb-2">Reset Entire Auction</h4>
           <p className="text-sm text-gray-600 mb-3">
             This will reset all players to available status and restore team budgets. 
-            Captains will remain assigned to their respective teams.
+            Manually assigned captains will remain with their respective teams.
           </p>
           <button
             onClick={resetAuction}

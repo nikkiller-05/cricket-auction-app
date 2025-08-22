@@ -139,15 +139,12 @@ const playerController = {
         });
       }
 
-      // Auto-assign captains to teams
-      captains.forEach((captain, index) => {
-        if (index < teams.length) {
-          captain.team = teams[index].id;
-          captain.status = 'sold';
-          captain.finalBid = 0; // IMPORTANT: Keep this at 0 for captains
-          teams[index].captain = captain.id;
-          teams[index].players.push(captain.id);
-        }
+      // Don't auto-assign captains - they will be manually assigned
+      // Keep captains as available players initially
+      captains.forEach(captain => {
+        captain.status = 'available';
+        captain.finalBid = 0;
+        captain.team = null;
       });
 
       dataService.setTeams(teams);

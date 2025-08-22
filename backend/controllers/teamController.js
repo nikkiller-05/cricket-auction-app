@@ -282,6 +282,147 @@ const teamController = {
       console.error('Error comparing teams:', error);
       res.status(500).json({ error: 'Error comparing teams' });
     }
+  },
+
+  // Assign captain to team
+  assignCaptain: (req, res) => {
+    try {
+      console.log('🏏 assignCaptain method called');
+      console.log('🏏 Request body:', req.body);
+      console.log('🏏 Request body type:', typeof req.body);
+      console.log('🏏 Request body keys:', Object.keys(req.body));
+      
+      const { teamId, captainId } = req.body;
+      
+      console.log('🏏 Extracted teamId:', teamId, 'type:', typeof teamId);
+      console.log('🏏 Extracted captainId:', captainId, 'type:', typeof captainId);
+      
+      if (!teamId || !captainId) {
+        console.log('🏏 Validation failed - missing teamId or captainId');
+        return res.status(400).json({ error: 'Team ID and Captain ID are required' });
+      }
+
+      const teams = dataService.getTeams();
+      const players = dataService.getPlayers();
+      
+      console.log('🏏 Total teams:', teams.length);
+      console.log('🏏 Total players:', players.length);
+      
+      const team = teams.find(t => t.id === parseInt(teamId));
+      const captain = players.find(p => p.id === captainId); // Keep as string for UUID
+      
+      console.log('🏏 Found team:', team ? `Team ${team.id} - ${team.name}` : 'Not found');
+      console.log('🏏 Found captain:', captain ? `${captain.name} (ID: ${captain.id}, Category: ${captain.category})` : 'Not found');
+      
+      if (!team) {
+        console.log('🏏 Team not found error');
+        return res.status(404).json({ error: 'Team not found' });
+      }
+      
+      if (!captain || captain.category !== 'captain') {
+        console.log('🏏 Captain validation failed');
+        console.log('🏏 Captain exists:', !!captain);
+        if (captain) {
+          console.log('🏏 Captain category:', captain.category);
+        }
+        // Let's also check all available captains
+        const allCaptains = players.filter(p => p.category === 'captain');
+        console.log('🏏 Available captains:', allCaptains.map(c => `${c.name} (ID: ${c.id})`));
+        return res.status(404).json({ error: 'Captain not found or invalid player category' });
+      }
+
+      // Check if captain is already assigned to another team
+      if (captain.team && captain.team !== parseInt(teamId)) {
+        return res.status(400).json({ error: 'Captain is already assigned to another team' });
+      }
+
+      // Remove captain from previous team if any
+      const previousTeam = teams.find(t => t.captain === captainId); // Use string ID
+      if (previousTeam && previousTeam.id !== parseInt(teamId)) {
+        previousTeam.captain = null;
+        previousTeam.players = previousTeam.players.filter(pid => pid !== captainId); // Use string ID
+      }
+
+      // Assign captain to new team
+      captain.team = parseInt(teamId);
+      captain.status = 'sold';
+      captain.finalBid = 0; // Captains are free
+      
+      team.captain = captainId; // Use string ID
+      if (!team.players.includes(captainId)) { // Use string ID
+        team.players.push(captainId); // Use string ID
+      }
+
+      dataService.setTeams(teams);
+      dataService.setPlayers(players);
+
+      // Broadcast updates
+      socketService.emit('teamsUpdated', teams);
+      socketService.emit('playersUpdated', players);
+
+      res.json({ 
+        message: 'Captain assigned successfully',
+        teams,
+        players,
+        team,
+        captain
+      });
+    } catch (error) {
+      console.error('Error assigning captain:', error);
+      res.status(500).json({ error: 'Error assigning captain' });
+    }
+  },
+
+  // Unassign captain from team
+  unassignCaptain: (req, res) => {
+    try {
+      const { teamId } = req.body;
+      
+      if (!teamId) {
+        return res.status(400).json({ error: 'Team ID is required' });
+      }
+
+      const teams = dataService.getTeams();
+      const players = dataService.getPlayers();
+      
+      const team = teams.find(t => t.id === parseInt(teamId));
+      
+      if (!team) {
+        return res.status(404).json({ error: 'Team not found' });
+      }
+
+      if (!team.captain) {
+        return res.status(400).json({ error: 'No captain assigned to this team' });
+      }
+
+      const captain = players.find(p => p.id === team.captain); // team.captain is already string ID
+      if (captain) {
+        captain.team = null;
+        captain.status = 'available';
+        captain.finalBid = 0;
+      }
+
+      const captainId = team.captain; // Store before clearing
+      team.captain = null;
+      team.players = team.players.filter(pid => pid !== captainId); // Use stored captain ID
+
+      dataService.setTeams(teams);
+      dataService.setPlayers(players);
+
+      // Broadcast updates
+      socketService.emit('teamsUpdated', teams);
+      socketService.emit('playersUpdated', players);
+
+      res.json({ 
+        message: 'Captain unassigned successfully',
+        teams,
+        players,
+        team
+      });
+    } catch (error) {
+      console.error('Error unassigning captain:', error);
+      res.status(500).json({ error: 'Error unassigning captain' });
+    }
   }
 };
 

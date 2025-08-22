@@ -22,6 +22,17 @@ router.get('/compare/all', teamController.compareTeams);
 // router.put('/:id', verifyConfigPermission, teamController.updateTeam);
 router.post('/update', verifyConfigPermission, teamController.updateTeams);
 
+// Captain assignment (admin/super-admin only)
+router.post('/assign-captain', (req, res, next) => {
+  console.log('🎯 Captain assignment route hit!', req.body);
+  next();
+}, verifyConfigPermission, teamController.assignCaptain);
+
+router.post('/unassign-captain', (req, res, next) => {
+  console.log('🎯 Captain unassignment route hit!', req.body);
+  next();
+}, verifyConfigPermission, teamController.unassignCaptain);
+
 // Reset team (admin/super-admin only)
 router.post('/:id/reset', verifyConfigPermission, teamController.resetTeam);
 
