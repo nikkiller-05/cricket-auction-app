@@ -818,8 +818,14 @@ const UnifiedDashboard = () => {
     }
   };
 
-  // Handle auction toggle for Header component
+  // Handle auction toggle for Header component - Only for admin roles
   const handleAuctionToggle = async (newState) => {
+    // Check if user has admin permissions
+    if (!isAdmin) {
+      addNotification('Only administrators can control auction status', 'error');
+      return;
+    }
+
     try {
       setAuctionToggleLoading(true);
       
@@ -964,7 +970,7 @@ const UnifiedDashboard = () => {
         userRole={userRole}
         onLogout={handleLogout}
         isAuctionOn={auctionData.auctionStatus === 'running'}
-        onToggleAuction={handleAuctionToggle}
+        onToggleAuction={isAdmin ? handleAuctionToggle : null}
         auctionLoading={auctionToggleLoading}
         showDownloadOptions={auctionData.fileUploaded}
         onDownloadExcel={() => downloadResults('excel')}

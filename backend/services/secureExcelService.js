@@ -77,7 +77,7 @@ const secureExcelService = {
     }
   },
 
-  // FIXED: Create team squads sheet (excludes captains from sold players)
+  // Create team squads sheet (includes all players: sold, retained, AND captains)
   createTeamSquadsSheet(auctionData) {
     try {
       const teams = auctionData.teams || [];
@@ -86,12 +86,21 @@ const secureExcelService = {
         return [['No teams available']];
       }
 
-      // Get players for each team (exclude captains from main squad display)
+      // Get ALL players for each team (sold, retained, captains - include ALL statuses assigned to teams)
       const playersByTeam = {};
       teams.forEach(team => {
         playersByTeam[team.id] = (auctionData.players || [])
-          .filter(p => p.team === team.id && p.status === 'sold')
-          .sort((a, b) => (b.finalBid || 0) - (a.finalBid || 0)); // Sort by price descending
+          .filter(p => p.team === team.id && p.team !== '' && p.team !== null)
+          .sort((a, b) => {
+            // Sort captains first, then by price descending
+            const aIsCaptain = a.role === 'Captain' || a.role === 'captain';
+            const bIsCaptain = b.role === 'Captain' || b.role === 'captain';
+            
+            if (aIsCaptain && !bIsCaptain) return -1;
+            if (!aIsCaptain && bIsCaptain) return 1;
+            
+            return (b.finalBid || 0) - (a.finalBid || 0);
+          });
       });
 
       const maxPlayers = Math.max(...teams.map(team => playersByTeam[team.id]?.length || 0), 1);
@@ -105,6 +114,7 @@ const secureExcelService = {
         headers.push(`${team.name} Name`);
         headers.push(`${team.name} Role`);
         headers.push(`${team.name} Price`);
+        headers.push(`${team.name} Status`);
         
         // Add separator column except for last team
         if (index < teams.length - 1) {
@@ -124,8 +134,17 @@ const secureExcelService = {
             row.push(player.name || '');
             row.push(player.role || '');
             row.push(player.finalBid ? `₹${player.finalBid}` : '');
+            
+            // Determine status - prioritize Captain role first, then other statuses
+            let status = 'Sold'; // default
+            if (player.role === 'Captain' || player.role === 'captain') {
+              status = 'Captain';
+            } else if (player.status === 'retained') {
+              status = 'Retained';
+            }
+            row.push(status);
           } else {
-            row.push('', '', '');
+            row.push('', '', '', '');
           }
           
           // Add separator column except for last team
@@ -293,7 +312,7 @@ const secureExcelService = {
         const ws5 = workbook.addWorksheet('Team Finances');
         
         const teamFinances = teams.map(team => {
-          const teamPlayers = allPlayers.filter(p => p.team === team.id && p.status === 'sold');
+          const teamPlayers = allPlayers.filter(p => p.team === team.id && p.team !== '' && p.team !== null);
           const totalSpent = teamPlayers.reduce((sum, player) => sum + (player.finalBid || 0), 0);
           const playersCount = teamPlayers.length;
           
@@ -302,7 +321,7 @@ const secureExcelService = {
             'Budget': team.budget ? `₹${team.budget}` : '',
             'Total Spent': `₹${totalSpent}`,
             'Remaining Budget': team.budget ? `₹${team.budget - totalSpent}` : '',
-            'Players Bought': playersCount,
+            'Total Players': playersCount,
             'Average Price': playersCount > 0 ? `₹${Math.round(totalSpent / playersCount)}` : '₹0'
           };
         });
@@ -322,6 +341,9 @@ const secureExcelService = {
       // 7. Auction Summary Sheet
       const ws6 = workbook.addWorksheet('Auction Summary');
       
+      const soldAndRetainedPlayers = [...soldPlayers, ...retainedPlayers];
+      const totalMoneySpent = soldAndRetainedPlayers.reduce((sum, player) => sum + (player.finalBid || 0), 0);
+      
       const auctionSummary = [{
         'Total Players': allPlayers.length,
         'Players Sold': soldPlayers.length,
@@ -329,9 +351,9 @@ const secureExcelService = {
         'Players Unsold': unsoldPlayers.length,
         'Players Yet To Auction': yetToAuction.length,
         'Total Teams': teams.length,
-        'Total Money Spent': `₹${soldPlayers.reduce((sum, player) => sum + (player.finalBid || 0), 0)}`,
-        'Average Player Price': soldPlayers.length > 0 ? 
-          `₹${Math.round(soldPlayers.reduce((sum, player) => sum + (player.finalBid || 0), 0) / soldPlayers.length)}` : '₹0'
+        'Total Money Spent': `₹${totalMoneySpent}`,
+        'Average Player Price': soldAndRetainedPlayers.length > 0 ? 
+          `₹${Math.round(totalMoneySpent / soldAndRetainedPlayers.length)}` : '₹0'
       }];
 
       // Add headers
@@ -387,6 +409,176 @@ const secureExcelService = {
     } catch (error) {
       console.error('Error generating auction report:', error);
       throw new Error('Failed to generate auction report: ' + error.message);
+    }
+  },
+
+  // Generate team squads only Excel file
+  async generateTeamSquadsExcel(auctionData) {
+    try {
+      if (!auctionData || !auctionData.players) {
+        throw new Error('No auction data provided');
+      }
+
+      console.log('Starting team squads Excel generation...');
+      
+      const workbook = new ExcelJS.Workbook();
+      workbook.created = new Date();
+      workbook.modified = new Date();
+
+      // Team Squads Sheet
+      const ws = workbook.addWorksheet('Team Squads');
+      const teamSquadsData = this.createTeamSquadsSheet(auctionData);
+      
+      teamSquadsData.forEach(row => {
+        ws.addRow(row);
+      });
+
+      // Auto-fit columns
+      ws.columns.forEach(column => {
+        let maxLength = 0;
+        column.eachCell({ includeEmpty: true }, (cell) => {
+          const columnLength = cell.value ? String(cell.value).length : 10;
+          if (columnLength > maxLength) {
+            maxLength = columnLength;
+          }
+        });
+        column.width = Math.min(Math.max(maxLength + 2, 10), 50);
+      });
+
+      // Generate buffer
+      const buffer = await workbook.xlsx.writeBuffer();
+      
+      console.log('Team squads Excel generated successfully');
+      return buffer;
+
+    } catch (error) {
+      console.error('Error generating team squads Excel:', error);
+      throw new Error('Failed to generate team squads Excel: ' + error.message);
+    }
+  },
+
+  // Generate auction summary only Excel file
+  async generateAuctionSummaryExcel(auctionData) {
+    try {
+      if (!auctionData || !auctionData.players) {
+        throw new Error('No auction data provided');
+      }
+
+      console.log('Starting auction summary Excel generation...');
+      
+      const workbook = new ExcelJS.Workbook();
+      workbook.created = new Date();
+      workbook.modified = new Date();
+
+      const allPlayers = auctionData.players || [];
+      const soldPlayers = allPlayers.filter(p => p.status === 'sold');
+      const retainedPlayers = allPlayers.filter(p => p.status === 'retained');
+      const unsoldPlayers = allPlayers.filter(p => p.status === 'unsold');
+      const yetToAuction = allPlayers.filter(p => p.status === 'available');
+      const teams = auctionData.teams || [];
+
+      // 1. Auction Summary Sheet
+      const ws1 = workbook.addWorksheet('Auction Summary');
+      
+      const soldAndRetainedPlayers = [...soldPlayers, ...retainedPlayers];
+      const totalMoneySpent = soldAndRetainedPlayers.reduce((sum, player) => sum + (player.finalBid || 0), 0);
+      
+      const auctionSummary = [{
+        'Total Players': allPlayers.length,
+        'Players Sold': soldPlayers.length,
+        'Players Retained': retainedPlayers.length,
+        'Players Unsold': unsoldPlayers.length,
+        'Players Yet To Auction': yetToAuction.length,
+        'Total Teams': teams.length,
+        'Total Money Spent': `₹${totalMoneySpent}`,
+        'Average Player Price': soldAndRetainedPlayers.length > 0 ? 
+          `₹${Math.round(totalMoneySpent / soldAndRetainedPlayers.length)}` : '₹0'
+      }];
+
+      // Add headers
+      const summaryHeaders = Object.keys(auctionSummary[0] || {});
+      ws1.addRow(summaryHeaders);
+      
+      // Add data
+      auctionSummary.forEach(row => {
+        ws1.addRow(Object.values(row));
+      });
+
+      this.setColumnWidths(ws1, auctionSummary);
+
+      // 2. Team Finances Sheet
+      if (teams.length > 0) {
+        const ws2 = workbook.addWorksheet('Team Finances');
+        
+        const teamFinances = teams.map(team => {
+          const teamPlayers = allPlayers.filter(p => p.team === team.id && p.team !== '' && p.team !== null);
+          const totalSpent = teamPlayers.reduce((sum, player) => sum + (player.finalBid || 0), 0);
+          const playersCount = teamPlayers.length;
+          
+          return {
+            'Team Name': team.name || '',
+            'Budget': team.budget ? `₹${team.budget}` : '',
+            'Total Spent': `₹${totalSpent}`,
+            'Remaining Budget': team.budget ? `₹${team.budget - totalSpent}` : '',
+            'Total Players': playersCount,
+            'Average Price': playersCount > 0 ? `₹${Math.round(totalSpent / playersCount)}` : '₹0'
+          };
+        });
+
+        // Add headers
+        const headers = Object.keys(teamFinances[0] || {});
+        ws2.addRow(headers);
+        
+        // Add data
+        teamFinances.forEach(row => {
+          ws2.addRow(Object.values(row));
+        });
+
+        this.setColumnWidths(ws2, teamFinances);
+      }
+
+      // 3. Category Analysis Sheet
+      const categories = [...new Set(allPlayers.map(p => p.category).filter(Boolean))];
+      if (categories.length > 0) {
+        const ws3 = workbook.addWorksheet('Category Analysis');
+        
+        const categoryAnalysis = categories.map(category => {
+          const categoryPlayers = allPlayers.filter(p => p.category === category);
+          const soldInCategory = categoryPlayers.filter(p => p.status === 'sold');
+          
+          return {
+            'Category': category,
+            'Total Players': categoryPlayers.length,
+            'Players Sold': soldInCategory.length,
+            'Players Unsold': categoryPlayers.filter(p => p.status === 'unsold').length,
+            'Players Yet To Auction': categoryPlayers.filter(p => p.status === 'available').length,
+            'Total Spent': `₹${soldInCategory.reduce((sum, player) => sum + (player.finalBid || 0), 0)}`,
+            'Average Price': soldInCategory.length > 0 ? 
+              `₹${Math.round(soldInCategory.reduce((sum, player) => sum + (player.finalBid || 0), 0) / soldInCategory.length)}` : '₹0'
+          };
+        });
+
+        // Add headers
+        const headers = Object.keys(categoryAnalysis[0] || {});
+        ws3.addRow(headers);
+        
+        // Add data
+        categoryAnalysis.forEach(row => {
+          ws3.addRow(Object.values(row));
+        });
+
+        this.setColumnWidths(ws3, categoryAnalysis);
+      }
+
+      // Generate buffer
+      const buffer = await workbook.xlsx.writeBuffer();
+      
+      console.log('Auction summary Excel generated successfully');
+      return buffer;
+
+    } catch (error) {
+      console.error('Error generating auction summary Excel:', error);
+      throw new Error('Failed to generate auction summary Excel: ' + error.message);
     }
   }
 };

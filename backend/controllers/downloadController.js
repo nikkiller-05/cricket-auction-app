@@ -50,13 +50,8 @@ const downloadController = {
         });
       }
 
-      console.log('Checking if generateTeamSquadsExcel method exists...');
-      if (typeof excelService.generateTeamSquadsExcel !== 'function') {
-        throw new Error('generateTeamSquadsExcel method not found in excelService');
-      }
-
-      console.log('Generating Team Squads Excel');
-      const buffer = excelService.generateTeamSquadsExcel(auctionData);
+      console.log('Generating Team Squads Excel with secureExcelService');
+      const buffer = await secureExcelService.generateTeamSquadsExcel(auctionData);
 
       // Set headers for file download
       const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
@@ -91,13 +86,8 @@ const downloadController = {
         });
       }
 
-      console.log('Checking if generateAuctionSummaryExcel method exists...');
-      if (typeof excelService.generateAuctionSummaryExcel !== 'function') {
-        throw new Error('generateAuctionSummaryExcel method not found in excelService');
-      }
-
-      console.log('Generating Auction Summary Excel');
-      const buffer = excelService.generateAuctionSummaryExcel(auctionData);
+      console.log('Generating Auction Summary Excel with secureExcelService');
+      const buffer = await secureExcelService.generateAuctionSummaryExcel(auctionData);
 
       // Set headers for file download
       const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');

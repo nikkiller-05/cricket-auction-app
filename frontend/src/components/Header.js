@@ -134,14 +134,16 @@ const Header = ({
         {/* Right Section - User Controls */}
         <div className="header-right">
           
-          {/* Auction Toggle */}
-          <div className="auction-toggle-container">
-            <AuctionToggleButton
-              isActive={isAuctionOn}
-              onToggle={onToggleAuction}
-              loading={auctionLoading}
-            />
-          </div>
+          {/* Auction Toggle - Only for admin roles */}
+          {onToggleAuction && (userRole === 'super-admin' || userRole === 'admin' || userRole === 'sub-admin') && (
+            <div className="auction-toggle-container">
+              <AuctionToggleButton
+                isActive={isAuctionOn}
+                onToggle={onToggleAuction}
+                loading={auctionLoading}
+              />
+            </div>
+          )}
 
           {/* Undo Last Sale Button - Super Admin Only */}
           {userRole === 'super-admin' && onUndoLastSale && (
