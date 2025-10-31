@@ -11,43 +11,43 @@ const StatsDisplay = ({ stats, teams, players }) => {
 
   return (
     <div className="space-y-6">
-      <h3 className="text-xl font-semibold text-gray-900">Auction Statistics</h3>
+      <h3 className="text-2xl font-bold text-gray-900">Auction Statistics</h3>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Overall Statistics */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h4 className="text-lg font-medium text-gray-900 mb-4">Overall Statistics</h4>
+        <div className="bg-indigo-50 bg-opacity-80 backdrop-blur-xl rounded-xl shadow-2xl p-6 border-2 border-indigo-400 border-opacity-70 hover:bg-opacity-90 transition-all duration-300">
+          <h4 className="text-xl font-bold text-indigo-900 mb-4">Overall Statistics</h4>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-gray-600">Total Players:</span>
-              <span className="font-semibold">{players?.length || 0}</span>
+              <span className="text-base font-semibold text-gray-600">Total Players:</span>
+              <span className="text-lg font-bold">{players?.length || 0}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-600">Players Sold (Bidding):</span>
-              <span className="font-semibold text-green-600">{soldPlayers.length}</span>
+              <span className="text-base font-semibold text-gray-600">Players Sold (Bidding):</span>
+              <span className="text-lg font-bold text-green-600">{soldPlayers.length}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-600">Team Captains:</span>
-              <span className="font-semibold text-purple-600">{captains.length}</span>
+              <span className="text-base font-semibold text-gray-600">Team Captains:</span>
+              <span className="text-lg font-bold text-purple-600">{captains.length}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-600">Players Available:</span>
-              <span className="font-semibold text-yellow-600">{availablePlayers.length}</span>
+              <span className="text-base font-semibold text-gray-600">Players Available:</span>
+              <span className="text-lg font-bold text-yellow-600">{availablePlayers.length}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-gray-600">Players Unsold:</span>
-              <span className="font-semibold text-red-600">{unsoldPlayers.length}</span>
+              <span className="text-base font-semibold text-gray-600">Players Unsold:</span>
+              <span className="text-lg font-bold text-red-600">{unsoldPlayers.length}</span>
             </div>
           </div>
         </div>
 
         {/* Financial Statistics */}
-        <div className="bg-white rounded-lg shadow p-6">
-          <h4 className="text-lg font-medium text-gray-900 mb-4">Financial Statistics</h4>
+        <div className="bg-green-50 bg-opacity-80 backdrop-blur-xl rounded-xl shadow-2xl p-6 border-2 border-green-400 border-opacity-70 hover:bg-opacity-90 transition-all duration-300">
+          <h4 className="text-xl font-bold text-green-900 mb-4">Financial Statistics</h4>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-gray-600">Total Spent:</span>
-              <span className="font-semibold text-green-600">₹{totalSpent}</span>
+              <span className="text-base font-semibold text-gray-600">Total Spent:</span>
+              <span className="text-lg font-bold text-green-600">₹{totalSpent}</span>
             </div>
             
             {/* RESTORED: Better Highest Bid UI */}
@@ -91,7 +91,7 @@ const StatsDisplay = ({ stats, teams, players }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Highest Bid Card */}
           {stats?.highestBid?.player && (
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg shadow p-6 border border-green-200">
+            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg shadow-2xl p-6 border-2 border-green-400 border-opacity-70">
               <div className="flex items-center justify-between mb-4">
                 <h4 className="text-lg font-medium text-green-800">🤑 Highest Bid</h4>
                 <span className="text-3xl font-bold text-green-600">₹{stats.highestBid.amount}</span>
@@ -123,7 +123,7 @@ const StatsDisplay = ({ stats, teams, players }) => {
 
           {/* Lowest Bid Card */}
           {stats?.lowestBid?.player && (
-            <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg shadow p-6 border border-blue-200">
+            <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg shadow-2xl p-6 border-2 border-blue-400 border-opacity-70">
               <div className="flex items-center justify-between mb-4">
                 <h4 className="text-lg font-medium text-blue-800">💎 Lowest Bid</h4>
                 <span className="text-3xl font-bold text-blue-600">₹{stats.lowestBid.amount}</span>
@@ -156,11 +156,11 @@ const StatsDisplay = ({ stats, teams, players }) => {
       )}
 
       {/* Team Budget Analysis */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h4 className="text-lg font-medium text-gray-900 mb-4">Team Budget Analysis</h4>
+      <div className="bg-purple-50 bg-opacity-80 backdrop-blur-xl rounded-xl shadow-2xl p-6 border-2 border-purple-400 border-opacity-70 hover:bg-opacity-90 transition-all duration-300">
+        <h4 className="text-lg font-medium text-purple-900 mb-4">Team Budget Analysis</h4>
         <div className="space-y-4">
           {teams?.map((team) => {
-            const teamPlayers = players?.filter(p => p.team === team.id && p.status === 'sold') || [];
+            const teamPlayers = players?.filter(p => p.team === team.id && (p.status === 'sold' || p.status === 'assigned')) || [];
             const boughtPlayers = teamPlayers.filter(p => p.category !== 'captain');
             const totalSpentByTeam = boughtPlayers.reduce((sum, p) => sum + (p.finalBid || 0), 0);
             const budgetUsed = ((totalSpentByTeam / 1000) * 100); // Assuming 1000 starting budget
@@ -195,8 +195,8 @@ const StatsDisplay = ({ stats, teams, players }) => {
       </div>
 
       {/* Category Breakdown */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h4 className="text-lg font-medium text-gray-900 mb-4">Category Breakdown</h4>
+      <div className="bg-orange-50 bg-opacity-80 backdrop-blur-xl rounded-xl shadow-2xl p-6 border-2 border-orange-400 border-opacity-70 hover:bg-opacity-90 transition-all duration-300">
+        <h4 className="text-lg font-medium text-orange-900 mb-4">Category Breakdown</h4>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {['batter', 'bowler', 'allrounder', 'wicket-keeper'].map(category => {
             const categoryPlayers = players?.filter(p => p.category === category) || [];
@@ -204,7 +204,7 @@ const StatsDisplay = ({ stats, teams, players }) => {
             const totalSpentInCategory = soldInCategory.reduce((sum, p) => sum + (p.finalBid || 0), 0);
             
             return (
-              <div key={category} className="text-center p-4 bg-gray-50 rounded-lg">
+              <div key={category} className="text-center p-4 bg-white bg-opacity-70 rounded-lg border border-gray-300 shadow-md">
                 <h5 className="font-medium text-gray-900 capitalize mb-2">{category.replace('-', ' ')}</h5>
                 <div className="space-y-1 text-sm">
                   <div className="text-gray-600">Total: {categoryPlayers.length}</div>

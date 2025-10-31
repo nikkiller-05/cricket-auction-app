@@ -9,6 +9,15 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  background: linear-gradient(135deg, 
+    rgba(219, 234, 254, 0.9) 0%,
+    rgba(191, 219, 254, 0.8) 25%,
+    rgba(147, 197, 253, 0.7) 50%,
+    rgba(196, 181, 253, 0.8) 75%,
+    rgba(233, 213, 255, 0.9) 100%
+  );
+  min-height: 100vh;
+  background-attachment: fixed;
 }
 
 code {

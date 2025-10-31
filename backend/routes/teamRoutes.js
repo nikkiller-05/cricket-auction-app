@@ -33,6 +33,17 @@ router.post('/unassign-captain', (req, res, next) => {
   next();
 }, verifyConfigPermission, teamController.unassignCaptain);
 
+// Player retention (admin/super-admin only)
+router.post('/assign-retention', (req, res, next) => {
+  console.log('🔄 Player retention assignment route hit!', req.body);
+  next();
+}, verifyConfigPermission, teamController.assignRetention);
+
+router.post('/unassign-retention', (req, res, next) => {
+  console.log('🔄 Player retention removal route hit!', req.body);
+  next();
+}, verifyConfigPermission, teamController.unassignRetention);
+
 // Reset team (admin/super-admin only)
 router.post('/:id/reset', verifyConfigPermission, teamController.resetTeam);
 

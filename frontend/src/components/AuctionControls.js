@@ -56,11 +56,11 @@ const AuctionControls = ({ auctionData, socket }) => {
 
   return (
     <div className="space-y-6">
-      <h3 className="text-xl font-semibold text-gray-900">Auction Controls</h3>
+      <h3 className="text-2xl font-bold text-gray-900">Auction Controls</h3>
       
       {/* Auction Status Display */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h4 className="text-lg font-medium text-gray-900 mb-4">Current Status</h4>
+      <div className="bg-white bg-opacity-15 backdrop-blur-xl rounded-xl shadow-2xl p-6 border-2 border-blue-200 border-opacity-50 hover:bg-opacity-25 transition-all duration-300">
+        <h4 className="text-xl font-bold text-gray-900 mb-4">Current Status</h4>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="text-center p-4 bg-gray-50 rounded-lg">
             <div className="text-2xl font-bold text-blue-600">
@@ -84,8 +84,8 @@ const AuctionControls = ({ auctionData, socket }) => {
       </div>
 
       {/* Control Buttons */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h4 className="text-lg font-medium text-gray-900 mb-4">Controls</h4>
+      <div className="bg-white bg-opacity-15 backdrop-blur-xl rounded-xl shadow-2xl p-6 border-2 border-green-200 border-opacity-50 hover:bg-opacity-25 transition-all duration-300">
+        <h4 className="text-xl font-bold text-gray-900 mb-4">Controls</h4>
         <div className="flex space-x-4">
           {auctionStatus === 'stopped' && (
             <button
@@ -110,24 +110,24 @@ const AuctionControls = ({ auctionData, socket }) => {
       </div>
 
       {/* Settings Display */}
-      <div className="bg-white rounded-lg shadow p-6">
-        <h4 className="text-lg font-medium text-gray-900 mb-4">Current Settings</h4>
+      <div className="bg-white bg-opacity-15 backdrop-blur-xl rounded-xl shadow-2xl p-6 border-2 border-purple-200 border-opacity-50 hover:bg-opacity-25 transition-all duration-300">
+        <h4 className="text-xl font-bold text-gray-900 mb-4">Current Settings</h4>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div>
             <div className="text-sm text-gray-600">Base Price</div>
-            <div className="font-medium">₹{settings.basePrice}</div>
+            <div className="text-lg font-bold">₹{settings.basePrice}</div>
           </div>
           <div>
             <div className="text-sm text-gray-600">Teams</div>
-            <div className="font-medium">{settings.teamCount}</div>
+            <div className="text-lg font-bold">{settings.teamCount}</div>
           </div>
           <div>
             <div className="text-sm text-gray-600">Max Players/Team</div>
-            <div className="font-medium">{settings.maxPlayersPerTeam}</div>
+            <div className="text-lg font-bold">{settings.maxPlayersPerTeam}</div>
           </div>
           <div>
             <div className="text-sm text-gray-600">Starting Budget</div>
-            <div className="font-medium">₹{settings.startingBudget}</div>
+            <div className="text-lg font-bold">₹{settings.startingBudget}</div>
           </div>
         </div>
       </div>

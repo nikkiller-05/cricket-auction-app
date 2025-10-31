@@ -113,30 +113,30 @@ const ResetControls = ({ auctionData, onReset }) => {
   const availablePlayersCount = auctionData.players?.filter(p => p.status === 'available' && p.category !== 'captain').length || 0;
 
   return (
-    <div className="bg-white shadow rounded-lg p-6">
-      <h3 className="text-lg font-medium text-gray-900 mb-4">Auction Management</h3>
+    <div className="bg-white bg-opacity-20 backdrop-blur-xl rounded-xl shadow-2xl p-6 border-2 border-red-400 border-opacity-70 hover:bg-opacity-30 transition-all duration-300">
+      <h3 className="text-2xl font-bold text-gray-900 mb-4">Auction Management</h3>
       
       {/* Current Status */}
       <div className="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="text-center p-3 bg-gray-50 rounded-lg">
+        <div className="text-center p-3 bg-gray-50 border-2 border-gray-300 border-opacity-60 rounded-lg shadow-md">
           <div className="text-2xl font-bold text-gray-900">{availablePlayersCount}</div>
-          <div className="text-sm text-gray-600">Available</div>
+          <div className="text-base font-semibold text-gray-600">Available</div>
         </div>
-        <div className="text-center p-3 bg-green-50 rounded-lg">
+        <div className="text-center p-3 bg-green-50 border-2 border-green-300 border-opacity-60 rounded-lg shadow-md">
           <div className="text-2xl font-bold text-green-700">{soldPlayersCount}</div>
-          <div className="text-sm text-gray-600">Sold</div>
+          <div className="text-base font-semibold text-gray-600">Sold</div>
         </div>
-        <div className="text-center p-3 bg-red-50 rounded-lg">
+        <div className="text-center p-3 bg-red-50 border-2 border-red-300 border-opacity-60 rounded-lg shadow-md">
           <div className="text-2xl font-bold text-red-700">{unsoldPlayersCount}</div>
-          <div className="text-sm text-gray-600">Unsold</div>
+          <div className="text-base font-semibold text-gray-600">Unsold</div>
         </div>
       </div>
 
       {/* Action Buttons */}
       <div className="space-y-4">
         {/* Reset Auction */}
-        <div className="border-l-4 border-red-400 pl-4">
-          <h4 className="font-medium text-gray-900 mb-2">Reset Entire Auction</h4>
+        <div className="border-l-4 border-red-500 bg-red-50 bg-opacity-30 border-2 border-red-300 border-opacity-50 rounded-lg p-4 shadow-md">
+          <h4 className="text-xl font-bold text-gray-900 mb-2">Reset Entire Auction</h4>
           <p className="text-sm text-gray-600 mb-3">
             This will reset all players to available status and restore team budgets. 
             Manually assigned captains will remain with their respective teams.
@@ -144,15 +144,15 @@ const ResetControls = ({ auctionData, onReset }) => {
           <button
             onClick={resetAuction}
             disabled={loading || !auctionData.fileUploaded}
-            className="bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md text-sm font-medium"
+            className="bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md text-sm font-medium border-2 border-red-500 shadow-md transition-all"
           >
             {loading ? 'Resetting...' : 'Reset Auction'}
           </button>
         </div>
 
         {/* Fast Track Auction */}
-        <div className="border-l-4 border-orange-400 pl-4">
-          <h4 className="font-medium text-gray-900 mb-2">Fast Track Auction</h4>
+        <div className="border-l-4 border-orange-500 bg-orange-50 bg-opacity-30 border-2 border-orange-300 border-opacity-50 rounded-lg p-4 shadow-md">
+          <h4 className="text-xl font-bold text-gray-900 mb-2">Fast Track Auction</h4>
           <p className="text-sm text-gray-600 mb-3">
             Give unsold players another chance by moving them back to available status.
             {unsoldPlayersCount > 0 && ` ${unsoldPlayersCount} players available for fast track.`}
@@ -160,7 +160,7 @@ const ResetControls = ({ auctionData, onReset }) => {
           
           {auctionData.auctionStatus === 'fast-track' ? (
             <div className="flex space-x-2">
-              <div className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm font-medium">
+              <div className="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-base font-semibold">
                 ⚡ Fast Track Active
               </div>
               <button
@@ -175,7 +175,7 @@ const ResetControls = ({ auctionData, onReset }) => {
             <button
               onClick={startFastTrack}
               disabled={loading || unsoldPlayersCount === 0}
-              className="bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md text-sm font-medium"
+              className="bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md text-sm font-medium border-2 border-orange-500 shadow-md transition-all"
             >
               {loading ? 'Starting...' : `Start Fast Track (${unsoldPlayersCount} players)`}
             </button>
@@ -183,8 +183,8 @@ const ResetControls = ({ auctionData, onReset }) => {
         </div>
 
         {/* Finish Entire Auction */}
-        <div className="border-l-4 border-gray-400 pl-4">
-          <h4 className="font-medium text-gray-900 mb-2">Complete Auction</h4>
+        <div className="border-l-4 border-gray-500 bg-gray-50 bg-opacity-30 border-2 border-gray-300 border-opacity-50 rounded-lg p-4 shadow-md">
+          <h4 className="text-xl font-bold text-gray-900 mb-2">Complete Auction</h4>
           <p className="text-sm text-gray-600 mb-3">
             Permanently finish the entire auction process. This will end all bidding and finalize results.
           </p>
@@ -193,14 +193,14 @@ const ResetControls = ({ auctionData, onReset }) => {
             <button
               onClick={finishEntireAuction}
               disabled={loading}
-              className="bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md text-sm font-medium"
+              className="bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md text-sm font-medium border-2 border-gray-500 shadow-md transition-all"
             >
               {loading ? 'Finishing...' : 'Finish Entire Auction'}
             </button>
           )}
 
           {auctionData.auctionStatus === 'finished' && (
-            <div className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm font-medium inline-block">
+            <div className="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-base font-semibold inline-block">
               ✅ Auction Completed
             </div>
           )}
@@ -208,9 +208,9 @@ const ResetControls = ({ auctionData, onReset }) => {
 
         {/* Auction Status Info */}
         <div className="border-l-4 border-blue-400 pl-4">
-          <h4 className="font-medium text-gray-900 mb-2">Current Status</h4>
+          <h4 className="text-xl font-bold text-gray-900 mb-2">Current Status</h4>
           <div className="flex items-center space-x-2">
-            <span className={`px-3 py-1 rounded-full text-sm font-medium ${
+            <span className={`px-3 py-1 rounded-full text-base font-semibold ${
               auctionData.auctionStatus === 'running' ? 'bg-green-100 text-green-800' :
               auctionData.auctionStatus === 'fast-track' ? 'bg-orange-100 text-orange-800' :
               auctionData.auctionStatus === 'finished' ? 'bg-blue-100 text-blue-800' :

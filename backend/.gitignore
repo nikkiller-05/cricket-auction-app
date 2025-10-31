@@ -1,0 +1,8 @@
+node_modules/
+npm-debug.log*
+.env
+.env.local
+.env.production
+package-lock.json
+test_*.csv
+sample_*.csv

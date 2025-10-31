@@ -117,7 +117,7 @@ const AuctionSetup = () => {
 
     try {
       // First, save auction settings
-  await axios.post(`${API_BASE_URL}/api/auction/settings`, config);
+      await axios.post(`${API_BASE_URL}/api/auction/settings`, config);
 
       // Then upload players file
       if (fileData.file) {
@@ -217,7 +217,7 @@ const AuctionSetup = () => {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
-                      <label className="block text-sm font-medium text-blue-200 mb-2">
+                      <label className="block text-base font-semibold text-blue-200 mb-2">
                         Number of Teams
                       </label>
                       <input
@@ -231,7 +231,7 @@ const AuctionSetup = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-blue-200 mb-2">
+                      <label className="block text-base font-semibold text-blue-200 mb-2">
                         Starting Budget per Team (₹)
                       </label>
                       <input
@@ -245,7 +245,7 @@ const AuctionSetup = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-blue-200 mb-2">
+                      <label className="block text-base font-semibold text-blue-200 mb-2">
                         Max Players per Team
                       </label>
                       <input
@@ -259,7 +259,7 @@ const AuctionSetup = () => {
                     </div>
 
                     <div>
-                      <label className="block text-sm font-medium text-blue-200 mb-2">
+                      <label className="block text-base font-semibold text-blue-200 mb-2">
                         Base Price (₹)
                       </label>
                       <input
@@ -272,6 +272,8 @@ const AuctionSetup = () => {
                       />
                     </div>
                   </div>
+
+
 
                   <div className="bg-blue-500 bg-opacity-20 rounded-lg p-4 border border-blue-400 border-opacity-30">
                     <h4 className="text-white font-medium mb-2">Preview:</h4>
@@ -411,11 +413,11 @@ const AuctionSetup = () => {
                         <div className="bg-white bg-opacity-10 rounded-lg p-4">
                           <h4 className="text-white font-medium mb-3">File Preview:</h4>
                           <div className="overflow-x-auto">
-                            <table className="min-w-full text-sm">
+                            <table className="min-w-full text-sm border-2 border-white border-opacity-30 rounded-lg overflow-hidden">
                               <thead>
-                                <tr className="border-b border-white border-opacity-20">
+                                <tr className="border-b-2 border-white border-opacity-40 bg-white bg-opacity-10">
                                   {fileData.validation?.columns?.map((col, index) => (
-                                    <th key={index} className="text-left py-2 px-3 text-blue-200 font-medium">
+                                    <th key={index} className="text-left py-2 px-3 text-blue-200 font-medium border-r border-white border-opacity-20">
                                       {col}
                                     </th>
                                   ))}
@@ -423,9 +425,9 @@ const AuctionSetup = () => {
                               </thead>
                               <tbody>
                                 {fileData.preview.map((row, index) => (
-                                  <tr key={index} className="border-b border-white border-opacity-10">
+                                  <tr key={index} className="border-b border-white border-opacity-20 hover:bg-white hover:bg-opacity-10">
                                     {Object.values(row.data).map((value, colIndex) => (
-                                      <td key={colIndex} className="py-2 px-3 text-white text-xs">
+                                      <td key={colIndex} className="py-2 px-3 text-white text-xs border-r border-white border-opacity-10">
                                         {value || '-'}
                                       </td>
                                     ))}

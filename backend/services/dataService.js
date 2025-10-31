@@ -19,6 +19,8 @@ let settings = {
   startingBudget: 1000,
   maxPlayersPerTeam: 15,
   basePrice: 10,
+  enableRetention: false,
+  retentionsPerTeam: 0,
   biddingIncrements: [
     { threshold: 50, increment: 5 },
     { threshold: 100, increment: 10 },

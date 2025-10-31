@@ -8,7 +8,15 @@ const auctionController = {
     try {
       console.log('Received settings:', req.body);
       
-      const { teamCount, startingBudget, maxPlayersPerTeam, basePrice, biddingIncrements } = req.body;
+      const { 
+        teamCount, 
+        startingBudget, 
+        maxPlayersPerTeam, 
+        basePrice, 
+        biddingIncrements, 
+        enableRetention = false, 
+        retentionsPerTeam = 0 
+      } = req.body;
       
       // Validate settings
       if (!teamCount || teamCount < 2 || teamCount > 16) {
@@ -38,7 +46,9 @@ const auctionController = {
         startingBudget: parseInt(startingBudget),
         maxPlayersPerTeam: parseInt(maxPlayersPerTeam),
         basePrice: parseInt(basePrice),
-        biddingIncrements: sortedIncrements
+        biddingIncrements: sortedIncrements,
+        enableRetention: Boolean(enableRetention),
+        retentionsPerTeam: parseInt(retentionsPerTeam) || 0
       };
       
       dataService.updateSettings(newSettings);
@@ -158,6 +168,10 @@ const auctionController = {
 
       if (player.category === 'captain') {
         return res.status(400).json({ error: 'Captains cannot be bid on' });
+      }
+
+      if (player.status === 'retained') {
+        return res.status(400).json({ error: 'Retained players cannot be bid on' });
       }
 
       if (dataService.getCurrentBid()) {
@@ -284,7 +298,7 @@ const auctionController = {
       const team = teams.find(t => t.id === parseInt(currentBid.biddingTeam));
 
       const settings = dataService.getSettings();
-      const teamPlayerCount = players.filter(p => p.team === team.id && p.status === 'sold').length;
+      const teamPlayerCount = players.filter(p => p.team === team.id && (p.status === 'sold' || p.status === 'assigned')).length;
       
       if (teamPlayerCount >= settings.maxPlayersPerTeam) {
         return res.status(400).json({ 
@@ -334,6 +348,13 @@ const auctionController = {
       socketService.emit('playersUpdated', players);
       socketService.emit('teamsUpdated', teams);
       socketService.emit('statsUpdated', stats);
+      
+      // Emit playerSold event for live transaction tracking
+      socketService.emit('playerSold', {
+        player: player,
+        team: team,
+        finalBid: player.finalBid
+      });
 
       console.log('Player sold:', player.name, 'to team:', team.name, 'for:', player.finalBid);
       res.json({ 
@@ -374,6 +395,11 @@ const auctionController = {
       socketService.emit('currentBidUpdated', null);
       socketService.emit('playersUpdated', players);
       socketService.emit('statsUpdated', stats);
+      
+      // Emit playerUnsold event for live transaction tracking
+      socketService.emit('playerUnsold', {
+        player: player
+      });
 
       console.log('Player marked as unsold:', player.name);
       res.json({ 
@@ -383,6 +409,58 @@ const auctionController = {
     } catch (error) {
       console.error('Error marking player as unsold:', error);
       res.status(500).json({ error: 'Error marking player as unsold' });
+    }
+  },
+
+  // Cancel current bidding session
+  cancelBidding: async (req, res) => {
+    try {
+      console.log('Cancel bidding request received');
+      const currentBid = dataService.getCurrentBid();
+      if (!currentBid) {
+        return res.status(400).json({ error: 'No active bidding to cancel' });
+      }
+
+      const players = dataService.getPlayers();
+      const player = players.find(p => p.id === currentBid.playerId);
+      
+      if (!player) {
+        return res.status(404).json({ error: 'Player not found' });
+      }
+
+      // Reset player to available state
+      player.status = 'available';
+      player.currentBid = 0;
+      player.biddingTeam = null;
+
+      // Clear bidding history for this player
+      dataService.clearPlayerBiddingHistory(player.id);
+
+      // Clear current bid
+      dataService.setCurrentBid(null);
+      dataService.setPlayers(players);
+
+      const stats = calculateStats(players);
+      dataService.updateStats(stats);
+
+      socketService.emit('currentBidUpdated', null);
+      socketService.emit('playersUpdated', players);
+      socketService.emit('statsUpdated', stats);
+      
+      // Emit bidding cancelled event
+      socketService.emit('biddingCancelled', {
+        player: player,
+        message: `Bidding cancelled for ${player.name}`
+      });
+
+      console.log('Bidding cancelled for player:', player.name);
+      res.json({ 
+        message: `Bidding cancelled for ${player.name}. Player is now available for bidding again.`,
+        player: player
+      });
+    } catch (error) {
+      console.error('Error cancelling bidding:', error);
+      res.status(500).json({ error: 'Error cancelling bidding' });
     }
   },
 

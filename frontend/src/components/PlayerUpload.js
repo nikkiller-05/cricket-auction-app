@@ -116,7 +116,7 @@ const PlayerUpload = ({ onUploadSuccess, onDataRefresh }) => {
   };
 
   return (
-    <div className="bg-white shadow rounded-lg p-6">
+    <div className="bg-white bg-opacity-15 backdrop-blur-xl rounded-xl shadow-2xl p-6 border-2 border-green-200 border-opacity-50 hover:bg-opacity-25 transition-all duration-300">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-medium text-gray-900">Upload Players</h3>
         <button

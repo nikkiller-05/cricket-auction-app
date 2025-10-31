@@ -273,26 +273,26 @@ const AdminDashboard = ({ auctionData, onLogout, socket, onDataRefresh }) => {
       )}
 
       {/* Header */}
-      <header className="bg-white shadow sticky top-0 z-40">
+      <header className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 shadow-xl sticky top-0 z-40 backdrop-blur-xl bg-opacity-90">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-4 space-y-4 sm:space-y-0">
             <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">Cricket Auction Admin</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-white">Cricket Auction Admin</h1>
               
               <div className="flex items-center space-x-2 flex-wrap">
-                <div className={`px-3 py-1 rounded-full text-sm font-medium ${statusInfo.color}`}>
+                <div className={`px-3 py-1 rounded-full text-base font-semibold ${statusInfo.color}`}>
                   {statusInfo.icon} {statusInfo.text}
                 </div>
                 
                 {auctionData.currentBid && (
-                  <div className="px-3 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 animate-pulse">
+                  <div className="px-3 py-1 rounded-full text-sm font-semibold bg-yellow-100 text-yellow-800 animate-pulse">
                     💰 Bidding: ₹{auctionData.currentBid.currentAmount}
                   </div>
                 )}
               </div>
               
               {auctionData.fileUploaded && (
-                <div className="px-3 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800 max-w-xs truncate">
+                <div className="px-3 py-1 rounded-full text-sm font-semibold bg-blue-100 text-blue-800 max-w-xs truncate">
                   📁 {auctionData.fileName} ({totalPlayersCount} players)
                 </div>
               )}
@@ -356,7 +356,7 @@ const AdminDashboard = ({ auctionData, onLogout, socket, onDataRefresh }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Quick Stats Bar */}
         {auctionData.fileUploaded && (
-          <div className="mb-6 bg-white rounded-lg shadow p-4">
+          <div className="mb-6 bg-white bg-opacity-15 backdrop-blur-xl rounded-xl shadow-2xl p-4 border-2 border-blue-200 border-opacity-50 hover:bg-opacity-25 transition-all duration-300">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
               <div className="p-3 bg-blue-50 rounded-lg">
                 <div className="text-2xl font-bold text-blue-600">{availablePlayersCount}</div>

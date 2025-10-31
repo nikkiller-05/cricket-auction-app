@@ -1,5 +1,5 @@
 const multer = require('multer');
-const xlsx = require('xlsx');
+const secureExcelService = require('../services/secureExcelService');
 const { v4: uuidv4 } = require('uuid');
 const dataService = require('../services/dataService');
 const socketService = require('../services/socketService');
@@ -22,15 +22,30 @@ const upload = multer({
 });
 
 // Helper function to parse file buffer
-const parseFileBuffer = (buffer, mimetype) => {
+const parseFileBuffer = async (buffer, mimetype) => {
   try {
+    console.log('Parsing file with mimetype:', mimetype, 'Buffer size:', buffer.length);
+    
+    if (!buffer || buffer.length === 0) {
+      throw new Error('File buffer is empty');
+    }
+    
     let data;
     
     if (mimetype === 'text/csv') {
       // Parse CSV
       const csvText = buffer.toString('utf8');
+      console.log('CSV content preview:', csvText.substring(0, 200));
+      
       const lines = csvText.split('\n').filter(line => line.trim());
+      if (lines.length === 0) {
+        throw new Error('CSV file is empty');
+      }
+      
       const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''));
+      if (headers.length === 0 || !headers[0]) {
+        throw new Error('No valid headers found in CSV');
+      }
       
       data = lines.slice(1).map(line => {
         const values = line.split(',').map(v => v.trim().replace(/"/g, ''));
@@ -42,15 +57,14 @@ const parseFileBuffer = (buffer, mimetype) => {
       }).filter(row => row[headers[0]]); // Filter empty rows
       
     } else {
-      // Parse Excel
-      const workbook = xlsx.read(buffer, { type: 'buffer' });
-      const sheetName = workbook.SheetNames;
-      const worksheet = workbook.Sheets[sheetName];
-      data = xlsx.utils.sheet_to_json(worksheet);
+      // Parse Excel using secure service
+      data = await secureExcelService.readExcelFromBuffer(buffer);
     }
 
+    console.log('Parsed data:', data?.length, 'rows');
     return data;
   } catch (error) {
+    console.error('Error parsing file:', error.message);
     throw new Error('Error parsing file: ' + error.message);
   }
 };
@@ -66,7 +80,7 @@ const playerController = {
       const { buffer, mimetype, originalname } = req.file;
       
       // Parse file from memory buffer
-      const data = parseFileBuffer(buffer, mimetype);
+      const data = await parseFileBuffer(buffer, mimetype);
       
       if (!data || data.length === 0) {
         return res.status(400).json({ error: 'No data found in file' });
@@ -191,8 +205,13 @@ const playerController = {
         return res.status(400).json({ error: 'No file uploaded' });
       }
 
+      console.log('Validating file:', req.file.originalname, 'Type:', req.file.mimetype);
+      
       const { buffer, mimetype, originalname } = req.file;
-      const data = parseFileBuffer(buffer, mimetype);
+      const data = await parseFileBuffer(buffer, mimetype);
+      
+      console.log('Parsed data length:', data?.length);
+      console.log('First row sample:', data?.[0]);
       
       if (!data || data.length === 0) {
         return res.status(400).json({ error: 'No data found in file' });
@@ -200,6 +219,10 @@ const playerController = {
 
       // Check columns
       const firstRow = data[0];
+      if (!firstRow) {
+        return res.status(400).json({ error: 'First row is empty or invalid' });
+      }
+      
       const columns = Object.keys(firstRow);
       const hasName = columns.some(col => 
         ['name', 'player name', 'playername'].includes(col.toLowerCase())
@@ -220,6 +243,7 @@ const playerController = {
       });
 
     } catch (error) {
+      console.error('File validation error:', error);
       res.status(500).json({ 
         error: 'Error validating file: ' + error.message 
       });

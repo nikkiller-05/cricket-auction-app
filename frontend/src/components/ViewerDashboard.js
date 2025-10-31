@@ -40,7 +40,7 @@ const ViewerDashboard = ({ auctionData, socket }) => {
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center">
               <h1 className="text-3xl font-bold text-gray-900">Cricket Auction Live</h1>
-              <div className={`ml-4 px-3 py-1 rounded-full text-sm font-medium ${
+              <div className={`ml-4 px-3 py-1 rounded-full text-base font-semibold ${
                 auctionData.auctionStatus === 'running' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-800'
               }`}>
                 {auctionData.auctionStatus === 'running' ? '🔴 LIVE' : 'STOPPED'}
@@ -67,8 +67,8 @@ const ViewerDashboard = ({ auctionData, socket }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
         {/* Current Bidding */}
         {auctionData.currentBid && (
-          <div className="mb-8 bg-gradient-to-r from-yellow-400 to-orange-500 text-white rounded-lg p-6">
-            <h2 className="text-2xl font-bold mb-4">🔥 LIVE BIDDING</h2>
+          <div className="mb-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-lg p-6 border-2 border-orange-300 border-opacity-60 shadow-lg">
+            <h2 className="text-2xl font-bold mb-4 text-gray-900">🔥 LIVE BIDDING</h2>
             {(() => {
               const player = auctionData.players.find(p => p.id === auctionData.currentBid.playerId);
               const biddingTeam = auctionData.teams.find(t => t.id === parseInt(auctionData.currentBid.biddingTeam));
@@ -76,17 +76,17 @@ const ViewerDashboard = ({ auctionData, socket }) => {
               return (
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
-                    <h3 className="font-medium opacity-90">Player</h3>
-                    <p className="text-2xl font-bold">{player?.name}</p>
-                    <p className="opacity-90">{player?.role}</p>
+                    <h3 className="text-lg font-bold text-gray-800">Player</h3>
+                    <p className="text-2xl font-bold text-blue-900">{player?.name}</p>
+                    <p className="text-gray-700 font-medium">{player?.role}</p>
                   </div>
                   <div>
-                    <h3 className="font-medium opacity-90">Current Bid</h3>
-                    <p className="text-3xl font-bold">₹{auctionData.currentBid.currentAmount}</p>
+                    <h3 className="font-medium text-gray-800">Current Bid</h3>
+                    <p className="text-3xl font-bold text-green-800">₹{auctionData.currentBid.currentAmount}</p>
                   </div>
                   <div>
-                    <h3 className="font-medium opacity-90">Leading Team</h3>
-                    <p className="text-2xl font-bold">{biddingTeam?.name || 'No bids yet'}</p>
+                    <h3 className="font-medium text-gray-800">Leading Team</h3>
+                    <p className="text-2xl font-bold text-purple-800">{biddingTeam?.name || 'No bids yet'}</p>
                   </div>
                 </div>
               );

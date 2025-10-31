@@ -25,7 +25,7 @@ const teamController = {
       }
 
       const players = dataService.getPlayers();
-      const teamPlayers = players.filter(p => p.team === team.id && p.status === 'sold');
+      const teamPlayers = players.filter(p => p.team === team.id && (p.status === 'sold' || p.status === 'assigned'));
 
       res.json({ 
         team,
@@ -125,7 +125,7 @@ const teamController = {
       }
 
       const players = dataService.getPlayers();
-      const teamPlayers = players.filter(p => p.team === team.id && p.status === 'sold');
+      const teamPlayers = players.filter(p => p.team === team.id && (p.status === 'sold' || p.status === 'assigned'));
       
       // Calculate team statistics
       const boughtPlayers = teamPlayers.filter(p => p.category !== 'captain');
@@ -255,7 +255,7 @@ const teamController = {
       const players = dataService.getPlayers();
       
       const teamComparison = teams.map(team => {
-        const teamPlayers = players.filter(p => p.team === team.id && p.status === 'sold');
+        const teamPlayers = players.filter(p => p.team === team.id && (p.status === 'sold' || p.status === 'assigned'));
         const boughtPlayers = teamPlayers.filter(p => p.category !== 'captain');
         const totalSpent = boughtPlayers.reduce((sum, p) => sum + (p.finalBid || 0), 0);
         
@@ -345,7 +345,7 @@ const teamController = {
 
       // Assign captain to new team
       captain.team = parseInt(teamId);
-      captain.status = 'sold';
+      captain.status = 'assigned';
       captain.finalBid = 0; // Captains are free
       
       team.captain = captainId; // Use string ID
@@ -422,6 +422,155 @@ const teamController = {
     } catch (error) {
       console.error('Error unassigning captain:', error);
       res.status(500).json({ error: 'Error unassigning captain' });
+    }
+  },
+
+  // Assign retained player to team
+  assignRetention: (req, res) => {
+    try {
+      const { teamId, playerId, retentionAmount = 0, retentionsPerTeam = 5 } = req.body;
+      
+      if (!teamId || !playerId) {
+        return res.status(400).json({ error: 'Team ID and Player ID are required' });
+      }
+
+      if (retentionAmount < 0) {
+        return res.status(400).json({ error: 'Retention amount must be ≥ ₹0' });
+      }
+
+      const teams = dataService.getTeams();
+      const players = dataService.getPlayers();
+      const settings = dataService.getSettings();
+
+      const team = teams.find(t => t.id === parseInt(teamId));
+      if (!team) {
+        return res.status(404).json({ error: 'Team not found' });
+      }
+
+      const player = players.find(p => p.id === playerId);
+      if (!player) {
+        return res.status(404).json({ error: 'Player not found' });
+      }
+
+      if (player.category === 'captain') {
+        return res.status(400).json({ error: 'Captains cannot be retained players' });
+      }
+
+      if (player.status === 'retained' && player.team !== null) {
+        return res.status(400).json({ error: 'Player is already retained by another team' });
+      }
+
+      // Check if team has reached retention limit
+      const currentRetentions = players.filter(p => p.team === team.id && p.status === 'retained').length;
+      const maxRetentions = retentionsPerTeam || 5; // Use passed parameter or default to 5
+      if (currentRetentions >= maxRetentions) {
+        return res.status(400).json({ error: `Team has reached maximum retention limit (${maxRetentions} players)` });
+      }
+
+      // Check if team has enough budget
+      const retentionAmountNum = parseInt(retentionAmount) || 0;
+      if (team.budget < retentionAmountNum) {
+        return res.status(400).json({ error: 'Insufficient team budget for this retention amount' });
+      }
+
+      // Assign player to team as retained
+      player.team = team.id;
+      player.status = 'retained';
+      player.retentionAmount = retentionAmountNum;
+      player.finalBid = retentionAmountNum; // Set finalBid to retention amount for consistency
+
+      // Update team budget
+      team.budget -= retentionAmountNum;
+
+      // Add to team's player list if not already there
+      if (!team.players.includes(player.id)) {
+        team.players.push(player.id);
+      }
+
+      dataService.setTeams(teams);
+      dataService.setPlayers(players);
+
+      // Broadcast updates
+      socketService.emit('teamsUpdated', teams);
+      socketService.emit('playersUpdated', players);
+      socketService.emit('playerRetained', { 
+        player: player, 
+        team: team, 
+        retentionAmount: retentionAmountNum 
+      });
+
+      res.json({ 
+        message: `${player.name} retained by ${team.name} for ₹${retentionAmountNum}`,
+        teams,
+        players,
+        player,
+        team
+      });
+    } catch (error) {
+      console.error('Error assigning retention:', error);
+      res.status(500).json({ error: 'Error assigning retention' });
+    }
+  },
+
+  // Remove retention from player
+  unassignRetention: (req, res) => {
+    try {
+      const { playerId } = req.body;
+      
+      if (!playerId) {
+        return res.status(400).json({ error: 'Player ID is required' });
+      }
+
+      const teams = dataService.getTeams();
+      const players = dataService.getPlayers();
+      
+      const player = players.find(p => p.id === playerId);
+      if (!player) {
+        return res.status(404).json({ error: 'Player not found' });
+      }
+
+      if (player.status !== 'retained') {
+        return res.status(400).json({ error: 'Player is not currently retained' });
+      }
+
+      const team = teams.find(t => t.id === player.team);
+      if (team) {
+        // Restore the retention amount to team budget
+        team.budget += (player.retentionAmount || 0);
+        
+        // Remove player from team's player list
+        team.players = team.players.filter(pid => pid !== player.id);
+      }
+
+      // Reset player status
+      const retentionAmount = player.retentionAmount || 0;
+      player.team = null;
+      player.status = 'available';
+      player.retentionAmount = 0;
+      player.finalBid = 0;
+
+      dataService.setTeams(teams);
+      dataService.setPlayers(players);
+
+      // Broadcast updates
+      socketService.emit('teamsUpdated', teams);
+      socketService.emit('playersUpdated', players);
+      socketService.emit('playerRetentionRemoved', { 
+        player: player, 
+        team: team, 
+        refundedAmount: retentionAmount 
+      });
+
+      res.json({ 
+        message: `${player.name} retention removed, ₹${retentionAmount} refunded to team`,
+        teams,
+        players,
+        player,
+        team
+      });
+    } catch (error) {
+      console.error('Error removing retention:', error);
+      res.status(500).json({ error: 'Error removing retention' });
     }
   }
 };

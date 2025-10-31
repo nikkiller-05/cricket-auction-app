@@ -1,5 +1,5 @@
 const dataService = require('../services/dataService');
-const excelService = require('../services/excelService');
+const secureExcelService = require('../services/secureExcelService');
 
 const downloadController = {
   // Download Excel results
@@ -15,7 +15,7 @@ const downloadController = {
 
       console.log('Generating Excel with', auctionData.players.length, 'players');
 
-      const buffer = excelService.generateAuctionExcel(auctionData);
+      const buffer = await secureExcelService.generateAuctionReport(auctionData);
 
       // Set headers for file download
       const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');

@@ -1,5 +1,7 @@
 .App {
   text-align: center;
+  min-height: 100vh;
+  background: transparent;
 }
 
 .App-logo {
@@ -35,4 +37,17 @@
   to {
     transform: rotate(360deg);
   }
+}
+
+/* Tab hover effects */
+.tab-button:hover {
+  transform: scale(1.02);
+}
+
+.tab-button.active {
+  transform: scale(1.05);
+}
+
+.tab-button {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
