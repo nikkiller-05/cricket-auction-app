@@ -93,8 +93,8 @@ const secureExcelService = {
           .filter(p => p.team === team.id && p.team !== '' && p.team !== null)
           .sort((a, b) => {
             // Sort captains first, then by price descending
-            const aIsCaptain = a.role === 'Captain' || a.role === 'captain';
-            const bIsCaptain = b.role === 'Captain' || b.role === 'captain';
+            const aIsCaptain = a.role && a.role.toLowerCase().includes('captain');
+            const bIsCaptain = b.role && b.role.toLowerCase().includes('captain');
             
             if (aIsCaptain && !bIsCaptain) return -1;
             if (!aIsCaptain && bIsCaptain) return 1;
@@ -137,7 +137,7 @@ const secureExcelService = {
             
             // Determine status - prioritize Captain role first, then other statuses
             let status = 'Sold'; // default
-            if (player.role === 'Captain' || player.role === 'captain') {
+            if (player.role && player.role.toLowerCase().includes('captain')) {
               status = 'Captain';
             } else if (player.status === 'retained') {
               status = 'Retained';
@@ -243,7 +243,7 @@ const secureExcelService = {
       }
 
       // 3. Team Captains Sheet
-      const captains = allPlayers.filter(p => p.role === 'Captain' || p.role === 'captain');
+      const captains = allPlayers.filter(p => p.role && p.role.toLowerCase().includes('captain'));
       if (captains.length > 0) {
         const wsCaptains = workbook.addWorksheet('Team Captains');
         
