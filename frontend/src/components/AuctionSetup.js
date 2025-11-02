@@ -39,10 +39,27 @@ const AuctionSetup = () => {
 
   const handleIncrementChange = (index, field, value) => {
     const newIncrements = [...config.biddingIncrements];
-    newIncrements[index] = {
-      ...newIncrements[index],
-      [field]: parseInt(value) || 0
-    };
+    
+    // Handle empty string or allow user to type without interference
+    if (value === '') {
+      newIncrements[index] = {
+        ...newIncrements[index],
+        [field]: ''
+      };
+    } else {
+      // Only convert to number if it's a valid number
+      const numericValue = parseInt(value);
+      if (!isNaN(numericValue) && numericValue >= 0) {
+        newIncrements[index] = {
+          ...newIncrements[index],
+          [field]: numericValue
+        };
+      } else {
+        // Keep the previous valid value if input is invalid
+        return;
+      }
+    }
+    
     setConfig(prev => ({
       ...prev,
       biddingIncrements: newIncrements
@@ -145,7 +162,10 @@ const AuctionSetup = () => {
         return config.teamCount >= 2 && config.startingBudget > 0 && config.maxPlayersPerTeam > 0;
       case 2:
         return config.biddingIncrements.length > 0 && 
-               config.biddingIncrements.every(inc => inc.threshold >= 0 && inc.increment > 0);
+               config.biddingIncrements.every(inc => 
+                 (typeof inc.threshold === 'number' && inc.threshold >= 0) && 
+                 (typeof inc.increment === 'number' && inc.increment > 0)
+               );
       case 3:
         return fileData.file && fileData.validation?.valid;
       default:
@@ -304,28 +324,30 @@ const AuctionSetup = () => {
                       <div key={index} className="flex items-center space-x-4 bg-white bg-opacity-5 rounded-lg p-4">
                         <div className="flex-1">
                           <label className="block text-xs text-blue-200 mb-1">
-                            Until ₹{increment.threshold} (Threshold)
+                            Until ₹{typeof increment.threshold === 'number' ? increment.threshold : '0'} (Threshold)
                           </label>
                           <input
                             type="number"
                             min="0"
                             step="10"
                             value={increment.threshold}
+                            placeholder="Enter threshold amount"
                             onChange={(e) => handleIncrementChange(index, 'threshold', e.target.value)}
-                            className="w-full px-3 py-2 bg-white bg-opacity-20 border border-white border-opacity-30 rounded text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            className="w-full px-3 py-2 bg-white bg-opacity-20 border border-white border-opacity-30 rounded text-white text-sm placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
                           />
                         </div>
                         <div className="flex-1">
                           <label className="block text-xs text-blue-200 mb-1">
-                            Increment by ₹{increment.increment}
+                            Increment by ₹{typeof increment.increment === 'number' ? increment.increment : '0'}
                           </label>
                           <input
                             type="number"
                             min="1"
-                            step="5"
+                            step="1"
                             value={increment.increment}
+                            placeholder="Enter increment amount"
                             onChange={(e) => handleIncrementChange(index, 'increment', e.target.value)}
-                            className="w-full px-3 py-2 bg-white bg-opacity-20 border border-white border-opacity-30 rounded text-white text-sm focus:outline-none focus:ring-2 focus:ring-blue-400"
+                            className="w-full px-3 py-2 bg-white bg-opacity-20 border border-white border-opacity-30 rounded text-white text-sm placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
                           />
                         </div>
                         {config.biddingIncrements.length > 1 && (
@@ -351,12 +373,16 @@ const AuctionSetup = () => {
                     <h4 className="text-white font-medium mb-2">Bidding Rules Preview:</h4>
                     <div className="text-green-200 text-sm space-y-1">
                       {config.biddingIncrements
+                        .filter(rule => typeof rule.threshold === 'number' && typeof rule.increment === 'number')
                         .sort((a, b) => a.threshold - b.threshold)
-                        .map((rule, index) => (
+                        .map((rule, index, filteredArray) => (
                           <p key={index}>
-                            • {index === 0 ? 'Start' : `From ₹${config.biddingIncrements[index-1]?.threshold || 0}`} to ₹{rule.threshold}: increment by ₹{rule.increment}
+                            • {index === 0 ? 'Start' : `From ₹${filteredArray[index-1]?.threshold || 0}`} to ₹{rule.threshold}: increment by ₹{rule.increment}
                           </p>
                         ))}
+                      {config.biddingIncrements.filter(rule => typeof rule.threshold === 'number' && typeof rule.increment === 'number').length === 0 && (
+                        <p className="text-yellow-300 italic">Complete the rules above to see preview</p>
+                      )}
                     </div>
                   </div>
                 </div>

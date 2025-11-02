@@ -592,6 +592,7 @@ const UnifiedDashboard = () => {
   const fetchActionHistory = useCallback(async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/api/auction/history`);
+      console.log('Action history fetched:', response.data.history);
       setActionHistory(response.data.history);
     } catch (error) {
       console.error('Error fetching action history:', error);
@@ -600,6 +601,7 @@ const UnifiedDashboard = () => {
 
   // Fetch action history for super-admin
   useEffect(() => {
+    console.log('Role check for action history:', { userRole, isAdmin });
     if (userRole === 'super-admin' && isAdmin) {
       fetchActionHistory();
     }
@@ -979,7 +981,11 @@ const UnifiedDashboard = () => {
         onDownloadCSV={() => downloadResults('csv')}
         onUploadPlayers={() => setShowUploadModal(true)}
         onUndoLastSale={handleUndoLastSale}
-        canUndoLastSale={actionHistory.find(action => action.type === 'PLAYER_SOLD')}
+        canUndoLastSale={(() => {
+          const lastSale = actionHistory.slice().reverse().find(action => action.type === 'PLAYER_SOLD');
+          console.log('Can undo last sale check:', { actionHistory: actionHistory.length, lastSale: !!lastSale });
+          return !!lastSale;
+        })()}
         undoLoading={undoLoading}
         auctionStatus={auctionData.auctionStatus}
       />
