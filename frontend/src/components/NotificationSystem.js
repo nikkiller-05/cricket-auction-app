@@ -183,7 +183,7 @@ const NotificationContainer = ({ notifications, removeNotification, confirmNotif
   if (notifications.length === 0) return null;
 
   return (
-    <div className="fixed top-16 right-4 z-[9999] max-w-sm space-y-2">
+    <div className="fixed top-16 left-4 right-4 sm:left-auto sm:right-4 z-[9999] w-auto sm:max-w-sm space-y-2">
       {notifications.map((notification, index) => (
         <div
           key={notification.id}

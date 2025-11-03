@@ -53,6 +53,16 @@ A comprehensive full-stack web application for managing and conducting professio
 
 ## 🆕 Recent Updates & Improvements
 
+### **v2.2.0 - November 2025**
+- ✨ **Searchable Retention Dropdown**: Custom dropdown with search, filter, and clear functionality
+- 🎨 **Compact Notifications**: Reduced notification size by 40% for better UX
+- 📱 **Enhanced Mobile Support**: Full-width notifications on mobile, optimized touch targets
+- 🔍 **Smart Player Search**: Type to filter players by name, category, or role
+- 🎯 **Improved Z-Index Management**: Dropdowns properly display above all elements
+- ⚡ **Better Event Handling**: Fixed dropdown selection with onMouseDown for reliable clicks
+- 🎨 **Purple Theme Integration**: Consistent color scheme across retention features
+- 🧹 **Auto-Clear Forms**: Retention inputs clear automatically after successful submission
+
 ### **v2.1.0 - November 2025**
 - ✨ **Modern Notification System**: Replaced all browser alerts with custom glass-morphism notifications
 - 📱 **Full Responsive Design**: Enhanced mobile, tablet, and desktop compatibility
