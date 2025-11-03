@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNotification } from './NotificationSystem';
 
 // Use environment variable for backend URL, fallback to localhost for dev
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const UndoControls = ({ userRole, auctionData }) => {
+  const { showSuccess, showError } = useNotification();
   const [loading, setLoading] = useState(false);
   const [actionHistory, setActionHistory] = useState([]);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -33,10 +35,10 @@ const UndoControls = ({ userRole, auctionData }) => {
         setLoading(true);
         try {
           const response = await axios.post(`${API_BASE_URL}/api/auction/undo/sale`);
-          alert(`✅ Sale Undone Successfully!\n\nPlayer: ${response.data.player}\nTeam: ${response.data.team}\nRefunded: ₹${response.data.refundedAmount}`);
+          showSuccess(`Sale Undone Successfully!\n\nPlayer: ${response.data.player}\nTeam: ${response.data.team}\nRefunded: ₹${response.data.refundedAmount}`, 'Undo Successful');
           fetchActionHistory();
         } catch (error) {
-          alert(`❌ Error: ${error.response?.data?.error || 'Failed to undo sale'}`);
+          showError(error.response?.data?.error || 'Failed to undo sale', 'Undo Failed');
         } finally {
           setLoading(false);
         }
@@ -54,12 +56,12 @@ const UndoControls = ({ userRole, auctionData }) => {
         try {
           const response = await axios.post(`${API_BASE_URL}/api/auction/undo/bid`);
           if (response.data.revertedToTeam) {
-            alert(`✅ Bid Undone Successfully!\n\nPlayer: ${response.data.player}\nReverted to: ${response.data.revertedToTeam}\nAmount: ₹${response.data.revertedToAmount}`);
+            showSuccess(`Bid Undone Successfully!\n\nPlayer: ${response.data.player}\nReverted to: ${response.data.revertedToTeam}\nAmount: ₹${response.data.revertedToAmount}`, 'Undo Successful');
           } else {
-            alert(`✅ Bid Undone Successfully!\n\nPlayer: ${response.data.player}\nReverted to base price: ₹${response.data.revertedToAmount}`);
+            showSuccess(`Bid Undone Successfully!\n\nPlayer: ${response.data.player}\nReverted to base price: ₹${response.data.revertedToAmount}`, 'Undo Successful');
           }
         } catch (error) {
-          alert(`❌ Error: ${error.response?.data?.error || 'Failed to undo bid'}`);
+          showError(error.response?.data?.error || 'Failed to undo bid', 'Undo Failed');
         } finally {
           setLoading(false);
         }

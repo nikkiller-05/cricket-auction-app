@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, memo, useMemo, useCallback } from 'react';
 import axios from 'axios';
+import { useNotification } from './NotificationSystem';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
-const PlayersList = ({ players, teams, currentBid, auctionStatus, userRole }) => {
+const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole }) => {
+  const { showWarning, showError } = useNotification();
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -12,9 +14,9 @@ const PlayersList = ({ players, teams, currentBid, auctionStatus, userRole }) =>
   const canStartBidding = (auctionStatus === 'running' || auctionStatus === 'fast-track');
   const canPerformBidActions = ['super-admin', 'admin', 'sub-admin'].includes(userRole);
 
-  const handleStartBidding = async (playerId) => {
+  const handleStartBidding = useCallback(async (playerId) => {
     if (currentBid && currentBid.playerId !== playerId) {
-      alert('Another player is currently being bid on. Please complete or cancel that auction first.');
+      showWarning('Another player is currently being bid on. Please complete or cancel that auction first.', 'Bidding In Progress');
       return;
     }
 
@@ -22,23 +24,25 @@ const PlayersList = ({ players, teams, currentBid, auctionStatus, userRole }) =>
     try {
   await axios.post(`${API_BASE_URL}/api/auction/bidding/start/${playerId}`);
     } catch (error) {
-      alert(error.response?.data?.error || 'Error starting bidding');
+      showError(error.response?.data?.error || 'Error starting bidding', 'Bidding Error');
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentBid, showWarning, showError]);
 
-  // Filter players based on search and filters
-  const filteredPlayers = players?.filter(player => {
-    const matchesSearch = player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         player.role.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesCategory = categoryFilter === 'all' || player.category === categoryFilter;
-    
-    const matchesStatus = statusFilter === 'all' || player.status === statusFilter;
-    
-    return matchesSearch && matchesCategory && matchesStatus;
-  }) || [];
+  // Filter players based on search and filters - MEMOIZED for performance
+  const filteredPlayers = useMemo(() => {
+    return players?.filter(player => {
+      const matchesSearch = player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                           player.role.toLowerCase().includes(searchTerm.toLowerCase());
+      
+      const matchesCategory = categoryFilter === 'all' || player.category === categoryFilter;
+      
+      const matchesStatus = statusFilter === 'all' || player.status === statusFilter;
+      
+      return matchesSearch && matchesCategory && matchesStatus;
+    }) || [];
+  }, [players, searchTerm, categoryFilter, statusFilter]);
 
   const cleanTeamName = (name) => name ? name.replace(/\(\d+\)$/, '').trim() : '';
 
@@ -334,6 +338,6 @@ const PlayersList = ({ players, teams, currentBid, auctionStatus, userRole }) =>
       )}
     </div>
   );
-};
+});
 
 export default PlayersList;

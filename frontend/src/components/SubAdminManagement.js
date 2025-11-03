@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNotification } from './NotificationSystem';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const SubAdminManagement = ({ userRole }) => {
+  const { showSuccess, showError } = useNotification();
   const [subAdmins, setSubAdmins] = useState([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -28,13 +30,14 @@ const SubAdminManagement = ({ userRole }) => {
     setLoading(true);
 
     try {
-  await axios.post(`${API_BASE_URL}/api/auth/sub-admin`, formData);
+      await axios.post(`${API_BASE_URL}/api/auth/sub-admin`, formData);
       setFormData({ username: '', password: '', name: '' });
       setShowCreateForm(false);
       fetchSubAdmins();
+      showSuccess('Sub-admin created successfully!', 'Success');
     } catch (error) {
       console.error('Error creating sub-admin:', error);
-      alert(error.response?.data?.error || 'Error creating sub-admin');
+      showError(error.response?.data?.error || 'Error creating sub-admin', 'Creation Failed');
     } finally {
       setLoading(false);
     }
@@ -49,13 +52,14 @@ const SubAdminManagement = ({ userRole }) => {
     if (!deleteTarget) return;
 
     try {
-  await axios.delete(`${API_BASE_URL}/api/auth/sub-admin/${deleteTarget.id}`);
+      await axios.delete(`${API_BASE_URL}/api/auth/sub-admin/${deleteTarget.id}`);
       fetchSubAdmins();
       setShowDeleteModal(false);
       setDeleteTarget(null);
+      showSuccess('Sub-admin deleted successfully!', 'Deleted');
     } catch (error) {
       console.error('Error deleting sub-admin:', error);
-      alert(error.response?.data?.error || 'Error deleting sub-admin');
+      showError(error.response?.data?.error || 'Error deleting sub-admin', 'Deletion Failed');
     }
   };
 

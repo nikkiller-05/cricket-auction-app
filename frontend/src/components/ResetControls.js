@@ -1,18 +1,21 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNotification } from './NotificationSystem';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const ResetControls = ({ auctionData, onReset }) => {
+  const { showSuccess, showError, showWarning, showInfo, confirm } = useNotification();
   const [loading, setLoading] = useState(false);
 
   const resetAuction = async () => {
-    const confirmed = window.confirm(
+    const confirmed = await confirm(
       'Are you sure you want to reset the entire auction? This will:\n\n' +
       '• Move all players back to available status\n' +
       '• Reset all team budgets\n' +
       '• Clear all bids and purchases\n' +
       '• Keep manually assigned captains with their teams\n\n' +
-      'This action cannot be undone!'
+      'This action cannot be undone!',
+      'Reset Auction'
     );
 
     if (!confirmed) return;
@@ -20,11 +23,11 @@ const ResetControls = ({ auctionData, onReset }) => {
     setLoading(true);
     try {
   const response = await axios.post(`${API_BASE_URL}/api/auction/reset`);
-      alert(response.data.message);
+      showSuccess(response.data.message, 'Reset Complete');
       if (onReset) onReset();
     } catch (error) {
       console.error('Error resetting auction:', error);
-      alert(error.response?.data?.error || 'Error resetting auction');
+      showError(error.response?.data?.error || 'Error resetting auction', 'Reset Failed');
     } finally {
       setLoading(false);
     }
@@ -34,13 +37,14 @@ const ResetControls = ({ auctionData, onReset }) => {
     const unsoldCount = auctionData.players?.filter(p => p.status === 'unsold').length || 0;
     
     if (unsoldCount === 0) {
-      alert('No unsold players available for fast track auction');
+      showWarning('No unsold players available for fast track auction', 'No Players Available');
       return;
     }
 
-    const confirmed = window.confirm(
+    const confirmed = await confirm(
       `Start Fast Track Auction for ${unsoldCount} unsold players?\n\n` +
-      'This will move all unsold players back to available status for bidding.'
+      'This will move all unsold players back to available status for bidding.',
+      'Start Fast Track'
     );
 
     if (!confirmed) return;
@@ -48,22 +52,23 @@ const ResetControls = ({ auctionData, onReset }) => {
     setLoading(true);
     try {
   const response = await axios.post(`${API_BASE_URL}/api/auction/fast-track/start`);
-      alert(response.data.message);
+      showInfo(response.data.message, 'Fast Track Started');
     } catch (error) {
       console.error('Error starting fast track:', error);
-      alert(error.response?.data?.error || 'Error starting fast track auction');
+      showError(error.response?.data?.error || 'Error starting fast track auction', 'Fast Track Failed');
     } finally {
       setLoading(false);
     }
   };
 
   const endFastTrack = async () => {
-    const confirmed = window.confirm(
+    const confirmed = await confirm(
       'End Fast Track Auction?\n\n' +
       'This will:\n' +
       '• End the fast track round\n' +
       '• Return to main auction if players are still available\n' +
-      '• Or finish the entire auction if no players remain'
+      '• Or finish the entire auction if no players remain',
+      'End Fast Track'
     );
 
     if (!confirmed) return;
@@ -71,27 +76,28 @@ const ResetControls = ({ auctionData, onReset }) => {
     setLoading(true);
     try {
   const response = await axios.post(`${API_BASE_URL}/api/auction/fast-track/end`);
-      alert(response.data.message);
+      showInfo(response.data.message, 'Fast Track Ended');
       
       // Show additional info about next status
       if (response.data.nextStatus === 'finished') {
-        alert('🎉 Entire auction completed! All done.');
+        showSuccess('🎉 Entire auction completed! All done.', 'Auction Complete');
       } else if (response.data.availablePlayers > 0) {
-        alert(`Fast track ended. ${response.data.availablePlayers} players still available for main auction.`);
+        showInfo(`Fast track ended. ${response.data.availablePlayers} players still available for main auction.`, 'Fast Track Complete');
       }
     } catch (error) {
       console.error('Error ending fast track:', error);
-      alert(error.response?.data?.error || 'Error ending fast track auction');
+      showError(error.response?.data?.error || 'Error ending fast track auction', 'End Fast Track Failed');
     } finally {
       setLoading(false);
     }
   };
 
   const finishEntireAuction = async () => {
-    const confirmed = window.confirm(
+    const confirmed = await confirm(
       '🏁 Finish Entire Auction?\n\n' +
       'This will permanently end the auction process.\n' +
-      'This action cannot be undone!'
+      'This action cannot be undone!',
+      'Finish Auction'
     );
 
     if (!confirmed) return;
@@ -99,10 +105,10 @@ const ResetControls = ({ auctionData, onReset }) => {
     setLoading(true);
     try {
   const response = await axios.post(`${API_BASE_URL}/api/auction/finish`);
-      alert('🎉 ' + response.data.message);
+      showSuccess('🎉 ' + response.data.message, 'Auction Complete');
     } catch (error) {
       console.error('Error finishing auction:', error);
-      alert(error.response?.data?.error || 'Error finishing auction');
+      showError(error.response?.data?.error || 'Error finishing auction', 'Finish Failed');
     } finally {
       setLoading(false);
     }

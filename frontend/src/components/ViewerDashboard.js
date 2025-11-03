@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
+import { useNotification } from './NotificationSystem';
 
 const ViewerDashboard = ({ auctionData, socket }) => {
+  const { showError } = useNotification();
   const [selectedTab, setSelectedTab] = useState('auction');
 
   const getCategoryColor = (category) => {
@@ -28,7 +30,7 @@ const ViewerDashboard = ({ auctionData, socket }) => {
       link.remove();
     } catch (error) {
       console.error('Error downloading results:', error);
-      alert('Error downloading results');
+      showError('Error downloading results', 'Download Failed');
     }
   };
 

@@ -1,8 +1,10 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNotification } from './NotificationSystem';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const PlayerUpload = ({ onUploadSuccess, onDataRefresh }) => {
+  const { confirm } = useNotification();
   const [file, setFile] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [validating, setValidating] = useState(false);
@@ -94,7 +96,8 @@ const PlayerUpload = ({ onUploadSuccess, onDataRefresh }) => {
   };
 
   const clearAuction = async () => {
-    if (!window.confirm('Are you sure you want to clear all auction data? This cannot be undone.')) {
+    const confirmed = await confirm('Are you sure you want to clear all auction data? This cannot be undone.', 'Clear All Data');
+    if (!confirmed) {
       return;
     }
 

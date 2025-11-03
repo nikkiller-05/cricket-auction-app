@@ -44,7 +44,22 @@ const socketService = {
   emit: (event, data) => {
     if (io) {
       console.log(`📡 Broadcasting event: ${event}`);
-      io.emit(event, data);
+      // Optimize large data payloads by only sending changed data for certain events
+      if (event === 'auctionData' && data) {
+        // For large datasets, consider sending only essential fields
+        const optimizedData = {
+          ...data,
+          // Compress player data if needed (send only essential fields in some cases)
+          players: data.players || [],
+          teams: data.teams || [],
+          currentBid: data.currentBid,
+          auctionStatus: data.auctionStatus,
+          stats: data.stats
+        };
+        io.emit(event, optimizedData);
+      } else {
+        io.emit(event, data);
+      }
     } else {
       console.error('❌ Socket.IO not initialized');
     }

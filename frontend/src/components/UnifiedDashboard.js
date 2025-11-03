@@ -10,6 +10,7 @@ import PlayersList from './PlayersList';
 import StatsDisplay from './StatsDisplay';
 import SubAdminManagement from './SubAdminManagement';
 import Header from './Header';
+import { useNotification } from './NotificationSystem';
 
 // Use environment variable for backend URL, fallback to localhost for dev
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -356,6 +357,8 @@ const TeamSquadViewer = ({ teams, players }) => {
 const UnifiedDashboard = () => {
   const location = useLocation();
   const navigate = useNavigate();
+  const { showSuccess, showError, showWarning, showInfo, confirm } = useNotification();
+  
   const [isAdmin, setIsAdmin] = useState(false);
   const [userRole, setUserRole] = useState('spectator');
   const [auctionData, setAuctionData] = useState(null);
@@ -428,21 +431,21 @@ const UnifiedDashboard = () => {
     socketConnection.on('playerSold', (data) => {
       if (data.player && data.team) {
         addTransaction(data.player, 'sold', data.team, data.finalBid);
-        addNotification(`${data.player.name} sold to ${cleanTeamName(data.team.name)} for ₹${data.finalBid}`, 'success');
+        showSuccess(`${data.player.name} sold to ${cleanTeamName(data.team.name)} for ₹${data.finalBid}`);
       }
     });
 
     socketConnection.on('playerUnsold', (data) => {
       if (data.player) {
         addTransaction(data.player, 'unsold');
-        addNotification(`${data.player.name} marked as unsold`, 'warning');
+        showWarning(`${data.player.name} marked as unsold`);
       }
     });
 
     socketConnection.on('playerRetained', (data) => {
       if (data.player && data.team) {
         addTransaction(data.player, 'retained', data.team, data.retentionAmount);
-        addNotification(`${data.player.name} retained by ${cleanTeamName(data.team.name)} for ₹${data.retentionAmount}`, 'info');
+        showInfo(`${data.player.name} retained by ${cleanTeamName(data.team.name)} for ₹${data.retentionAmount}`);
       }
     });
 
@@ -452,7 +455,7 @@ const UnifiedDashboard = () => {
         setTransactionHistory(prev => {
           return prev.filter(t => !(t.type === 'retained' && t.playerName === data.player.name));
         });
-        addNotification(`Retention removed: ${data.player.name} (₹${data.refundedAmount} refunded)`, 'warning');
+        showWarning(`Retention removed: ${data.player.name} (₹${data.refundedAmount} refunded)`);
       }
     });
 
@@ -469,25 +472,25 @@ const UnifiedDashboard = () => {
     });
 
     socketConnection.on('fileUploaded', (fileInfo) => {
-      addNotification(`Successfully uploaded ${fileInfo.playerCount} players`, 'success');
+      showSuccess(`Successfully uploaded ${fileInfo.playerCount} players`);
     });
 
     socketConnection.on('auctionReset', () => {
-      addNotification('Auction has been reset', 'info');
+      showInfo('Auction has been reset');
       setTransactionHistory([]);
       setCurrentPage(1);
     });
 
     socketConnection.on('fastTrackStarted', (data) => {
-      addNotification(`Fast Track started with ${data.players?.length || 0} players`, 'info');
+      showInfo(`Fast Track started with ${data.players?.length || 0} players`);
     });
 
     socketConnection.on('fastTrackEnded', () => {
-      addNotification('Fast Track auction ended', 'info');
+      showInfo('Fast Track auction ended');
     });
 
     socketConnection.on('saleUndone', (data) => {
-      addNotification(`Sale undone: ${data.player} returned from ${data.team}`, 'warning');
+      showWarning(`Sale undone: ${data.player} returned from ${data.team}`);
       // Remove the last sale transaction from history
       setTransactionHistory(prev => {
         const playerName = typeof data.player === 'string' ? data.player : data.player?.name;
@@ -496,16 +499,16 @@ const UnifiedDashboard = () => {
     });
 
     socketConnection.on('bidUndone', (data) => {
-      addNotification(`Bid undone: ${data.player} (₹${data.revertedToAmount})`, 'warning');
+      showWarning(`Bid undone: ${data.player} (₹${data.revertedToAmount})`);
     });
 
     // Cleanup on unmount
     return () => {
       socketConnection.disconnect();
     };
-  }, [location.state]);
+  }, [location.state, showSuccess, showWarning, showInfo]);
 
-  // Transaction history initialization function
+  // Transaction history initialization function - OPTIMIZED with proper memoization
   const initializeTransactionHistory = useCallback((auctionData) => {
     if (!auctionData?.players) return;
     
@@ -607,20 +610,6 @@ const UnifiedDashboard = () => {
     }
   }, [userRole, isAdmin, fetchActionHistory]);
 
-  const addNotification = (message, type = 'info') => {
-    const notification = {
-      id: Date.now() + Math.random(),
-      message,
-      type,
-      timestamp: new Date()
-    };
-    setNotifications(prev => [notification, ...prev.slice(0, 4)]);
-    
-    setTimeout(() => {
-      setNotifications(prev => prev.filter(n => n.id !== notification.id));
-    }, 5000);
-  };
-
   const addTransaction = (player, type, team = null, finalBid = null) => {
     const transaction = {
       id: Date.now() + Math.random(),
@@ -646,10 +635,10 @@ const UnifiedDashboard = () => {
         setUndoLoading(true);
         try {
           const response = await axios.post(`${API_BASE_URL}/api/auction/undo/sale`);
-          addNotification(`Sale Undone: ${response.data.player} - Refunded ₹${response.data.refundedAmount} to ${response.data.team}`, 'success');
+          showSuccess(`Sale Undone: ${response.data.player} - Refunded ₹${response.data.refundedAmount} to ${response.data.team}`);
           fetchActionHistory();
         } catch (error) {
-          addNotification(error.response?.data?.error || 'Failed to undo sale', 'error');
+          showError(error.response?.data?.error || 'Failed to undo sale');
         } finally {
           setUndoLoading(false);
         }
@@ -667,12 +656,12 @@ const UnifiedDashboard = () => {
         try {
           const response = await axios.post(`${API_BASE_URL}/api/auction/undo/bid`);
           if (response.data.revertedToTeam) {
-            addNotification(`Bid Reverted: ${response.data.player} - Back to ${response.data.revertedToTeam} (₹${response.data.revertedToAmount})`, 'success');
+            showSuccess(`Bid Reverted: ${response.data.player} - Back to ${response.data.revertedToTeam} (₹${response.data.revertedToAmount})`);
           } else {
-            addNotification(`Bid Reverted: ${response.data.player} - Back to base price (₹${response.data.revertedToAmount})`, 'success');
+            showSuccess(`Bid Reverted: ${response.data.player} - Back to base price (₹${response.data.revertedToAmount})`);
           }
         } catch (error) {
-          addNotification(error.response?.data?.error || 'Failed to undo bid', 'error');
+          showError(error.response?.data?.error || 'Failed to undo bid');
         } finally {
           setUndoLoading(false);
         }
@@ -703,7 +692,7 @@ const UnifiedDashboard = () => {
   };
 
   const handleUploadSuccess = (data) => {
-    addNotification(`Successfully uploaded ${data.playerCount} players from ${data.fileName}`, 'success');
+    showSuccess(`Successfully uploaded ${data.playerCount} players from ${data.fileName}`);
     // Refresh auction data after successful upload
     fetchAuctionData();
   };
@@ -753,10 +742,10 @@ const UnifiedDashboard = () => {
       link.remove();
       
       setTimeout(() => window.URL.revokeObjectURL(url), 100);
-      addNotification(`${format.toUpperCase()} results downloaded successfully`, 'success');
+      showSuccess(`${format.toUpperCase()} results downloaded successfully`);
     } catch (error) {
       console.error('Error downloading results:', error);
-      addNotification(`Error downloading ${format} results`, 'error');
+      showError(`Error downloading ${format} results`);
     }
   };
 
@@ -783,10 +772,10 @@ const UnifiedDashboard = () => {
       link.remove();
       
       setTimeout(() => window.URL.revokeObjectURL(url), 100);
-      addNotification('Team squads downloaded successfully', 'success');
+      showSuccess('Team squads downloaded successfully');
     } catch (error) {
       console.error('Error downloading team squads:', error);
-      addNotification('Error downloading team squads', 'error');
+      showError('Error downloading team squads');
     }
   };
 
@@ -813,10 +802,10 @@ const UnifiedDashboard = () => {
       link.remove();
       
       setTimeout(() => window.URL.revokeObjectURL(url), 100);
-      addNotification('Auction summary downloaded successfully', 'success');
+      showSuccess('Auction summary downloaded successfully');
     } catch (error) {
       console.error('Error downloading auction summary:', error);
-      addNotification('Error downloading auction summary', 'error');
+      showError('Error downloading auction summary');
     }
   };
 
@@ -824,7 +813,7 @@ const UnifiedDashboard = () => {
   const handleAuctionToggle = async (newState) => {
     // Check if user has admin permissions
     if (!isAdmin) {
-      addNotification('Only administrators can control auction status', 'error');
+      showError('Only administrators can control auction status');
       return;
     }
 
@@ -838,7 +827,7 @@ const UnifiedDashboard = () => {
       }
     } catch (error) {
       console.error('Error toggling auction:', error);
-      addNotification(error.response?.data?.error || 'Error toggling auction', 'error');
+      showError(error.response?.data?.error || 'Error toggling auction');
     } finally {
       setAuctionToggleLoading(false);
     }
@@ -983,7 +972,12 @@ const UnifiedDashboard = () => {
         onUndoLastSale={handleUndoLastSale}
         canUndoLastSale={(() => {
           const lastSale = actionHistory.slice().reverse().find(action => action.type === 'PLAYER_SOLD');
-          console.log('Can undo last sale check:', { actionHistory: actionHistory.length, lastSale: !!lastSale });
+          console.log('Can undo last sale check:', { 
+            actionHistoryLength: actionHistory.length, 
+            lastSale: !!lastSale,
+            actionTypes: actionHistory.map(a => a.type),
+            fullActionHistory: actionHistory
+          });
           return !!lastSale;
         })()}
         undoLoading={undoLoading}
@@ -1072,7 +1066,7 @@ const UnifiedDashboard = () => {
                           try {
                             await axios.post(`${API_BASE_URL}/api/auction/bidding/place`, { teamId: team.id });
                           } catch (error) {
-                            addNotification(error.response?.data?.error || 'Error placing bid', 'error');
+                            showError(error.response?.data?.error || 'Error placing bid');
                           }
                         }}
                         disabled={!canBid}
@@ -1102,9 +1096,13 @@ const UnifiedDashboard = () => {
                     onClick={async () => {
                       try {
                         await axios.post(`${API_BASE_URL}/api/auction/bidding/sell`);
-                        addNotification('Player sold successfully', 'success');
+                        // Note: Success notification will come from socket event with player details
+                        // Update action history for undo functionality
+                        if (userRole === 'super-admin') {
+                          fetchActionHistory();
+                        }
                       } catch (error) {
-                        addNotification(error.response?.data?.error || 'Error selling player', 'error');
+                        showError(error.response?.data?.error || 'Error selling player');
                       }
                     }}
                     disabled={!auctionData.currentBid.biddingTeam}
@@ -1117,9 +1115,13 @@ const UnifiedDashboard = () => {
                     onClick={async () => {
                       try {
                         await axios.post(`${API_BASE_URL}/api/auction/bidding/unsold`);
-                        addNotification('Player marked as unsold', 'warning');
+                        // Note: Success notification will come from socket event with player details
+                        // Update action history for undo functionality
+                        if (userRole === 'super-admin') {
+                          fetchActionHistory();
+                        }
                       } catch (error) {
-                        addNotification(error.response?.data?.error || 'Error marking as unsold', 'error');
+                        showError(error.response?.data?.error || 'Error marking as unsold');
                       }
                     }}
                     className="px-4 sm:px-6 md:px-8 py-3 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white rounded-full font-bold text-xs sm:text-sm md:text-base shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 transition-all duration-200 flex items-center space-x-1 sm:space-x-2"
@@ -1146,16 +1148,17 @@ const UnifiedDashboard = () => {
                     {/* Cancel Bidding Button - Available to all admins */}
                     <button
                       onClick={async () => {
-                        const confirmed = window.confirm(
-                          `Cancel bidding for ${currentPlayer.name}?\n\nThis will:\n• Reset the player to available status\n• Clear all bids for this player\n• Allow starting bidding again for this player\n\nAre you sure?`
+                        const confirmed = await confirm(
+                          `Cancel bidding for ${currentPlayer.name}?\n\nThis will:\n• Reset the player to available status\n• Clear all bids for this player\n• Allow starting bidding again for this player\n\nAre you sure?`,
+                          'Cancel Bidding'
                         );
                         if (!confirmed) return;
 
                         try {
                           await axios.post(`${API_BASE_URL}/api/auction/bidding/cancel`);
-                          addNotification('Bidding cancelled successfully - player is available again', 'info');
+                          showInfo('Bidding cancelled successfully - player is available again', 'Bidding Cancelled');
                         } catch (error) {
-                          addNotification(error.response?.data?.error || 'Error cancelling bidding', 'error');
+                          showError(error.response?.data?.error || 'Error cancelling bidding', 'Error');
                         }
                       }}
                       disabled={!auctionData.currentBid}
@@ -1173,16 +1176,17 @@ const UnifiedDashboard = () => {
                   <div className="flex flex-wrap justify-center gap-3 pt-4 border-t border-white border-opacity-20">
                     <button
                       onClick={async () => {
-                        const confirmed = window.confirm(
-                          `Cancel bidding for ${currentPlayer.name}?\n\nThis will:\n• Reset the player to available status\n• Clear all bids for this player\n• Allow starting bidding again for this player\n\nAre you sure?`
+                        const confirmed = await confirm(
+                          `Cancel bidding for ${currentPlayer.name}?\n\nThis will:\n• Reset the player to available status\n• Clear all bids for this player\n• Allow starting bidding again for this player\n\nAre you sure?`,
+                          'Cancel Bidding'
                         );
                         if (!confirmed) return;
 
                         try {
                           await axios.post(`${API_BASE_URL}/api/auction/bidding/cancel`);
-                          addNotification('Bidding cancelled successfully - player is available again', 'info');
+                          showInfo('Bidding cancelled successfully - player is available again', 'Bidding Cancelled');
                         } catch (error) {
-                          addNotification(error.response?.data?.error || 'Error cancelling bidding', 'error');
+                          showError(error.response?.data?.error || 'Error cancelling bidding', 'Error');
                         }
                       }}
                       disabled={!auctionData.currentBid}

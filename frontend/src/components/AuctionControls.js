@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import axios from 'axios';
+import { useNotification } from './NotificationSystem';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const AuctionControls = ({ auctionData, socket }) => {
   const [loading, setLoading] = useState(false);
+  const { showError } = useNotification();
 
   // FIXED: Safe access to settings with default values
   const settings = auctionData?.settings || {
@@ -26,7 +28,7 @@ const AuctionControls = ({ auctionData, socket }) => {
   await axios.post(`${API_BASE_URL}/api/auction/start`);
     } catch (error) {
       console.error('Error starting auction:', error);
-      alert(error.response?.data?.error || 'Error starting auction');
+      showError(error.response?.data?.error || 'Error starting auction');
     } finally {
       setLoading(false);
     }
@@ -38,7 +40,7 @@ const AuctionControls = ({ auctionData, socket }) => {
   await axios.post(`${API_BASE_URL}/api/auction/stop`);
     } catch (error) {
       console.error('Error stopping auction:', error);
-      alert(error.response?.data?.error || 'Error stopping auction');
+      showError(error.response?.data?.error || 'Error stopping auction');
     } finally {
       setLoading(false);
     }

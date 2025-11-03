@@ -7,10 +7,11 @@ import ResetControls from './ResetControls';
 import PlayersList from './PlayersList';
 import TeamsDisplay from './TeamsDisplay';
 import StatsDisplay from './StatsDisplay';
+import { useNotification } from './NotificationSystem';
 
 const AdminDashboard = ({ auctionData, onLogout, socket, onDataRefresh }) => {
+  const { showSuccess, showError, showWarning, showInfo } = useNotification();
   const [activeTab, setActiveTab] = useState('upload');
-  const [notifications, setNotifications] = useState([]);
   const [downloadLoading, setDownloadLoading] = useState(false);
 
   // Add console logging to see what data we're receiving
@@ -76,19 +77,23 @@ const AdminDashboard = ({ auctionData, onLogout, socket, onDataRefresh }) => {
     };
   }, [auctionData, socket, onDataRefresh]);
 
+  // Legacy notification function for backward compatibility
   const addNotification = (message, type = 'info') => {
-    const notification = {
-      id: Date.now() + Math.random(),
-      message,
-      type,
-      timestamp: new Date()
-    };
-    setNotifications(prev => [notification, ...prev.slice(0, 4)]); // Keep only 5 notifications
-    
-    // Auto remove after 5 seconds
-    setTimeout(() => {
-      setNotifications(prev => prev.filter(n => n.id !== notification.id));
-    }, 5000);
+    switch (type) {
+      case 'success':
+        showSuccess(message);
+        break;
+      case 'error':
+        showError(message);
+        break;
+      case 'warning':
+        showWarning(message);
+        break;
+      case 'info':
+      default:
+        showInfo(message);
+        break;
+    }
   };
 
   const downloadResults = async (format = 'excel') => {
@@ -169,13 +174,7 @@ const AdminDashboard = ({ auctionData, onLogout, socket, onDataRefresh }) => {
     return configs[status] || configs['stopped'];
   };
 
-  const removeNotification = (id) => {
-    setNotifications(prev => prev.filter(n => n.id !== id));
-  };
 
-  const clearAllNotifications = () => {
-    setNotifications([]);
-  };
 
   const statusInfo = getStatusInfo();
 
@@ -230,47 +229,6 @@ const AdminDashboard = ({ auctionData, onLogout, socket, onDataRefresh }) => {
 
   return (
     <div className="min-h-screen bg-gray-50">
-      {/* Notifications */}
-      {notifications.length > 0 && (
-        <div className="fixed top-4 right-4 space-y-2 z-50">
-          <div className="flex justify-end mb-2">
-            <button
-              onClick={clearAllNotifications}
-              className="text-xs text-gray-500 hover:text-gray-700 underline"
-            >
-              Clear all
-            </button>
-          </div>
-          {notifications.map(notification => (
-            <div
-              key={notification.id}
-              className={`max-w-sm p-4 rounded-lg shadow-lg border-l-4 transform transition-all duration-300 animate-slide-in ${
-                notification.type === 'success' ? 'bg-green-50 border-green-400 text-green-800' :
-                notification.type === 'error' ? 'bg-red-50 border-red-400 text-red-800' :
-                notification.type === 'warning' ? 'bg-yellow-50 border-yellow-400 text-yellow-800' :
-                'bg-blue-50 border-blue-400 text-blue-800'
-              }`}
-            >
-              <div className="flex justify-between items-start">
-                <div className="flex-1">
-                  <p className="text-sm font-medium">{notification.message}</p>
-                  <p className="text-xs opacity-75 mt-1">
-                    {notification.timestamp.toLocaleTimeString()}
-                  </p>
-                </div>
-                <button
-                  onClick={() => removeNotification(notification.id)}
-                  className="ml-3 text-gray-400 hover:text-gray-600 flex-shrink-0"
-                >
-                  <svg className="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-                    <path fillRule="evenodd" d="M4.293 4.293a1 1 0 011.414 0L10 8.586l4.293-4.293a1 1 0 111.414 1.414L11.414 10l4.293 4.293a1 1 0 01-1.414 1.414L10 11.414l-4.293 4.293a1 1 0 01-1.414-1.414L8.586 10 4.293 5.707a1 1 0 010-1.414z" clipRule="evenodd" />
-                  </svg>
-                </button>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
 
       {/* Header */}
       <header className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 shadow-xl sticky top-0 z-40 backdrop-blur-xl bg-opacity-90">

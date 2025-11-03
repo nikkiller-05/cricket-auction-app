@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNotification } from './NotificationSystem';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const TeamManagement = ({ teams, auctionData, onTeamsUpdate, onPlayersUpdate }) => {
+  const { showSuccess, showError, showWarning, showInfo, confirm } = useNotification();
   const [teamNames, setTeamNames] = useState(
     teams.reduce((acc, team) => {
       acc[team.id] = team.name;
@@ -13,7 +15,6 @@ const TeamManagement = ({ teams, auctionData, onTeamsUpdate, onPlayersUpdate }) 
   const [assigningCaptain, setAssigningCaptain] = useState(false);
   const [assigningRetention, setAssigningRetention] = useState(false);
   const [retentionAmounts, setRetentionAmounts] = useState({});
-  const [notification, setNotification] = useState(null);
 
   // Get available captains and assigned captains
   const allCaptains = auctionData?.players?.filter(p => p.category === 'captain') || [];
@@ -23,7 +24,15 @@ const TeamManagement = ({ teams, auctionData, onTeamsUpdate, onPlayersUpdate }) 
   // Local retention controls (independent of auction settings)
   // Initialize retention state from existing retained players
   const existingRetainedPlayers = auctionData?.players?.filter(p => p.status === 'retained') || [];
-  const [retentionEnabled, setRetentionEnabled] = useState(existingRetainedPlayers.length > 0);
+  const [retentionEnabled, setRetentionEnabled] = useState(() => {
+    // Check localStorage first, then fallback to existing data
+    const saved = localStorage.getItem('retentionConfig');
+    if (saved) {
+      const config = JSON.parse(saved);
+      return config.retentionEnabled !== undefined ? config.retentionEnabled : false;
+    }
+    return existingRetainedPlayers.length > 0;
+  });
   const [retentionsPerTeam, setRetentionsPerTeam] = useState(() => {
     // Try to get saved configuration from localStorage or use existing retention data
     const saved = localStorage.getItem('retentionConfig');
@@ -48,6 +57,8 @@ const TeamManagement = ({ teams, auctionData, onTeamsUpdate, onPlayersUpdate }) 
   });
   const [selectedPlayers, setSelectedPlayers] = useState({}); // {teamId: playerId}
   const [retentionAmountInputs, setRetentionAmountInputs] = useState({}); // {teamId: amount}
+  const [playerSearchTerms, setPlayerSearchTerms] = useState({}); // {teamId: searchTerm}
+  const [dropdownOpen, setDropdownOpen] = useState({}); // {teamId: boolean}
 
   // Effect to maintain retention state based on existing data
   useEffect(() => {
@@ -56,6 +67,20 @@ const TeamManagement = ({ teams, auctionData, onTeamsUpdate, onPlayersUpdate }) 
       setRetentionEnabled(true);
     }
   }, [auctionData?.players, retentionEnabled]);
+
+  // Effect to auto-save configuration when retentionEnabled changes if config was previously saved
+  useEffect(() => {
+    const saved = localStorage.getItem('retentionConfig');
+    if (saved && retentionConfigSaved) {
+      const config = {
+        retentionEnabled,
+        retentionsPerTeam,
+        saved: true,
+        savedAt: new Date().toISOString()
+      };
+      localStorage.setItem('retentionConfig', JSON.stringify(config));
+    }
+  }, [retentionEnabled, retentionsPerTeam, retentionConfigSaved]);
 
   // Get retention-related data
   const allPlayers = auctionData?.players || [];
@@ -76,8 +101,21 @@ const TeamManagement = ({ teams, auctionData, onTeamsUpdate, onPlayersUpdate }) 
   };
 
   const showNotification = (message, type = 'success') => {
-    setNotification({ message, type });
-    setTimeout(() => setNotification(null), 3000);
+    switch (type) {
+      case 'success':
+        showSuccess(message);
+        break;
+      case 'error':
+        showError(message);
+        break;
+      case 'warning':
+        showWarning(message);
+        break;
+      case 'info':
+      default:
+        showInfo(message);
+        break;
+    }
   };
 
   const updateTeams = async () => {
@@ -190,10 +228,10 @@ const TeamManagement = ({ teams, auctionData, onTeamsUpdate, onPlayersUpdate }) 
     showNotification('Retention configuration unlocked for editing', 'info');
   };
 
-  const resetRetentionConfig = () => {
+  const resetRetentionConfig = async () => {
     if (retainedPlayers.length > 0) {
-      const confirm = window.confirm(`You have ${retainedPlayers.length} retained players. Resetting configuration may affect existing retentions. Continue?`);
-      if (!confirm) return;
+      const confirmed = await confirm(`You have ${retainedPlayers.length} retained players. Resetting configuration may affect existing retentions. Continue?`);
+      if (!confirmed) return;
     }
     localStorage.removeItem('retentionConfig');
     setRetentionEnabled(false);
@@ -242,12 +280,16 @@ const TeamManagement = ({ teams, auctionData, onTeamsUpdate, onPlayersUpdate }) 
     // Pass the amount directly to avoid state timing issues
     await assignRetention(teamId, playerId, numericAmount);
     
-    // Clear selections for this team
+    // Clear selections AND search term for this team
     setSelectedPlayers(prev => ({
       ...prev,
       [teamId]: ''
     }));
     setRetentionAmountInputs(prev => ({
+      ...prev,
+      [teamId]: ''
+    }));
+    setPlayerSearchTerms(prev => ({
       ...prev,
       [teamId]: ''
     }));
@@ -348,16 +390,6 @@ const TeamManagement = ({ teams, auctionData, onTeamsUpdate, onPlayersUpdate }) 
   return (
     <div className="bg-white bg-opacity-20 backdrop-blur-xl rounded-xl shadow-2xl p-4 sm:p-6 border-2 border-cyan-400 border-opacity-70 hover:bg-opacity-30 transition-all duration-300 overflow-hidden">
       <h3 className="text-2xl font-bold text-gray-900 mb-4 tracking-tight">Team Management</h3>
-      
-      {notification && (
-        <div className={`mb-4 p-4 rounded-md border-2 shadow-md ${
-          notification.type === 'error' 
-            ? 'bg-red-50 text-red-700 border-red-300' 
-            : 'bg-green-50 text-green-700 border-green-300'
-        }`}>
-          {notification.message}
-        </div>
-      )}
 
       {/* Retention Controls */}
       <div className="mb-6 bg-purple-50 border-2 border-purple-300 border-opacity-70 rounded-lg p-4 shadow-lg">
@@ -369,10 +401,10 @@ const TeamManagement = ({ teams, auctionData, onTeamsUpdate, onPlayersUpdate }) 
               type="checkbox"
               id="enableRetentionToggle"
               checked={retentionEnabled}
-              onChange={(e) => {
+              onChange={async (e) => {
                 if (!e.target.checked && retainedPlayers.length > 0) {
-                  const confirm = window.confirm(`You have ${retainedPlayers.length} retained players. Disabling retention will hide the retention management section. Continue?`);
-                  if (!confirm) return;
+                  const confirmed = await confirm(`You have ${retainedPlayers.length} retained players. Disabling retention will hide the retention management section. Continue?`);
+                  if (!confirmed) return;
                 }
                 setRetentionEnabled(e.target.checked);
               }}
@@ -591,7 +623,9 @@ const TeamManagement = ({ teams, auctionData, onTeamsUpdate, onPlayersUpdate }) 
               const canRetainMore = canRetainMorePlayers(team.id);
               
               return (
-                <div key={team.id} className="bg-white bg-opacity-15 backdrop-blur-xl rounded-xl border-2 border-purple-200 border-opacity-50 p-4 hover:bg-opacity-25 hover:border-purple-300 hover:border-opacity-70 transition-all duration-300 shadow-lg">
+                <div key={team.id} className="bg-white bg-opacity-15 backdrop-blur-xl rounded-xl border-2 border-purple-200 border-opacity-50 p-4 hover:bg-opacity-25 hover:border-purple-300 hover:border-opacity-70 transition-all duration-300 shadow-lg overflow-visible relative"
+                  style={{ zIndex: dropdownOpen[team.id] ? 100 : 1 }}
+                >
                   <div className="flex justify-between items-center mb-4">
                     <h4 className="text-xl font-bold text-gray-900">
                       {team.name || `Team ${team.id}`}
@@ -646,38 +680,181 @@ const TeamManagement = ({ teams, auctionData, onTeamsUpdate, onPlayersUpdate }) 
                       
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 items-end">
                         {/* Player Selection Dropdown */}
-                        <div className="sm:col-span-2 lg:col-span-1">
+                        <div className="sm:col-span-2 lg:col-span-1 relative">
                           <label className="block text-xs font-medium text-gray-600 mb-1">
-                            Select Player
+                            🔍 Search & Select Player
                           </label>
-                          <select
-                            value={selectedPlayers[team.id] || ''}
-                            onChange={(e) => handlePlayerSelection(team.id, e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                          >
-                            <option value="">Choose a player...</option>
-                            {availableForRetention.map(player => (
-                              <option key={player.id} value={player.id}>
-                                {player.name} ({player.category}) - {player.role}
-                              </option>
-                            ))}
-                          </select>
+                          <div className="relative">
+                            <input
+                              type="text"
+                              value={playerSearchTerms[team.id] || ''}
+                              onChange={(e) => {
+                                const value = e.target.value;
+                                setPlayerSearchTerms(prev => ({
+                                  ...prev,
+                                  [team.id]: value
+                                }));
+                                setDropdownOpen(prev => ({
+                                  ...prev,
+                                  [team.id]: true
+                                }));
+                                // Find exact match
+                                const matchedPlayer = availableForRetention.find(p => 
+                                  `${p.name} (${p.category}) - ${p.role}` === value
+                                );
+                                if (matchedPlayer) {
+                                  handlePlayerSelection(team.id, matchedPlayer.id);
+                                } else {
+                                  handlePlayerSelection(team.id, '');
+                                }
+                              }}
+                              onFocus={() => {
+                                setDropdownOpen(prev => ({
+                                  ...prev,
+                                  [team.id]: true
+                                }));
+                              }}
+                              onBlur={() => {
+                                // Delay to allow click on dropdown item
+                                setTimeout(() => {
+                                  setDropdownOpen(prev => ({
+                                    ...prev,
+                                    [team.id]: false
+                                  }));
+                                }, 250);
+                              }}
+                              placeholder="Start typing to search players..."
+                              className="w-full px-3 py-2 pr-20 border-2 border-purple-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white shadow-sm transition-all hover:border-purple-400"
+                            />
+                            
+                            {/* Clear button */}
+                            {playerSearchTerms[team.id] && (
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setPlayerSearchTerms(prev => ({
+                                    ...prev,
+                                    [team.id]: ''
+                                  }));
+                                  handlePlayerSelection(team.id, '');
+                                }}
+                                className="absolute inset-y-0 right-10 flex items-center pr-2 text-gray-400 hover:text-gray-600 transition-colors"
+                              >
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                </svg>
+                              </button>
+                            )}
+                            
+                            {/* Dropdown arrow button */}
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setDropdownOpen(prev => ({
+                                  ...prev,
+                                  [team.id]: !prev[team.id]
+                                }));
+                              }}
+                              className="absolute inset-y-0 right-0 flex items-center pr-3 text-purple-400 hover:text-purple-600 transition-colors"
+                            >
+                              <svg 
+                                className={`w-5 h-5 transition-transform duration-200 ${dropdownOpen[team.id] ? 'rotate-180' : ''}`}
+                                fill="none" 
+                                stroke="currentColor" 
+                                viewBox="0 0 24 24"
+                              >
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                              </svg>
+                            </button>
+                          </div>
+                          
+                          {/* Custom Dropdown List */}
+                          {dropdownOpen[team.id] && (
+                            <div className="absolute z-[9999] w-full mt-1 bg-white border-2 border-purple-300 rounded-md shadow-2xl max-h-60 overflow-y-auto"
+                              style={{
+                                boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
+                              }}
+                            >
+                              {availableForRetention
+                                .filter(player => {
+                                  const searchTerm = (playerSearchTerms[team.id] || '').toLowerCase();
+                                  if (!searchTerm) return true;
+                                  return (
+                                    player.name.toLowerCase().includes(searchTerm) ||
+                                    player.category.toLowerCase().includes(searchTerm) ||
+                                    player.role.toLowerCase().includes(searchTerm)
+                                  );
+                                })
+                                .map((player) => (
+                                  <button
+                                    key={player.id}
+                                    type="button"
+                                    onMouseDown={(e) => {
+                                      e.preventDefault(); // Prevent blur from input
+                                      const displayValue = `${player.name} (${player.category}) - ${player.role}`;
+                                      setPlayerSearchTerms(prev => ({
+                                        ...prev,
+                                        [team.id]: displayValue
+                                      }));
+                                      handlePlayerSelection(team.id, player.id);
+                                      setDropdownOpen(prev => ({
+                                        ...prev,
+                                        [team.id]: false
+                                      }));
+                                    }}
+                                    className={`w-full px-3 py-2 text-left text-sm hover:bg-purple-50 transition-colors ${
+                                      selectedPlayers[team.id] === player.id ? 'bg-purple-100 text-purple-700 font-medium' : 'text-gray-700'
+                                    }`}
+                                  >
+                                    <div className="flex items-center justify-between">
+                                      <span>{player.name}</span>
+                                      <span className="text-xs text-gray-500">({player.category}) - {player.role}</span>
+                                    </div>
+                                  </button>
+                                ))
+                              }
+                              {availableForRetention.filter(player => {
+                                const searchTerm = (playerSearchTerms[team.id] || '').toLowerCase();
+                                if (!searchTerm) return true;
+                                return (
+                                  player.name.toLowerCase().includes(searchTerm) ||
+                                  player.category.toLowerCase().includes(searchTerm) ||
+                                  player.role.toLowerCase().includes(searchTerm)
+                                );
+                              }).length === 0 && (
+                                <div className="px-3 py-2 text-sm text-gray-500 italic">
+                                  No players found
+                                </div>
+                              )}
+                            </div>
+                          )}
+                          
+                          {playerSearchTerms[team.id] && !selectedPlayers[team.id] && (
+                            <p className="mt-1 text-xs text-gray-500 italic">
+                              💡 Select from dropdown suggestions
+                            </p>
+                          )}
                         </div>
 
                         {/* Retention Amount Input */}
                         <div>
                           <label className="block text-xs font-medium text-gray-600 mb-1">
-                            Retention Amount (₹)
+                            💰 Retention Amount (₹)
                           </label>
-                          <input
-                            type="number"
-                            min="0"
-                            step="5"
-                            placeholder="Enter amount"
-                            value={retentionAmountInputs[team.id] || ''}
-                            onChange={(e) => handleRetentionAmountInput(team.id, e.target.value)}
-                            className="w-full px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500"
-                          />
+                          <div className="relative">
+                            <span className="absolute inset-y-0 left-0 flex items-center pl-3 text-gray-500 font-medium">
+                              ₹
+                            </span>
+                            <input
+                              type="number"
+                              min="0"
+                              step="5"
+                              placeholder="0"
+                              value={retentionAmountInputs[team.id] || ''}
+                              onChange={(e) => handleRetentionAmountInput(team.id, e.target.value)}
+                              className="w-full pl-8 pr-3 py-2 border-2 border-purple-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white shadow-sm transition-all hover:border-purple-400"
+                            />
+                          </div>
                         </div>
 
                         {/* Add Button */}
@@ -685,9 +862,24 @@ const TeamManagement = ({ teams, auctionData, onTeamsUpdate, onPlayersUpdate }) 
                           <button
                             onClick={() => assignRetentionFromDropdown(team.id)}
                             disabled={assigningRetention || !selectedPlayers[team.id]}
-                            className="w-full bg-purple-600 text-white hover:bg-purple-700 disabled:bg-gray-400 disabled:cursor-not-allowed px-4 py-2 rounded-md text-sm font-medium transition-colors border-2 border-purple-500 border-opacity-60 shadow-md"
+                            className="w-full bg-gradient-to-r from-purple-600 to-purple-700 text-white hover:from-purple-700 hover:to-purple-800 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed px-4 py-2 rounded-md text-sm font-semibold transition-all duration-200 shadow-md hover:shadow-lg disabled:shadow-none transform hover:-translate-y-0.5 disabled:transform-none flex items-center justify-center gap-2"
                           >
-                            {assigningRetention ? 'Adding...' : 'Add Retention'}
+                            {assigningRetention ? (
+                              <>
+                                <svg className="animate-spin h-4 w-4" fill="none" viewBox="0 0 24 24">
+                                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                                </svg>
+                                Adding...
+                              </>
+                            ) : (
+                              <>
+                                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
+                                </svg>
+                                Add Retention
+                              </>
+                            )}
                           </button>
                         </div>
                       </div>
