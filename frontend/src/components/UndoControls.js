@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import axios from 'axios';
 import { useNotification } from './NotificationSystem';
 
@@ -6,7 +6,7 @@ import { useNotification } from './NotificationSystem';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const UndoControls = ({ userRole, auctionData }) => {
-  const { showSuccess, showError } = useNotification();
+  const { showSuccess, showError, showWarning } = useNotification();
   const [loading, setLoading] = useState(false);
   const [actionHistory, setActionHistory] = useState([]);
   const [showConfirmModal, setShowConfirmModal] = useState(false);
@@ -18,36 +18,117 @@ const UndoControls = ({ userRole, auctionData }) => {
     }
   }, [userRole]);
 
+  // Keyboard shortcuts
+  useEffect(() => {
+    if (userRole !== 'super-admin') return;
+
+    const handleKeyDown = (e) => {
+      // Ctrl+Z or Cmd+Z: Undo anything (bid or sale/unsold)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        if (loading) return;
+        
+        // Priority: Undo current bid if exists, otherwise undo last sale/unsold
+        if (auctionData?.currentBid) {
+          handleUndoCurrentBid();
+        } else {
+          const lastAction = actionHistory.find(action => 
+            action.type === 'PLAYER_SOLD' || action.type === 'PLAYER_UNSOLD'
+          );
+          if (lastAction) {
+            handleUndoLastSale();
+          }
+        }
+      }
+      
+      // Ctrl+Shift+Z or Cmd+Shift+Z: Undo Last Sale/Unsold
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'Z') {
+        e.preventDefault();
+        if (loading) return;
+        
+        const lastAction = actionHistory.find(action => 
+          action.type === 'PLAYER_SOLD' || action.type === 'PLAYER_UNSOLD'
+        );
+        if (lastAction) {
+          handleUndoLastSale();
+        }
+      }
+
+      // Ctrl+B or Cmd+B: Undo Last Bid
+      if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+        e.preventDefault();
+        if (auctionData?.currentBid && !loading) {
+          handleUndoCurrentBid();
+        }
+      }
+
+      // Number keys 1-9: Place bid for team (only if teams < 10)
+      const teams = auctionData?.teams || [];
+      if (!e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
+        const keyNum = parseInt(e.key);
+        if (keyNum >= 1 && keyNum <= 9 && teams.length < 10 && teams.length >= keyNum) {
+          e.preventDefault();
+          if (auctionData?.currentBid && !loading) {
+            const team = teams[keyNum - 1]; // Array is 0-indexed
+            if (team) {
+              handlePlaceBid(team.id);
+            }
+          }
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [userRole, loading, actionHistory, auctionData, handleUndoLastSale, handleUndoCurrentBid, handlePlaceBid]);
+
   const fetchActionHistory = async () => {
     try {
-  const response = await axios.get(`${API_BASE_URL}/api/auction/history`);
+      const response = await axios.get(`${API_BASE_URL}/api/auction/history`);
       setActionHistory(response.data.history);
     } catch (error) {
       console.error('Error fetching action history:', error);
     }
   };
 
-  const handleUndoLastSale = async () => {
+  const handleUndoLastSale = useCallback(async () => {
+    const lastAction = actionHistory.find(action => 
+      action.type === 'PLAYER_SOLD' || action.type === 'PLAYER_UNSOLD'
+    );
+    
+    if (!lastAction) return;
+
+    const actionType = lastAction.type === 'PLAYER_SOLD' ? 'sale' : 'unsold';
+    const message = actionType === 'sale' 
+      ? `Are you sure you want to undo the last sale? This will refund the money to the team and make the player available again.`
+      : `Are you sure you want to undo the unsold action? This will make ${lastAction.playerName} available for bidding again.`;
+
     setConfirmAction({
-      type: 'sale',
-      message: 'Are you sure you want to undo the last sale? This will refund the money to the team and make the player available again.',
+      type: actionType,
+      message,
       action: async () => {
         setLoading(true);
         try {
           const response = await axios.post(`${API_BASE_URL}/api/auction/undo/sale`);
-          showSuccess(`Sale Undone Successfully!\n\nPlayer: ${response.data.player}\nTeam: ${response.data.team}\nRefunded: ₹${response.data.refundedAmount}`, 'Undo Successful');
+          
+          if (response.data.type === 'sale') {
+            showWarning(`Sale Undone!\n\nPlayer: ${response.data.player}\nTeam: ${response.data.team}\nRefunded: ₹${response.data.refundedAmount}`, 'Undo Successful');
+          } else if (response.data.type === 'unsold') {
+            showWarning(`Unsold Action Undone!\n\nPlayer: ${response.data.player} is now available again`, 'Undo Successful');
+          }
+          
           fetchActionHistory();
         } catch (error) {
-          showError(error.response?.data?.error || 'Failed to undo sale', 'Undo Failed');
+          showError(error.response?.data?.error || 'Failed to undo action', 'Undo Failed');
         } finally {
           setLoading(false);
         }
       }
     });
     setShowConfirmModal(true);
-  };
+  }, [actionHistory, showWarning, showError]);
 
-  const handleUndoCurrentBid = async () => {
+  const handleUndoCurrentBid = useCallback(async () => {
     setConfirmAction({
       type: 'bid',
       message: 'Are you sure you want to undo the current bid? This will revert to the previous team\'s bid or base price.',
@@ -56,9 +137,9 @@ const UndoControls = ({ userRole, auctionData }) => {
         try {
           const response = await axios.post(`${API_BASE_URL}/api/auction/undo/bid`);
           if (response.data.revertedToTeam) {
-            showSuccess(`Bid Undone Successfully!\n\nPlayer: ${response.data.player}\nReverted to: ${response.data.revertedToTeam}\nAmount: ₹${response.data.revertedToAmount}`, 'Undo Successful');
+            showWarning(`Bid Undone!\n\nPlayer: ${response.data.player}\nReverted to: ${response.data.revertedToTeam}\nAmount: ₹${response.data.revertedToAmount}`, 'Undo Successful');
           } else {
-            showSuccess(`Bid Undone Successfully!\n\nPlayer: ${response.data.player}\nReverted to base price: ₹${response.data.revertedToAmount}`, 'Undo Successful');
+            showWarning(`Bid Undone!\n\nPlayer: ${response.data.player}\nReverted to base price: ₹${response.data.revertedToAmount}`, 'Undo Successful');
           }
         } catch (error) {
           showError(error.response?.data?.error || 'Failed to undo bid', 'Undo Failed');
@@ -68,7 +149,19 @@ const UndoControls = ({ userRole, auctionData }) => {
       }
     });
     setShowConfirmModal(true);
-  };
+  }, [showWarning, showError]);
+
+  const handlePlaceBid = useCallback(async (teamId) => {
+    setLoading(true);
+    try {
+      await axios.post(`${API_BASE_URL}/api/auction/bidding/place`, { teamId });
+      // Success notification will come from socket event
+    } catch (error) {
+      showError(error.response?.data?.error || 'Failed to place bid', 'Bid Failed');
+    } finally {
+      setLoading(false);
+    }
+  }, [showError]);
 
   const executeAction = async () => {
     setShowConfirmModal(false);
@@ -93,7 +186,9 @@ const UndoControls = ({ userRole, auctionData }) => {
     );
   }
 
-  const lastSale = actionHistory.find(action => action.type === 'PLAYER_SOLD');
+  const lastAction = actionHistory.find(action => 
+    action.type === 'PLAYER_SOLD' || action.type === 'PLAYER_UNSOLD'
+  );
   const currentBid = auctionData?.currentBid;
 
   return (
@@ -125,9 +220,14 @@ const UndoControls = ({ userRole, auctionData }) => {
         {/* Undo Current Bid Card */}
         <div className="bg-white bg-opacity-20 backdrop-blur-xl rounded-xl shadow-2xl border-2 border-orange-400 border-opacity-70 hover:bg-opacity-30 transition-all duration-300">
           <div className="p-6">
-            <div className="flex items-center mb-4">
-              <div className="text-2xl mr-3">⏪</div>
-              <h4 className="text-xl font-bold text-gray-900">Undo Current Bid</h4>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <div className="text-2xl mr-3">⏪</div>
+                <h4 className="text-xl font-bold text-gray-900">Undo Current Bid</h4>
+              </div>
+              <div className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded font-medium">
+                Ctrl+B
+              </div>
             </div>
             
             {currentBid ? (
@@ -197,34 +297,53 @@ const UndoControls = ({ userRole, auctionData }) => {
           </div>
         </div>
 
-        {/* Undo Last Sale Card */}
+        {/* Undo Last Sale/Unsold Card */}
         <div className="bg-white bg-opacity-20 backdrop-blur-xl rounded-xl shadow-2xl border-2 border-red-400 border-opacity-70 hover:bg-opacity-30 transition-all duration-300">
           <div className="p-6">
-            <div className="flex items-center mb-4">
-              <div className="text-2xl mr-3">↩️</div>
-              <h4 className="text-xl font-bold text-gray-900">Undo Last Sale</h4>
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center">
+                <div className="text-2xl mr-3">↩️</div>
+                <h4 className="text-xl font-bold text-gray-900">Undo Last Action</h4>
+              </div>
+              <div className="text-xs bg-blue-100 text-blue-800 px-2 py-1 rounded font-medium">
+                Ctrl+Shift+Z
+              </div>
             </div>
             
-            {lastSale ? (
+            {lastAction ? (
               <div className="space-y-4">
-                <div className="bg-gradient-to-r from-red-50 to-pink-50 border-2 border-red-300 border-opacity-70 rounded-lg p-4 shadow-md">
-                  <h5 className="text-lg font-bold text-red-800 mb-2">💰 Most Recent Sale</h5>
-                  <div className="space-y-1 text-sm text-red-700">
+                <div className={`bg-gradient-to-r ${
+                  lastAction.type === 'PLAYER_SOLD' 
+                    ? 'from-red-50 to-pink-50 border-red-300' 
+                    : 'from-gray-50 to-slate-50 border-gray-300'
+                } border-2 border-opacity-70 rounded-lg p-4 shadow-md`}>
+                  <h5 className={`text-lg font-bold mb-2 ${
+                    lastAction.type === 'PLAYER_SOLD' ? 'text-red-800' : 'text-gray-800'
+                  }`}>
+                    {lastAction.type === 'PLAYER_SOLD' ? '💰 Most Recent Sale' : '❌ Most Recent Unsold'}
+                  </h5>
+                  <div className={`space-y-1 text-sm ${
+                    lastAction.type === 'PLAYER_SOLD' ? 'text-red-700' : 'text-gray-700'
+                  }`}>
                     <div className="flex justify-between">
                       <span>Player:</span>
-                      <span className="font-medium">{lastSale.playerName}</span>
+                      <span className="font-medium">{lastAction.playerName}</span>
                     </div>
-                    <div className="flex justify-between">
-                      <span>Sold to:</span>
-                      <span className="font-medium">{lastSale.teamName}</span>
-                    </div>
-                    <div className="flex justify-between">
-                      <span>Sale Price:</span>
-                      <span className="font-bold text-lg">₹{lastSale.amount}</span>
-                    </div>
+                    {lastAction.type === 'PLAYER_SOLD' && (
+                      <>
+                        <div className="flex justify-between">
+                          <span>Sold to:</span>
+                          <span className="font-medium">{lastAction.teamName}</span>
+                        </div>
+                        <div className="flex justify-between">
+                          <span>Sale Price:</span>
+                          <span className="font-bold text-lg">₹{lastAction.amount}</span>
+                        </div>
+                      </>
+                    )}
                     <div className="flex justify-between">
                       <span>Time:</span>
-                      <span className="text-xs">{new Date(lastSale.timestamp).toLocaleString()}</span>
+                      <span className="text-xs">{new Date(lastAction.timestamp).toLocaleString()}</span>
                     </div>
                   </div>
                 </div>
@@ -240,15 +359,18 @@ const UndoControls = ({ userRole, auctionData }) => {
                         <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
                         <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
                       </svg>
-                      Undoing Sale...
+                      Undoing...
                     </span>
                   ) : (
-                    '↩️ Undo Last Sale'
+                    `↩️ Undo ${lastAction.type === 'PLAYER_SOLD' ? 'Sale' : 'Unsold'}`
                   )}
                 </button>
                 
                 <p className="text-xs text-gray-500 text-center">
-                  This will refund ₹{lastSale.amount} to {lastSale.teamName} and make {lastSale.playerName} available again
+                  {lastAction.type === 'PLAYER_SOLD' 
+                    ? `This will refund ₹${lastAction.amount} to ${lastAction.teamName} and make ${lastAction.playerName} available again`
+                    : `This will make ${lastAction.playerName} available for bidding again`
+                  }
                 </p>
               </div>
             ) : (
@@ -284,22 +406,31 @@ const UndoControls = ({ userRole, auctionData }) => {
                   <div className="flex-1">
                     <div className="flex items-center space-x-3">
                       <span className="text-lg">
-                        {index === 0 ? '🔥' : action.type === 'PLAYER_SOLD' ? '💰' : '🔨'}
+                        {index === 0 ? '🔥' : 
+                         action.type === 'PLAYER_SOLD' ? '💰' : 
+                         action.type === 'PLAYER_UNSOLD' ? '❌' : '🔨'}
                       </span>
                       <div>
                         <div className="flex items-center space-x-2">
                           <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium ${
-                            action.type === 'PLAYER_SOLD' ? 'bg-green-100 text-green-800' : 'bg-blue-100 text-blue-800'
+                            action.type === 'PLAYER_SOLD' ? 'bg-green-100 text-green-800' : 
+                            action.type === 'PLAYER_UNSOLD' ? 'bg-gray-100 text-gray-800' :
+                            'bg-blue-100 text-blue-800'
                           }`}>
-                            {action.type === 'PLAYER_SOLD' ? 'Sale' : 'Bid'}
+                            {action.type === 'PLAYER_SOLD' ? 'Sale' : 
+                             action.type === 'PLAYER_UNSOLD' ? 'Unsold' : 'Bid'}
                           </span>
                           <span className="text-sm font-medium text-gray-900">
                             {action.playerName}
                           </span>
-                          <span className="text-sm text-gray-500">→</span>
-                          <span className="text-sm font-medium text-gray-900">
-                            {action.teamName}
-                          </span>
+                          {action.type !== 'PLAYER_UNSOLD' && (
+                            <>
+                              <span className="text-sm text-gray-500">→</span>
+                              <span className="text-sm font-medium text-gray-900">
+                                {action.teamName}
+                              </span>
+                            </>
+                          )}
                           {index === 0 && (
                             <span className="text-xs bg-red-100 text-red-800 px-2 py-1 rounded-full font-medium">
                               LATEST
@@ -307,8 +438,8 @@ const UndoControls = ({ userRole, auctionData }) => {
                           )}
                         </div>
                         <div className="text-xs text-gray-500 mt-1 flex items-center space-x-4">
-                          <span>₹{action.amount}</span>
-                          <span>•</span>
+                          {action.amount && <span>₹{action.amount}</span>}
+                          {action.amount && <span>•</span>}
                           <span>{new Date(action.timestamp).toLocaleString()}</span>
                         </div>
                       </div>
@@ -375,10 +506,35 @@ const UndoControls = ({ userRole, auctionData }) => {
       <div className="bg-blue-50 border-2 border-blue-300 border-opacity-70 rounded-lg p-4 shadow-md">
         <h4 className="font-medium text-blue-800 mb-2">💡 Enhanced Undo Functionality</h4>
         <div className="text-sm text-blue-700 space-y-1">
-          <p><strong>Undo Last Sale:</strong> Reverts the most recent player sale, refunds money to team, and makes player available</p>
-          <p><strong>Undo Current Bid (New):</strong> Reverts to previous team's bid instead of canceling completely. Falls back to base price if no previous bids exist.</p>
-          <p><strong>Action History:</strong> Shows chronological record of all sales for tracking and transparency</p>
+          <p><strong>Undo Last Action (Ctrl+Shift+Z):</strong> Reverts the most recent sale or unsold action, refunds money if applicable, and makes player available</p>
+          <p><strong>Undo Current Bid (Ctrl+B):</strong> Reverts to previous team's bid instead of canceling completely. Falls back to base price if no previous bids exist.</p>
+          <p><strong>Quick Undo (Ctrl+Z):</strong> Smart undo - reverts current bid if active, otherwise undoes last sale/unsold</p>
+          <p><strong>Action History:</strong> Shows chronological record of all sales and unsold actions for tracking and transparency</p>
           <p className="font-medium mt-2">⚠️ These operations broadcast changes to all connected clients in real-time</p>
+        </div>
+        
+        <div className="mt-3 pt-3 border-t border-blue-200">
+          <h5 className="font-medium text-blue-800 mb-2">⌨️ Keyboard Shortcuts:</h5>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-xs text-blue-600">
+            <div className="flex items-center">
+              <kbd className="px-2 py-1 bg-white rounded border border-blue-300 font-mono">Ctrl+Z</kbd>
+              <span className="ml-2">Undo Anything (Smart)</span>
+            </div>
+            <div className="flex items-center">
+              <kbd className="px-2 py-1 bg-white rounded border border-blue-300 font-mono">Ctrl+B</kbd>
+              <span className="ml-2">Undo Last Bid</span>
+            </div>
+            <div className="flex items-center">
+              <kbd className="px-2 py-1 bg-white rounded border border-blue-300 font-mono">Ctrl+Shift+Z</kbd>
+              <span className="ml-2">Undo Last Sale/Unsold</span>
+            </div>
+            {auctionData?.teams?.length < 10 && (
+              <div className="flex items-center col-span-2">
+                <kbd className="px-2 py-1 bg-white rounded border border-blue-300 font-mono">1-{auctionData.teams.length}</kbd>
+                <span className="ml-2">Place bid for Team 1-{auctionData.teams.length}</span>
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

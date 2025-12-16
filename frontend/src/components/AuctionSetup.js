@@ -31,39 +31,45 @@ const AuctionSetup = () => {
   });
 
   const handleConfigChange = (field, value) => {
+    // Allow empty string so user can clear and type new value
+    // Only apply defaults during validation, not during typing
     setConfig(prev => ({
       ...prev,
-      [field]: value
+      [field]: value === '' ? '' : value
     }));
   };
 
   const handleIncrementChange = (index, field, value) => {
     const newIncrements = [...config.biddingIncrements];
     
-    // Handle empty string or allow user to type without interference
+    // Handle empty string - allow user to clear and type new value
     if (value === '') {
       newIncrements[index] = {
         ...newIncrements[index],
         [field]: ''
       };
-    } else {
-      // Only convert to number if it's a valid number
-      const numericValue = parseInt(value);
-      if (!isNaN(numericValue) && numericValue >= 0) {
-        newIncrements[index] = {
-          ...newIncrements[index],
-          [field]: numericValue
-        };
-      } else {
-        // Keep the previous valid value if input is invalid
-        return;
-      }
+      setConfig(prev => ({
+        ...prev,
+        biddingIncrements: newIncrements
+      }));
+      return;
     }
     
-    setConfig(prev => ({
-      ...prev,
-      biddingIncrements: newIncrements
-    }));
+    // Convert to number - accepting the raw value from input
+    const numericValue = parseInt(value, 10);
+    
+    // Only update if it's a valid positive number
+    if (!isNaN(numericValue) && numericValue >= 0) {
+      newIncrements[index] = {
+        ...newIncrements[index],
+        [field]: numericValue
+      };
+      setConfig(prev => ({
+        ...prev,
+        biddingIncrements: newIncrements
+      }));
+    }
+    // If invalid, do nothing (keep previous value)
   };
 
   const addIncrement = () => {
@@ -79,6 +85,20 @@ const AuctionSetup = () => {
   const removeIncrement = (index) => {
     if (config.biddingIncrements.length > 1) {
       const newIncrements = config.biddingIncrements.filter((_, i) => i !== index);
+      setConfig(prev => ({
+        ...prev,
+        biddingIncrements: newIncrements
+      }));
+    }
+  };
+
+  const moveIncrement = (index, direction) => {
+    const newIncrements = [...config.biddingIncrements];
+    const targetIndex = direction === 'up' ? index - 1 : index + 1;
+    
+    if (targetIndex >= 0 && targetIndex < newIncrements.length) {
+      // Swap elements
+      [newIncrements[index], newIncrements[targetIndex]] = [newIncrements[targetIndex], newIncrements[index]];
       setConfig(prev => ({
         ...prev,
         biddingIncrements: newIncrements
@@ -133,14 +153,23 @@ const AuctionSetup = () => {
     setError('');
 
     try {
+      // Prepare config with proper numeric values (convert empty strings to defaults if needed)
+      const sanitizedConfig = {
+        teamCount: typeof config.teamCount === 'number' ? config.teamCount : 4,
+        startingBudget: typeof config.startingBudget === 'number' ? config.startingBudget : 1000,
+        maxPlayersPerTeam: typeof config.maxPlayersPerTeam === 'number' ? config.maxPlayersPerTeam : 15,
+        basePrice: typeof config.basePrice === 'number' ? config.basePrice : 10,
+        biddingIncrements: config.biddingIncrements
+      };
+
       // First, save auction settings
-      await axios.post(`${API_BASE_URL}/api/auction/settings`, config);
+      await axios.post(`${API_BASE_URL}/api/auction/settings`, sanitizedConfig);
 
       // Then upload players file
       if (fileData.file) {
         const formData = new FormData();
         formData.append('playerFile', fileData.file);
-  await axios.post(`${API_BASE_URL}/api/players/upload`, formData, {
+        await axios.post(`${API_BASE_URL}/api/players/upload`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
       }
@@ -159,7 +188,11 @@ const AuctionSetup = () => {
   const canProceedToNext = () => {
     switch (currentStep) {
       case 1:
-        return config.teamCount >= 2 && config.startingBudget > 0 && config.maxPlayersPerTeam > 0;
+        // Ensure all fields have valid numeric values (not empty strings)
+        return typeof config.teamCount === 'number' && config.teamCount >= 2 && config.teamCount <= 16 &&
+               typeof config.startingBudget === 'number' && config.startingBudget >= 100 &&
+               typeof config.maxPlayersPerTeam === 'number' && config.maxPlayersPerTeam >= 5 && config.maxPlayersPerTeam <= 25 &&
+               typeof config.basePrice === 'number' && config.basePrice >= 5;
       case 2:
         return config.biddingIncrements.length > 0 && 
                config.biddingIncrements.every(inc => 
@@ -242,10 +275,18 @@ const AuctionSetup = () => {
                       </label>
                       <input
                         type="number"
-                        min="2"
-                        max="16"
+                        step="any"
                         value={config.teamCount}
-                        onChange={(e) => handleConfigChange('teamCount', parseInt(e.target.value) || 2)}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          handleConfigChange('teamCount', value === '' ? '' : parseInt(value));
+                        }}
+                        onBlur={(e) => {
+                          const value = e.target.value;
+                          if (value !== '') {
+                            handleConfigChange('teamCount', parseInt(value));
+                          }
+                        }}
                         className="w-full px-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
                       />
                     </div>
@@ -256,10 +297,18 @@ const AuctionSetup = () => {
                       </label>
                       <input
                         type="number"
-                        min="100"
-                        step="50"
+                        step="any"
                         value={config.startingBudget}
-                        onChange={(e) => handleConfigChange('startingBudget', parseInt(e.target.value) || 1000)}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          handleConfigChange('startingBudget', value === '' ? '' : parseInt(value));
+                        }}
+                        onBlur={(e) => {
+                          const value = e.target.value;
+                          if (value !== '') {
+                            handleConfigChange('startingBudget', parseInt(value));
+                          }
+                        }}
                         className="w-full px-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
                       />
                     </div>
@@ -270,10 +319,18 @@ const AuctionSetup = () => {
                       </label>
                       <input
                         type="number"
-                        min="5"
-                        max="25"
+                        step="any"
                         value={config.maxPlayersPerTeam}
-                        onChange={(e) => handleConfigChange('maxPlayersPerTeam', parseInt(e.target.value) || 15)}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          handleConfigChange('maxPlayersPerTeam', value === '' ? '' : parseInt(value));
+                        }}
+                        onBlur={(e) => {
+                          const value = e.target.value;
+                          if (value !== '') {
+                            handleConfigChange('maxPlayersPerTeam', parseInt(value));
+                          }
+                        }}
                         className="w-full px-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
                       />
                     </div>
@@ -284,10 +341,18 @@ const AuctionSetup = () => {
                       </label>
                       <input
                         type="number"
-                        min="5"
-                        step="5"
+                        step="any"
                         value={config.basePrice}
-                        onChange={(e) => handleConfigChange('basePrice', parseInt(e.target.value) || 10)}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          handleConfigChange('basePrice', value === '' ? '' : parseInt(value));
+                        }}
+                        onBlur={(e) => {
+                          const value = e.target.value;
+                          if (value !== '') {
+                            handleConfigChange('basePrice', parseInt(value));
+                          }
+                        }}
                         className="w-full px-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
                       />
                     </div>
@@ -298,10 +363,10 @@ const AuctionSetup = () => {
                   <div className="bg-blue-500 bg-opacity-20 rounded-lg p-4 border border-blue-400 border-opacity-30">
                     <h4 className="text-white font-medium mb-2">Preview:</h4>
                     <div className="text-blue-200 text-sm space-y-1">
-                      <p>• {config.teamCount} teams will participate</p>
-                      <p>• Each team gets ₹{config.startingBudget} budget</p>
-                      <p>• Maximum {config.maxPlayersPerTeam} players per team</p>
-                      <p>• Bidding starts from ₹{config.basePrice}</p>
+                      <p>• {config.teamCount || '...'} teams will participate</p>
+                      <p>• Each team gets ₹{config.startingBudget || '...'} budget</p>
+                      <p>• Maximum {config.maxPlayersPerTeam || '...'} players per team</p>
+                      <p>• Bidding starts from ₹{config.basePrice || '...'}</p>
                     </div>
                   </div>
                 </div>
@@ -313,26 +378,63 @@ const AuctionSetup = () => {
                   <h3 className="text-2xl font-bold text-white text-center mb-6">Bidding Increment Rules</h3>
                   
                   <div className="bg-blue-500 bg-opacity-20 rounded-lg p-4 border border-blue-400 border-opacity-30 mb-6">
-                    <p className="text-blue-200 text-sm">
+                    <p className="text-blue-200 text-sm mb-2">
                       Set how much the bid should increase at different price levels. For example, increment by ₹5 
                       until ₹50, then by ₹10 until ₹100, and so on.
+                    </p>
+                    <p className="text-yellow-300 text-xs font-medium">
+                      ⚠️ Important: Rules will be saved in the exact order you enter them. Arrange from lowest to highest threshold for best results.
                     </p>
                   </div>
 
                   <div className="space-y-4">
                     {config.biddingIncrements.map((increment, index) => (
-                      <div key={index} className="flex items-center space-x-4 bg-white bg-opacity-5 rounded-lg p-4">
+                      <div key={index} className="flex items-center space-x-2 bg-white bg-opacity-5 rounded-lg p-4">
+                        {/* Order controls */}
+                        <div className="flex flex-col space-y-1">
+                          <button
+                            onClick={() => moveIncrement(index, 'up')}
+                            disabled={index === 0}
+                            className="p-1 text-blue-300 hover:text-blue-100 hover:bg-blue-500 hover:bg-opacity-20 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                            title="Move up"
+                          >
+                            ▲
+                          </button>
+                          <button
+                            onClick={() => moveIncrement(index, 'down')}
+                            disabled={index === config.biddingIncrements.length - 1}
+                            className="p-1 text-blue-300 hover:text-blue-100 hover:bg-blue-500 hover:bg-opacity-20 rounded disabled:opacity-30 disabled:cursor-not-allowed"
+                            title="Move down"
+                          >
+                            ▼
+                          </button>
+                        </div>
+                        
+                        {/* Rule number indicator */}
+                        <div className="flex items-center justify-center w-8 h-8 rounded-full bg-blue-500 bg-opacity-30 text-blue-200 font-bold text-sm">
+                          {index + 1}
+                        </div>
+                        
                         <div className="flex-1">
                           <label className="block text-xs text-blue-200 mb-1">
                             Until ₹{typeof increment.threshold === 'number' ? increment.threshold : '0'} (Threshold)
                           </label>
                           <input
                             type="number"
-                            min="0"
-                            step="10"
+                            step="any"
                             value={increment.threshold}
                             placeholder="Enter threshold amount"
-                            onChange={(e) => handleIncrementChange(index, 'threshold', e.target.value)}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              handleIncrementChange(index, 'threshold', value);
+                            }}
+                            onBlur={(e) => {
+                              // Preserve the exact value on blur to prevent browser corrections
+                              const value = e.target.value;
+                              if (value !== '') {
+                                handleIncrementChange(index, 'threshold', value);
+                              }
+                            }}
                             className="w-full px-3 py-2 bg-white bg-opacity-20 border border-white border-opacity-30 rounded text-white text-sm placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
                           />
                         </div>
@@ -342,11 +444,20 @@ const AuctionSetup = () => {
                           </label>
                           <input
                             type="number"
-                            min="1"
-                            step="1"
+                            step="any"
                             value={increment.increment}
                             placeholder="Enter increment amount"
-                            onChange={(e) => handleIncrementChange(index, 'increment', e.target.value)}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              handleIncrementChange(index, 'increment', value);
+                            }}
+                            onBlur={(e) => {
+                              // Preserve the exact value on blur to prevent browser corrections
+                              const value = e.target.value;
+                              if (value !== '') {
+                                handleIncrementChange(index, 'increment', value);
+                              }
+                            }}
                             className="w-full px-3 py-2 bg-white bg-opacity-20 border border-white border-opacity-30 rounded text-white text-sm placeholder-blue-300 focus:outline-none focus:ring-2 focus:ring-blue-400"
                           />
                         </div>
@@ -354,6 +465,7 @@ const AuctionSetup = () => {
                           <button
                             onClick={() => removeIncrement(index)}
                             className="p-2 text-red-300 hover:text-red-100 hover:bg-red-500 hover:bg-opacity-20 rounded"
+                            title="Remove this rule"
                           >
                             ✕
                           </button>
@@ -370,19 +482,23 @@ const AuctionSetup = () => {
                   </button>
 
                   <div className="bg-green-500 bg-opacity-20 rounded-lg p-4 border border-green-400 border-opacity-30">
-                    <h4 className="text-white font-medium mb-2">Bidding Rules Preview:</h4>
+                    <h4 className="text-white font-medium mb-2">📋 Your Bidding Rules (In Order):</h4>
                     <div className="text-green-200 text-sm space-y-1">
                       {config.biddingIncrements
                         .filter(rule => typeof rule.threshold === 'number' && typeof rule.increment === 'number')
-                        .sort((a, b) => a.threshold - b.threshold)
-                        .map((rule, index, filteredArray) => (
+                        .map((rule, index) => (
                           <p key={index}>
-                            • {index === 0 ? 'Start' : `From ₹${filteredArray[index-1]?.threshold || 0}`} to ₹{rule.threshold}: increment by ₹{rule.increment}
+                            {index + 1}. Until ₹{rule.threshold}: increment by ₹{rule.increment}
                           </p>
                         ))}
                       {config.biddingIncrements.filter(rule => typeof rule.threshold === 'number' && typeof rule.increment === 'number').length === 0 && (
                         <p className="text-yellow-300 italic">Complete the rules above to see preview</p>
                       )}
+                    </div>
+                    <div className="mt-3 pt-3 border-t border-green-400 border-opacity-30">
+                      <p className="text-green-100 text-xs">
+                        ✓ Rules will be saved exactly as shown above
+                      </p>
                     </div>
                   </div>
                 </div>

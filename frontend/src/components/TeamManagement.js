@@ -847,11 +847,16 @@ const TeamManagement = ({ teams, auctionData, onTeamsUpdate, onPlayersUpdate }) 
                             </span>
                             <input
                               type="number"
-                              min="0"
-                              step="5"
+                              step="any"
                               placeholder="0"
                               value={retentionAmountInputs[team.id] || ''}
                               onChange={(e) => handleRetentionAmountInput(team.id, e.target.value)}
+                              onBlur={(e) => {
+                                const value = e.target.value;
+                                if (value !== '') {
+                                  handleRetentionAmountInput(team.id, value);
+                                }
+                              }}
                               className="w-full pl-8 pr-3 py-2 border-2 border-purple-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-purple-500 bg-white shadow-sm transition-all hover:border-purple-400"
                             />
                           </div>

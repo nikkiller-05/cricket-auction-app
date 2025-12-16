@@ -415,7 +415,6 @@ const UnifiedDashboard = () => {
 
     // Socket event listeners
     socketConnection.on('auctionData', (data) => {
-      console.log('Received auction data:', data);
       setAuctionData(data);
       setLoading(false);
     });
@@ -595,7 +594,6 @@ const UnifiedDashboard = () => {
   const fetchActionHistory = useCallback(async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/api/auction/history`);
-      console.log('Action history fetched:', response.data.history);
       setActionHistory(response.data.history);
     } catch (error) {
       console.error('Error fetching action history:', error);
@@ -604,7 +602,6 @@ const UnifiedDashboard = () => {
 
   // Fetch action history for super-admin
   useEffect(() => {
-    console.log('Role check for action history:', { userRole, isAdmin });
     if (userRole === 'super-admin' && isAdmin) {
       fetchActionHistory();
     }
@@ -628,17 +625,37 @@ const UnifiedDashboard = () => {
 
   // Undo functionality functions
   const handleUndoLastSale = async () => {
+    const lastAction = actionHistory.find(action => 
+      action.type === 'PLAYER_SOLD' || action.type === 'PLAYER_UNSOLD'
+    );
+    
+    if (!lastAction) {
+      showError('No sale or unsold action to undo');
+      return;
+    }
+
+    const actionType = lastAction.type === 'PLAYER_SOLD' ? 'sale' : 'unsold';
+    const message = actionType === 'sale' 
+      ? 'Are you sure you want to undo the last sale? This will refund the money to the team and make the player available again.'
+      : `Are you sure you want to undo the unsold action? This will make ${lastAction.playerName} available for bidding again.`;
+
     setUndoConfirmAction({
-      type: 'sale',
-      message: 'Are you sure you want to undo the last sale? This will refund the money to the team and make the player available again.',
+      type: actionType,
+      message,
       action: async () => {
         setUndoLoading(true);
         try {
           const response = await axios.post(`${API_BASE_URL}/api/auction/undo/sale`);
-          showSuccess(`Sale Undone: ${response.data.player} - Refunded ₹${response.data.refundedAmount} to ${response.data.team}`);
+          
+          if (response.data.type === 'sale') {
+            showWarning(`Sale Undone: ${response.data.player} - Refunded ₹${response.data.refundedAmount} to ${response.data.team}`);
+          } else if (response.data.type === 'unsold') {
+            showWarning(`Unsold Action Undone: ${response.data.player} is now available again`);
+          }
+          
           fetchActionHistory();
         } catch (error) {
-          showError(error.response?.data?.error || 'Failed to undo sale');
+          showError(error.response?.data?.error || 'Failed to undo action');
         } finally {
           setUndoLoading(false);
         }
@@ -656,9 +673,9 @@ const UnifiedDashboard = () => {
         try {
           const response = await axios.post(`${API_BASE_URL}/api/auction/undo/bid`);
           if (response.data.revertedToTeam) {
-            showSuccess(`Bid Reverted: ${response.data.player} - Back to ${response.data.revertedToTeam} (₹${response.data.revertedToAmount})`);
+            showWarning(`Bid Reverted: ${response.data.player} - Back to ${response.data.revertedToTeam} (₹${response.data.revertedToAmount})`);
           } else {
-            showSuccess(`Bid Reverted: ${response.data.player} - Back to base price (₹${response.data.revertedToAmount})`);
+            showWarning(`Bid Reverted: ${response.data.player} - Back to base price (₹${response.data.revertedToAmount})`);
           }
         } catch (error) {
           showError(error.response?.data?.error || 'Failed to undo bid');
@@ -682,6 +699,64 @@ const UnifiedDashboard = () => {
     setShowUndoConfirmModal(false);
     setUndoConfirmAction(null);
   };
+
+  // Keyboard shortcuts for Super Admin
+  useEffect(() => {
+    if (userRole !== 'super-admin') return;
+
+    const handleKeyDown = (e) => {
+      // Prevent keyboard shortcuts when typing in input fields
+      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+      // Ctrl+Z or Cmd+Z: Smart undo (bid if active, otherwise last sale/unsold)
+      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+        e.preventDefault();
+        if (undoLoading) return;
+        
+        if (auctionData?.currentBid) {
+          handleUndoCurrentBid();
+        } else {
+          handleUndoLastSale();
+        }
+      }
+      
+      // Ctrl+Shift+Z: Undo Last Sale/Unsold
+      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'Z') {
+        e.preventDefault();
+        if (!undoLoading) {
+          handleUndoLastSale();
+        }
+      }
+
+      // Ctrl+B: Undo Last Bid
+      if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+        e.preventDefault();
+        if (auctionData?.currentBid && !undoLoading) {
+          handleUndoCurrentBid();
+        }
+      }
+
+      // Number keys 1-9: Quick team bidding (only if teams < 10)
+      const teams = auctionData?.teams || [];
+      if (!e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
+        const keyNum = parseInt(e.key);
+        if (keyNum >= 1 && keyNum <= 9 && teams.length < 10 && teams.length >= keyNum) {
+          e.preventDefault();
+          if (auctionData?.currentBid?.playerId) {
+            const team = teams[keyNum - 1];
+            if (team) {
+              // Place bid for this team
+              axios.post(`${API_BASE_URL}/api/auction/bidding/place`, { teamId: team.id })
+                .catch(error => showError(error.response?.data?.error || 'Failed to place bid'));
+            }
+          }
+        }
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [userRole, undoLoading, auctionData, actionHistory, handleUndoLastSale, handleUndoCurrentBid]);
 
   const handleLogout = () => {
     setIsAdmin(false);
@@ -972,12 +1047,6 @@ const UnifiedDashboard = () => {
         onUndoLastSale={handleUndoLastSale}
         canUndoLastSale={(() => {
           const lastSale = actionHistory.slice().reverse().find(action => action.type === 'PLAYER_SOLD');
-          console.log('Can undo last sale check:', { 
-            actionHistoryLength: actionHistory.length, 
-            lastSale: !!lastSale,
-            actionTypes: actionHistory.map(a => a.type),
-            fullActionHistory: actionHistory
-          });
           return !!lastSale;
         })()}
         undoLoading={undoLoading}

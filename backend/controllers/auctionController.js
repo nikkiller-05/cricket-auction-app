@@ -39,14 +39,29 @@ const auctionController = {
         return res.status(400).json({ error: 'Bidding increments are required' });
       }
       
-      const sortedIncrements = biddingIncrements.sort((a, b) => a.threshold - b.threshold);
+      // Validate bidding increments
+      for (let i = 0; i < biddingIncrements.length; i++) {
+        const inc = biddingIncrements[i];
+        if (typeof inc.threshold !== 'number' || typeof inc.increment !== 'number') {
+          return res.status(400).json({ 
+            error: `Invalid bidding increment at position ${i + 1}: threshold and increment must be numbers` 
+          });
+        }
+        if (inc.threshold < 0 || inc.increment <= 0) {
+          return res.status(400).json({ 
+            error: `Invalid bidding increment at position ${i + 1}: threshold must be >= 0 and increment must be > 0` 
+          });
+        }
+      }
       
+      // Keep the user's order - DO NOT sort automatically
+      // User knows their auction setup best
       const newSettings = {
         teamCount: parseInt(teamCount),
         startingBudget: parseInt(startingBudget),
         maxPlayersPerTeam: parseInt(maxPlayersPerTeam),
         basePrice: parseInt(basePrice),
-        biddingIncrements: sortedIncrements,
+        biddingIncrements: biddingIncrements, // Use as-is without sorting
         enableRetention: Boolean(enableRetention),
         retentionsPerTeam: parseInt(retentionsPerTeam) || 0
       };
@@ -379,6 +394,20 @@ const auctionController = {
 
       const players = dataService.getPlayers();
       const player = players.find(p => p.id === currentBid.playerId);
+      
+      // Record action for undo functionality BEFORE marking unsold
+      dataService.addAction({
+        type: 'PLAYER_UNSOLD',
+        playerId: player.id,
+        playerName: player.name,
+        previousPlayerState: {
+          status: player.status,
+          currentBid: player.currentBid,
+          biddingTeam: player.biddingTeam
+        },
+        timestamp: new Date()
+      });
+      
       player.status = 'unsold';
       player.currentBid = 0;
       player.biddingTeam = null;
@@ -576,62 +605,99 @@ const auctionController = {
       console.log('Undo last sale request received');
       
       const actionHistory = dataService.getActionHistory();
-      const lastSaleAction = actionHistory
+      const lastAction = actionHistory
         .slice()
         .reverse()
-        .find(action => action.type === 'PLAYER_SOLD');
+        .find(action => action.type === 'PLAYER_SOLD' || action.type === 'PLAYER_UNSOLD');
 
-      if (!lastSaleAction) {
-        return res.status(400).json({ error: 'No recent sale to undo' });
+      if (!lastAction) {
+        return res.status(400).json({ error: 'No recent sale or unsold action to undo' });
       }
 
       const players = dataService.getPlayers();
-      const teams = dataService.getTeams();
+      const player = players.find(p => p.id === lastAction.playerId);
       
-      const player = players.find(p => p.id === lastSaleAction.playerId);
-      const team = teams.find(t => t.id === lastSaleAction.teamId);
-      
-      if (!player || !team) {
-        return res.status(400).json({ error: 'Player or team not found for undo operation' });
+      if (!player) {
+        return res.status(400).json({ error: 'Player not found for undo operation' });
       }
 
-      // Restore player state
-      player.status = lastSaleAction.previousPlayerState.status;
-      player.team = lastSaleAction.previousPlayerState.team;
-      player.finalBid = lastSaleAction.previousPlayerState.finalBid;
-      player.currentBid = lastSaleAction.previousPlayerState.currentBid;
-      player.biddingTeam = lastSaleAction.previousPlayerState.biddingTeam;
+      if (lastAction.type === 'PLAYER_SOLD') {
+        // Undo a sold player
+        const teams = dataService.getTeams();
+        const team = teams.find(t => t.id === lastAction.teamId);
+        
+        if (!team) {
+          return res.status(400).json({ error: 'Team not found for undo operation' });
+        }
 
-      // Restore team state
-      team.budget = lastSaleAction.previousTeamBudget;
-      team.players = [...lastSaleAction.previousTeamPlayers];
+        // Restore player state
+        player.status = lastAction.previousPlayerState.status;
+        player.team = lastAction.previousPlayerState.team;
+        player.finalBid = lastAction.previousPlayerState.finalBid;
+        player.currentBid = lastAction.previousPlayerState.currentBid;
+        player.biddingTeam = lastAction.previousPlayerState.biddingTeam;
 
-      // Remove the action from history
-      dataService.removeActionById(lastSaleAction.id);
+        // Restore team state
+        team.budget = lastAction.previousTeamBudget;
+        team.players = [...lastAction.previousTeamPlayers];
 
-      dataService.setPlayers(players);
-      dataService.setTeams(teams);
+        dataService.setTeams(teams);
+        socketService.emit('teamsUpdated', teams);
+        socketService.emit('saleUndone', {
+          player: player.name,
+          team: team.name,
+          amount: lastAction.amount
+        });
 
-      const stats = calculateStats(players);
-      dataService.updateStats(stats);
+        console.log(`Sale undone: ${player.name} returned from ${team.name}, ₹${lastAction.amount} refunded`);
+        
+        // Remove the action from history
+        dataService.removeActionById(lastAction.id);
 
-      socketService.emit('playersUpdated', players);
-      socketService.emit('teamsUpdated', teams);
-      socketService.emit('statsUpdated', stats);
-      socketService.emit('saleUndone', {
-        player: player.name,
-        team: team.name,
-        amount: lastSaleAction.amount
-      });
+        dataService.setPlayers(players);
 
-      console.log(`Sale undone: ${player.name} returned from ${team.name}, ₹${lastSaleAction.amount} refunded`);
-      
-      res.json({
-        message: 'Sale undone successfully',
-        player: player.name,
-        team: team.name,
-        refundedAmount: lastSaleAction.amount
-      });
+        const stats = calculateStats(players);
+        dataService.updateStats(stats);
+
+        socketService.emit('playersUpdated', players);
+        socketService.emit('statsUpdated', stats);
+        
+        res.json({
+          message: 'Sale undone successfully',
+          player: player.name,
+          team: team.name,
+          refundedAmount: lastAction.amount,
+          type: 'sale'
+        });
+
+      } else if (lastAction.type === 'PLAYER_UNSOLD') {
+        // Undo an unsold player - make them available again
+        player.status = lastAction.previousPlayerState.status;
+        player.currentBid = lastAction.previousPlayerState.currentBid;
+        player.biddingTeam = lastAction.previousPlayerState.biddingTeam;
+
+        console.log(`Unsold action undone: ${player.name} is now available again`);
+        
+        // Remove the action from history
+        dataService.removeActionById(lastAction.id);
+
+        dataService.setPlayers(players);
+
+        const stats = calculateStats(players);
+        dataService.updateStats(stats);
+
+        socketService.emit('playersUpdated', players);
+        socketService.emit('statsUpdated', stats);
+        socketService.emit('unsoldUndone', {
+          player: player.name
+        });
+        
+        res.json({
+          message: 'Unsold action undone successfully',
+          player: player.name,
+          type: 'unsold'
+        });
+      }
 
     } catch (error) {
       console.error('Error undoing last sale:', error);
