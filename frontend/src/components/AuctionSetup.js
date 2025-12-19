@@ -275,7 +275,7 @@ const AuctionSetup = () => {
                       </label>
                       <input
                         type="number"
-                        step="any"
+                        step="1"
                         value={config.teamCount}
                         onChange={(e) => {
                           const value = e.target.value;
@@ -297,7 +297,7 @@ const AuctionSetup = () => {
                       </label>
                       <input
                         type="number"
-                        step="any"
+                        step="1"
                         value={config.startingBudget}
                         onChange={(e) => {
                           const value = e.target.value;
@@ -319,7 +319,7 @@ const AuctionSetup = () => {
                       </label>
                       <input
                         type="number"
-                        step="any"
+                        step="1"
                         value={config.maxPlayersPerTeam}
                         onChange={(e) => {
                           const value = e.target.value;
@@ -341,7 +341,7 @@ const AuctionSetup = () => {
                       </label>
                       <input
                         type="number"
-                        step="any"
+                        step="1"
                         value={config.basePrice}
                         onChange={(e) => {
                           const value = e.target.value;
@@ -421,7 +421,7 @@ const AuctionSetup = () => {
                           </label>
                           <input
                             type="number"
-                            step="any"
+                            step="1"
                             value={increment.threshold}
                             placeholder="Enter threshold amount"
                             onChange={(e) => {
@@ -444,7 +444,7 @@ const AuctionSetup = () => {
                           </label>
                           <input
                             type="number"
-                            step="any"
+                            step="1"
                             value={increment.increment}
                             placeholder="Enter increment amount"
                             onChange={(e) => {
