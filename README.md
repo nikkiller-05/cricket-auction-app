@@ -22,9 +22,12 @@ A comprehensive full-stack web application for managing and conducting professio
 ### 🏆 **Team & Player Management**
 - **Team Setup**: Configurable team budgets and player limits
 - **Player Import**: Bulk upload players via Excel files
-- **Captain Management**: Special handling for team captains
+- **Captain Assignment**: Assign any player as captain with customizable amount (₹0 to budget)
+- **Captain Amount Tracking**: Budget deductions for captain assignments with refund on changes
 - **Retained Players**: Support for pre-auction player retention
 - **Player Categories**: Organize players by experience, role, and pricing tiers
+- **Budget Validation**: Real-time budget checks for captain assignments
+- **Visual Indicators**: Crown emoji (👑) displays for captains in Player Management
 
 ### 📊 **Advanced Reporting & Analytics**
 - **Complete Auction Results**: Comprehensive Excel reports with multiple sheets
@@ -39,6 +42,7 @@ A comprehensive full-stack web application for managing and conducting professio
 - **Input Validation**: Comprehensive data validation and sanitization
 - **Vulnerability-Free**: Updated to use secure ExcelJS library (0 vulnerabilities)
 - **Real-time Updates**: WebSocket integration for live data synchronization
+- **Real-time Settings Sync**: Auction settings broadcast instantly to all clients
 - **Modern UI Components**: Custom notification system with no browser alert dependencies
 - **Enhanced Error Handling**: Graceful error management with user-friendly messages
 
@@ -52,6 +56,16 @@ A comprehensive full-stack web application for managing and conducting professio
 - **Cross-Device Compatibility**: Optimized for phones, tablets, and desktop browsers
 
 ## 🆕 Recent Updates & Improvements
+
+### **v2.3.0 - December 2025**
+- 👑 **Captain Assignment with Amounts**: Assign any player as team captain with customizable amount deduction
+- 💰 **Smart Budget Management**: Captain amounts validated against team budget with refund on reassignment
+- 🎨 **Visual Captain Indicators**: Crown emoji (👑) displays next to captain names in Player Management
+- 📊 **Dedicated Captain Section**: Purple-themed captain section in Team Squads display
+- 🔄 **Real-time Settings Sync**: Live broadcast of auction settings updates to all connected clients
+- ⚡ **Instant UI Updates**: Settings changes propagate immediately without page refresh
+- 🎯 **Captain Budget Tracking**: Captain amounts included in remaining budget calculations
+- 🧹 **Production Code Quality**: Removed all debug logging for clean production deployment
 
 ### **v2.2.0 - November 2025**
 - ✨ **Searchable Retention Dropdown**: Custom dropdown with search, filter, and clear functionality
@@ -229,7 +243,7 @@ REACT_APP_API_URL=http://localhost:5000
 <td align="center" width="300">
 
 🏷️ **📡 Socket Client**<br/>
-<sub>• Real-time Events<br/>• Bidding Updates<br/>• Live Statistics<br/>• Connection Mgmt</sub>
+<sub>• Real-time Events<br/>• Bidding Updates<br/>• Settings Sync<br/>• Live Statistics<br/>• Connection Mgmt</sub>
 
 </td>
 <td align="center" width="300">
@@ -260,7 +274,7 @@ REACT_APP_API_URL=http://localhost:5000
 <td align="center" width="300">
 
 🏷️ **🔌 Socket.io Server**<br/>
-<sub>• Real-time Events<br/>• Broadcast System<br/>• Connection Mgmt<br/>• Room Management</sub>
+<sub>• Real-time Events<br/>• Broadcast System<br/>• Settings Updates<br/>• Connection Mgmt<br/>• Room Management</sub>
 
 </td>
 <td align="center" width="300">
@@ -305,7 +319,7 @@ REACT_APP_API_URL=http://localhost:5000
 
 🏷️ **� AUCTION DATA STORE** `Ultra-Fast Performance`<br/>
 <sub>`players: [{id, name, role, category, status, basePrice, team}, ...]`<br/>
-`teams: [{id, name, budget, players, captain}, ...]`<br/>
+`teams: [{id, name, budget, players, captain, captainAmount}, ...]`<br/>
 `currentBid: {playerId, teamId, amount, history, timestamp}`</sub>
 
 </td></tr>
@@ -467,8 +481,11 @@ REACT_APP_API_URL=http://localhost:5000
 
 2. **Manage Teams**:
    - Add/edit team information
-   - Assign captains and retained players
-   - Monitor team budgets
+   - Assign captains with customizable amounts (₹0 to team budget)
+   - Captain amounts automatically deducted from team budgets
+   - Reassign captains with automatic refund of previous amount
+   - Manage retained players
+   - Monitor team budgets and remaining funds
 
 3. **Conduct Auction**:
    - Start auction and control bidding
@@ -494,6 +511,8 @@ REACT_APP_API_URL=http://localhost:5000
 
 ### **Auction Management**
 - `GET /api/auction/data` - Get auction status and data
+- `GET /api/auction/settings` - Get auction settings
+- `POST /api/auction/settings` - Update auction settings (broadcasts real-time)
 - `POST /api/auction/start` - Start auction
 - `POST /api/auction/stop` - Stop auction
 - `POST /api/auction/upload-players` - Upload player data
@@ -502,6 +521,13 @@ REACT_APP_API_URL=http://localhost:5000
 - `POST /api/auction/bidding/place` - Place bid for team
 - `POST /api/auction/bidding/cancel` - Cancel current bidding
 - `POST /api/auction/bidding/undo` - Undo last operation
+
+### **Team Management**
+- `GET /api/teams` - Get all teams
+- `POST /api/teams` - Create new team
+- `PUT /api/teams/:id` - Update team details
+- `POST /api/teams/:teamId/captain` - Assign captain with amount
+- `POST /api/teams/:teamId/retained` - Add retained player
 
 ### **Downloads & Reports**
 - `GET /api/download-results` - Complete auction results
