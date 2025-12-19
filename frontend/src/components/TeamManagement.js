@@ -16,10 +16,19 @@ const TeamManagement = ({ teams, auctionData, onTeamsUpdate, onPlayersUpdate }) 
   const [assigningRetention, setAssigningRetention] = useState(false);
   const [retentionAmounts, setRetentionAmounts] = useState({});
 
-  // Get available captains and assigned captains
-  const allCaptains = auctionData?.players?.filter(p => p.category === 'captain') || [];
-  const availableCaptains = allCaptains.filter(p => !p.team || p.status === 'available');
-  const assignedCaptains = allCaptains.filter(p => p.team && p.status === 'assigned');
+  // Captain selection states (similar to retention)
+  const [selectedCaptains, setSelectedCaptains] = useState({}); // {teamId: playerId}
+  const [captainAmountInputs, setCaptainAmountInputs] = useState({}); // {teamId: amount}
+  const [captainSearchTerms, setCaptainSearchTerms] = useState({}); // {teamId: searchTerm}
+  const [captainDropdownOpen, setCaptainDropdownOpen] = useState({}); // {teamId: boolean}
+
+  // Get all players for captain selection (any player can be captain now)
+  const allPlayers = auctionData?.players || [];
+  const availableForCaptain = allPlayers.filter(p => 
+    (p.status === 'available' || !p.team) && 
+    p.status !== 'retained' &&
+    p.status !== 'sold'
+  );
 
   // Local retention controls (independent of auction settings)
   // Initialize retention state from existing retained players
@@ -83,7 +92,6 @@ const TeamManagement = ({ teams, auctionData, onTeamsUpdate, onPlayersUpdate }) 
   }, [retentionEnabled, retentionsPerTeam, retentionConfigSaved]);
 
   // Get retention-related data
-  const allPlayers = auctionData?.players || [];
   const nonCaptainPlayers = allPlayers.filter(p => p.category !== 'captain');
   const availableForRetention = nonCaptainPlayers.filter(p => 
     p.status === 'available' && 
@@ -138,9 +146,18 @@ const TeamManagement = ({ teams, auctionData, onTeamsUpdate, onPlayersUpdate }) 
     }
   };
 
-  const assignCaptain = async (teamId, captainId) => {
+  const assignCaptain = async (teamId, captainId, customAmount = null) => {
+    const amount = customAmount !== null ? customAmount : (captainAmountInputs[teamId] || 0);
+    
     setAssigningCaptain(true);
     try {
+      // Validate amount
+      const numericAmount = parseInt(amount) || 0;
+      if (numericAmount < 0) {
+        showNotification('Captain amount must be ≥ ₹0', 'error');
+        return;
+      }
+      
       // Check if there are any unsaved team name changes
       const hasUnsavedChanges = Object.keys(teamNames).some(id => {
         const currentTeam = teams.find(t => t.id === parseInt(id));
@@ -154,7 +171,8 @@ const TeamManagement = ({ teams, auctionData, onTeamsUpdate, onPlayersUpdate }) 
       
       const response = await axios.post(`${API_BASE_URL}/api/teams/assign-captain`, { 
         teamId: parseInt(teamId), 
-        captainId: captainId // Keep as string (UUID)
+        captainId: captainId,
+        captainAmount: numericAmount
       });
       
       // Update parent component state instead of refreshing page
@@ -165,12 +183,52 @@ const TeamManagement = ({ teams, auctionData, onTeamsUpdate, onPlayersUpdate }) 
         onPlayersUpdate(response.data.players);
       }
       
-      showNotification('Captain assigned successfully!');
+      showNotification(`Captain assigned for ₹${numericAmount}!`);
+      
+      // Clear selections
+      setSelectedCaptains(prev => ({
+        ...prev,
+        [teamId]: ''
+      }));
+      setCaptainAmountInputs(prev => ({
+        ...prev,
+        [teamId]: ''
+      }));
+      setCaptainSearchTerms(prev => ({
+        ...prev,
+        [teamId]: ''
+      }));
     } catch (error) {
       showNotification(error.response?.data?.error || 'Error assigning captain', 'error');
     } finally {
       setAssigningCaptain(false);
     }
+  };
+
+  const assignCaptainFromDropdown = async (teamId) => {
+    const playerId = selectedCaptains[teamId];
+    const amount = captainAmountInputs[teamId] || 0;
+    
+    if (!playerId) {
+      showNotification('Please select a player first', 'error');
+      return;
+    }
+    
+    await assignCaptain(teamId, playerId, parseInt(amount) || 0);
+  };
+
+  const handleCaptainSelection = (teamId, playerId) => {
+    setSelectedCaptains(prev => ({
+      ...prev,
+      [teamId]: playerId
+    }));
+  };
+
+  const handleCaptainAmountInput = (teamId, amount) => {
+    setCaptainAmountInputs(prev => ({
+      ...prev,
+      [teamId]: amount
+    }));
   };
 
   const unassignCaptain = async (teamId) => {
@@ -197,7 +255,9 @@ const TeamManagement = ({ teams, auctionData, onTeamsUpdate, onPlayersUpdate }) 
   };
 
   const getTeamCaptain = (teamId) => {
-    return assignedCaptains.find(captain => captain.team === teamId);
+    const team = teams.find(t => t.id === teamId);
+    if (!team || !team.captain) return null;
+    return allPlayers.find(p => p.id === team.captain);
   };
 
   // Retention-related functions
@@ -509,51 +569,233 @@ const TeamManagement = ({ teams, auctionData, onTeamsUpdate, onPlayersUpdate }) 
               </div>
 
               {/* Captain Assignment Section */}
-              <div className="bg-gray-50 border-2 border-gray-300 border-opacity-60 rounded-md p-3 shadow-sm">
+              <div className="bg-blue-50 border-2 border-blue-300 border-opacity-60 rounded-md p-3 shadow-sm relative"
+                style={{ zIndex: captainDropdownOpen[team.id] ? 100 : 1 }}
+              >
                 <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 mb-2">
-                  <h4 className="text-lg font-bold text-gray-800">Captain Assignment</h4>
+                  <h4 className="text-lg font-bold text-gray-800">👑 Captain Assignment</h4>
                   {teamCaptain && (
                     <button
                       onClick={() => unassignCaptain(team.id)}
                       disabled={assigningCaptain}
-                      className="text-xs bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 rounded self-start sm:self-auto"
+                      className="text-xs bg-red-100 hover:bg-red-200 text-red-700 px-2 py-1 rounded self-start sm:self-auto disabled:opacity-50"
                     >
-                      Unassign
+                      Remove Captain
                     </button>
                   )}
                 </div>
                 
                 {teamCaptain ? (
-                  <div className="flex flex-col space-y-1 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2">
-                    <div className="flex items-center space-x-2">
-                      <span className="text-purple-600 font-bold text-lg">👑</span>
+                  <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 bg-blue-100 rounded px-3 py-2">
+                    <div className="flex flex-col space-y-1 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2">
+                      <span className="text-xl">👑</span>
                       <span className="text-lg font-bold text-gray-900">{teamCaptain.name}</span>
+                      <span className="text-sm text-gray-600">({teamCaptain.role})</span>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium self-start sm:self-auto ${
+                        teamCaptain.category === 'batter' ? 'bg-blue-100 text-blue-800' :
+                        teamCaptain.category === 'bowler' ? 'bg-red-100 text-red-800' :
+                        teamCaptain.category === 'allrounder' ? 'bg-orange-100 text-orange-800' :
+                        teamCaptain.category === 'wicket-keeper' ? 'bg-green-100 text-green-800' :
+                        'bg-gray-100 text-gray-800'
+                      }`}>
+                        {teamCaptain.category === 'wicket-keeper' ? 'keeper' : teamCaptain.category}
+                      </span>
                     </div>
-                    <span className="text-xs text-gray-500 ml-6 sm:ml-0">({teamCaptain.team_name || 'Assigned'})</span>
+                    <span className="text-sm font-medium text-blue-600">
+                      ₹{teamCaptain.captainAmount || team.captainAmount || 0}
+                    </span>
                   </div>
                 ) : (
-                  <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2">
-                    <select
-                      onChange={(e) => {
-                        if (e.target.value) {
-                          assignCaptain(team.id, e.target.value);
-                          e.target.value = ''; // Reset selection
-                        }
-                      }}
-                      disabled={assigningCaptain || availableCaptains.length === 0}
-                      className="text-sm border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-indigo-500 w-full sm:w-auto min-w-0"
-                    >
-                      <option value="">
-                        {availableCaptains.length === 0 ? 'No captains available' : 'Select a captain...'}
-                      </option>
-                      {availableCaptains.map(captain => (
-                        <option key={captain.id} value={captain.id}>
-                          {captain.name} {captain.team_name ? `(${captain.team_name})` : ''}
-                        </option>
-                      ))}
-                    </select>
-                    {availableCaptains.length === 0 && (
-                      <span className="text-xs text-gray-500">All captains are assigned</span>
+                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <h5 className="text-md font-bold text-gray-800 mb-3">🆕 Assign Captain:</h5>
+                    
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 items-end">
+                      {/* Player Selection Dropdown */}
+                      <div className="sm:col-span-2 lg:col-span-1 relative">
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                          🔍 Search & Select Player
+                        </label>
+                        <div className="relative">
+                          <input
+                            type="text"
+                            value={captainSearchTerms[team.id] || ''}
+                            onChange={(e) => {
+                              const value = e.target.value;
+                              setCaptainSearchTerms(prev => ({
+                                ...prev,
+                                [team.id]: value
+                              }));
+                              setCaptainDropdownOpen(prev => ({
+                                ...prev,
+                                [team.id]: true
+                              }));
+                              // Find exact match
+                              const matchedPlayer = availableForCaptain.find(p => 
+                                `${p.name} (${p.category}) - ${p.role}` === value
+                              );
+                              if (matchedPlayer) {
+                                handleCaptainSelection(team.id, matchedPlayer.id);
+                              } else {
+                                handleCaptainSelection(team.id, '');
+                              }
+                            }}
+                            onFocus={() => {
+                              setCaptainDropdownOpen(prev => ({
+                                ...prev,
+                                [team.id]: true
+                              }));
+                            }}
+                            onBlur={() => {
+                              setTimeout(() => {
+                                setCaptainDropdownOpen(prev => ({
+                                  ...prev,
+                                  [team.id]: false
+                                }));
+                              }, 250);
+                            }}
+                            placeholder="Start typing to search players..."
+                            className="w-full px-3 py-2 pr-20 border-2 border-blue-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all hover:border-blue-400"
+                          />
+                          
+                          {/* Clear button */}
+                          {captainSearchTerms[team.id] && (
+                            <button
+                              type="button"
+                              onClick={() => {
+                                setCaptainSearchTerms(prev => ({
+                                  ...prev,
+                                  [team.id]: ''
+                                }));
+                                handleCaptainSelection(team.id, '');
+                              }}
+                              className="absolute inset-y-0 right-10 flex items-center pr-2 text-gray-400 hover:text-gray-600 transition-colors"
+                            >
+                              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                              </svg>
+                            </button>
+                          )}
+                          
+                          {/* Dropdown arrow button */}
+                          <button
+                            type="button"
+                            onClick={() => {
+                              setCaptainDropdownOpen(prev => ({
+                                ...prev,
+                                [team.id]: !prev[team.id]
+                              }));
+                            }}
+                            className="absolute inset-y-0 right-0 flex items-center pr-3 text-blue-400 hover:text-blue-600 transition-colors"
+                          >
+                            <svg 
+                              className={`w-5 h-5 transition-transform duration-200 ${captainDropdownOpen[team.id] ? 'rotate-180' : ''}`}
+                              fill="none" 
+                              stroke="currentColor" 
+                              viewBox="0 0 24 24"
+                            >
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                          </button>
+                        </div>
+                        
+                        {/* Custom Dropdown List */}
+                        {captainDropdownOpen[team.id] && (
+                          <div className="absolute z-[9999] w-full mt-1 bg-white border-2 border-blue-300 rounded-md shadow-2xl max-h-60 overflow-y-auto">
+                            {availableForCaptain
+                              .filter(player => {
+                                const searchTerm = (captainSearchTerms[team.id] || '').toLowerCase();
+                                if (!searchTerm) return true;
+                                return (
+                                  player.name.toLowerCase().includes(searchTerm) ||
+                                  player.category.toLowerCase().includes(searchTerm) ||
+                                  player.role.toLowerCase().includes(searchTerm)
+                                );
+                              })
+                              .map((player) => (
+                                <button
+                                  key={player.id}
+                                  type="button"
+                                  onMouseDown={(e) => {
+                                    e.preventDefault();
+                                    const displayValue = `${player.name} (${player.category}) - ${player.role}`;
+                                    setCaptainSearchTerms(prev => ({
+                                      ...prev,
+                                      [team.id]: displayValue
+                                    }));
+                                    handleCaptainSelection(team.id, player.id);
+                                    setCaptainDropdownOpen(prev => ({
+                                      ...prev,
+                                      [team.id]: false
+                                    }));
+                                  }}
+                                  className="w-full text-left px-3 py-2 hover:bg-blue-50 focus:bg-blue-50 focus:outline-none text-sm border-b border-gray-100 last:border-b-0"
+                                >
+                                  <div className="flex items-center justify-between">
+                                    <span className="font-medium text-gray-900">{player.name}</span>
+                                    <span className={`px-2 py-0.5 rounded-full text-xs font-medium ${
+                                      player.category === 'batter' ? 'bg-blue-100 text-blue-800' :
+                                      player.category === 'bowler' ? 'bg-red-100 text-red-800' :
+                                      player.category === 'allrounder' ? 'bg-orange-100 text-orange-800' :
+                                      player.category === 'wicket-keeper' ? 'bg-green-100 text-green-800' :
+                                      'bg-gray-100 text-gray-800'
+                                    }`}>
+                                      {player.category === 'wicket-keeper' ? 'keeper' : player.category}
+                                    </span>
+                                  </div>
+                                  <div className="text-xs text-gray-500 mt-1">{player.role}</div>
+                                </button>
+                              ))}
+                            {availableForCaptain.filter(player => {
+                              const searchTerm = (captainSearchTerms[team.id] || '').toLowerCase();
+                              if (!searchTerm) return true;
+                              return (
+                                player.name.toLowerCase().includes(searchTerm) ||
+                                player.category.toLowerCase().includes(searchTerm) ||
+                                player.role.toLowerCase().includes(searchTerm)
+                              );
+                            }).length === 0 && (
+                              <div className="px-3 py-2 text-sm text-gray-500">No players found</div>
+                            )}
+                          </div>
+                        )}
+                      </div>
+
+                      {/* Amount Input */}
+                      <div>
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                          💰 Captain Amount (₹)
+                        </label>
+                        <input
+                          type="number"
+                          step="any"
+                          value={captainAmountInputs[team.id] || ''}
+                          onChange={(e) => handleCaptainAmountInput(team.id, e.target.value)}
+                          onBlur={(e) => {
+                            if (e.target.value !== '') {
+                              e.target.value = captainAmountInputs[team.id];
+                            }
+                          }}
+                          placeholder="0"
+                          className="w-full px-3 py-2 border-2 border-blue-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all hover:border-blue-400"
+                        />
+                      </div>
+
+                      {/* Assign Button */}
+                      <div>
+                        <button
+                          onClick={() => assignCaptainFromDropdown(team.id)}
+                          disabled={assigningCaptain || !selectedCaptains[team.id]}
+                          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md text-sm font-medium shadow-md transition-all disabled:cursor-not-allowed"
+                        >
+                          {assigningCaptain ? 'Assigning...' : '👑 Assign Captain'}
+                        </button>
+                      </div>
+                    </div>
+                    
+                    {availableForCaptain.length === 0 && (
+                      <div className="mt-2 text-xs text-gray-500 text-center">
+                        No players available for captain assignment
+                      </div>
                     )}
                   </div>
                 )}
@@ -573,33 +815,36 @@ const TeamManagement = ({ teams, auctionData, onTeamsUpdate, onPlayersUpdate }) 
         </button>
         
         <div className="text-sm text-gray-600">
-          Available Captains: {availableCaptains.length} | Assigned Captains: {assignedCaptains.length}
+          Available Players: {availableForCaptain.length} | Teams with Captains: {teams.filter(t => getTeamCaptain(t.id)).length} / {teams.length}
         </div>
       </div>
 
       {/* Captain Status Summary */}
       <div className="mt-6 bg-blue-50 border-2 border-blue-300 border-opacity-70 rounded-lg p-4 shadow-lg">
-        <h4 className="text-lg font-bold text-blue-900 mb-2">Captain Assignment Status</h4>
+        <h4 className="text-lg font-bold text-blue-900 mb-2">👑 Captain Assignment Status</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
-          <div>
-            <span className="font-bold text-blue-800">Available Captains:</span>
-            <ul className="list-disc list-inside text-blue-600 ml-4">
-              {availableCaptains.map(captain => (
-                <li key={captain.id}>{captain.name}</li>
-              ))}
-              {availableCaptains.length === 0 && <li className="text-gray-500">None</li>}
-            </ul>
-          </div>
           <div>
             <span className="font-bold text-blue-800">Assigned Captains:</span>
             <ul className="list-disc list-inside text-blue-600 ml-4">
               {teams.map(team => {
                 const captain = getTeamCaptain(team.id);
                 return captain ? (
-                  <li key={team.id}>{captain.name} → {team.name || `Team ${team.id}`}</li>
+                  <li key={team.id}>
+                    {captain.name} → {team.name || `Team ${team.id}`} 
+                    <span className="text-gray-600 ml-2">(₹{captain.captainAmount || team.captainAmount || 0})</span>
+                  </li>
                 ) : null;
               })}
-              {assignedCaptains.length === 0 && <li className="text-gray-500">None</li>}
+              {teams.filter(t => getTeamCaptain(t.id)).length === 0 && <li className="text-gray-500">None</li>}
+            </ul>
+          </div>
+          <div>
+            <span className="font-bold text-blue-800">Teams Without Captains:</span>
+            <ul className="list-disc list-inside text-blue-600 ml-4">
+              {teams.filter(t => !getTeamCaptain(t.id)).map(team => (
+                <li key={team.id}>{team.name || `Team ${team.id}`}</li>
+              ))}
+              {teams.filter(t => !getTeamCaptain(t.id)).length === 0 && <li className="text-gray-500">None</li>}
             </ul>
           </div>
         </div>

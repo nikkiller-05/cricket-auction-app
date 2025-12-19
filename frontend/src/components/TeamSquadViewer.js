@@ -14,11 +14,22 @@ const TeamSquadViewer = ({ teams, players }) => {
   }
 
   const currentTeam = teams.find(t => t.id === selectedTeam);
-  const teamPlayers = players?.filter(p => p.team === selectedTeam && (p.status === 'sold' || p.status === 'assigned' || p.status === 'retained')) || [];
-  const captain = teamPlayers.find(p => p.category === 'captain');
-  const boughtPlayers = teamPlayers.filter(p => p.category !== 'captain').sort((a, b) => (b.finalBid || 0) - (a.finalBid || 0));
+  const teamPlayers = players?.filter(p => 
+    String(p.team) === String(selectedTeam) && 
+    (p.status === 'sold' || p.status === 'assigned' || p.status === 'retained')
+  ) || [];
   
-  const totalSpent = boughtPlayers.reduce((sum, p) => sum + (p.finalBid || 0), 0);
+  // Find captain - must match team.captain ID exactly
+  const captain = currentTeam?.captain ? teamPlayers.find(p => p.id === currentTeam.captain) : null;
+  
+  // Exclude captain from bought players list
+  const boughtPlayers = captain 
+    ? teamPlayers.filter(p => p.id !== captain.id).sort((a, b) => (b.finalBid || 0) - (a.finalBid || 0))
+    : teamPlayers.sort((a, b) => (b.finalBid || 0) - (a.finalBid || 0));
+  
+  const captainAmount = captain ? (captain.captainAmount || currentTeam?.captainAmount || 0) : 0;
+  const boughtPlayersTotal = boughtPlayers.reduce((sum, p) => sum + (p.finalBid || 0), 0);
+  const totalSpent = boughtPlayersTotal + captainAmount;
   const budgetUsed = currentTeam ? ((totalSpent / (1000)) * 100) : 0; // Assuming 1000 initial budget
 
   return (
@@ -139,12 +150,12 @@ const TeamSquadViewer = ({ teams, players }) => {
                     <h5 className="text-xl font-bold text-gray-900">{captain.name}</h5>
                     <p className="text-sm text-gray-600">{captain.role}</p>
                     <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold bg-purple-100 text-purple-800 mt-2">
-                      Auto-assigned Captain
+                      Team Captain
                     </span>
                   </div>
                   <div className="text-left sm:text-right">
-                    <div className="text-lg font-bold text-purple-600">Captain</div>
-                    <div className="text-sm text-gray-500">No Cost</div>
+                    <div className="text-lg font-bold text-purple-600">👑 Captain</div>
+                    <div className="text-sm text-gray-500">₹{captain.captainAmount || currentTeam.captainAmount || 0}</div>
                   </div>
                 </div>
               </div>

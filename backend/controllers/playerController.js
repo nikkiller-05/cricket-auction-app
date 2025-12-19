@@ -149,7 +149,8 @@ const playerController = {
           name: `Team ${i}`,
           budget: settings.startingBudget,
           players: [],
-          captain: null
+          captain: null,
+          captainAmount: 0
         });
       }
 

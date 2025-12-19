@@ -54,6 +54,23 @@ const dataService = {
     return settings;
   },
 
+  // Config management (for updating settings from UI)
+  getConfig() {
+    return { 
+      teamCount: settings.teamCount,
+      startingBudget: settings.startingBudget,
+      maxPlayersPerTeam: settings.maxPlayersPerTeam,
+      basePrice: settings.basePrice,
+      biddingIncrements: settings.biddingIncrements
+    };
+  },
+
+  updateConfig(newConfig) {
+    console.log('Updating config:', newConfig);
+    settings = { ...settings, ...newConfig };
+    return settings;
+  },
+
   // Auction data management
   updateAuctionData(data) {
     auctionData = { ...auctionData, ...data };

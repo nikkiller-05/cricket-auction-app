@@ -209,7 +209,7 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole 
                         <div>
                           <div className="text-lg font-bold text-gray-900 flex items-center justify-center">
                             {player.name}
-                            {player.category === 'captain' && (
+                            {teams?.some(t => t.captain === player.id) && (
                               <span className="ml-2 text-lg bg-yellow-100 px-1 py-0.5 rounded-full border border-yellow-300">👑</span>
                             )}
                             {player.status === 'retained' && (
@@ -293,7 +293,7 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole 
                               ❌ Unsold
                             </span>
                           )}
-                          {player.category === 'captain' && (
+                          {teams?.some(t => t.captain === player.id) && (
                             <span className="text-purple-600 font-medium">
                               👑 Captain
                             </span>

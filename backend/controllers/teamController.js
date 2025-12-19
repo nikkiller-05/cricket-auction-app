@@ -284,51 +284,41 @@ const teamController = {
     }
   },
 
-  // Assign captain to team
+  // Assign captain to team (now supports any player with customizable amount)
   assignCaptain: (req, res) => {
     try {
       console.log('🏏 assignCaptain method called');
       console.log('🏏 Request body:', req.body);
-      console.log('🏏 Request body type:', typeof req.body);
-      console.log('🏏 Request body keys:', Object.keys(req.body));
       
-      const { teamId, captainId } = req.body;
+      const { teamId, captainId, captainAmount = 0 } = req.body;
       
-      console.log('🏏 Extracted teamId:', teamId, 'type:', typeof teamId);
-      console.log('🏏 Extracted captainId:', captainId, 'type:', typeof captainId);
+      console.log('🏏 Extracted teamId:', teamId, 'captainId:', captainId, 'amount:', captainAmount);
       
       if (!teamId || !captainId) {
-        console.log('🏏 Validation failed - missing teamId or captainId');
         return res.status(400).json({ error: 'Team ID and Captain ID are required' });
+      }
+
+      const captainAmountNum = parseInt(captainAmount) || 0;
+      if (captainAmountNum < 0) {
+        return res.status(400).json({ error: 'Captain amount must be ≥ ₹0' });
       }
 
       const teams = dataService.getTeams();
       const players = dataService.getPlayers();
-      
-      console.log('🏏 Total teams:', teams.length);
-      console.log('🏏 Total players:', players.length);
+      const settings = dataService.getSettings();
       
       const team = teams.find(t => t.id === parseInt(teamId));
-      const captain = players.find(p => p.id === captainId); // Keep as string for UUID
+      const captain = players.find(p => p.id === captainId);
       
       console.log('🏏 Found team:', team ? `Team ${team.id} - ${team.name}` : 'Not found');
-      console.log('🏏 Found captain:', captain ? `${captain.name} (ID: ${captain.id}, Category: ${captain.category})` : 'Not found');
+      console.log('🏏 Found captain:', captain ? `${captain.name} (ID: ${captain.id})` : 'Not found');
       
       if (!team) {
-        console.log('🏏 Team not found error');
         return res.status(404).json({ error: 'Team not found' });
       }
       
-      if (!captain || captain.category !== 'captain') {
-        console.log('🏏 Captain validation failed');
-        console.log('🏏 Captain exists:', !!captain);
-        if (captain) {
-          console.log('🏏 Captain category:', captain.category);
-        }
-        // Let's also check all available captains
-        const allCaptains = players.filter(p => p.category === 'captain');
-        console.log('🏏 Available captains:', allCaptains.map(c => `${c.name} (ID: ${c.id})`));
-        return res.status(404).json({ error: 'Captain not found or invalid player category' });
+      if (!captain) {
+        return res.status(404).json({ error: 'Captain player not found' });
       }
 
       // Check if captain is already assigned to another team
@@ -336,21 +326,35 @@ const teamController = {
         return res.status(400).json({ error: 'Captain is already assigned to another team' });
       }
 
+      // Check if team has enough budget
+      if (team.budget < captainAmountNum) {
+        return res.status(400).json({ error: `Insufficient budget. Available: ₹${team.budget}, Required: ₹${captainAmountNum}` });
+      }
+
       // Remove captain from previous team if any
-      const previousTeam = teams.find(t => t.captain === captainId); // Use string ID
+      const previousTeam = teams.find(t => t.captain === captainId);
       if (previousTeam && previousTeam.id !== parseInt(teamId)) {
+        // Refund previous captain amount to previous team
+        if (captain.captainAmount) {
+          previousTeam.budget += captain.captainAmount;
+        }
         previousTeam.captain = null;
-        previousTeam.players = previousTeam.players.filter(pid => pid !== captainId); // Use string ID
+        previousTeam.captainAmount = 0;
+        previousTeam.players = previousTeam.players.filter(pid => pid !== captainId);
       }
 
       // Assign captain to new team
       captain.team = parseInt(teamId);
       captain.status = 'assigned';
-      captain.finalBid = 0; // Captains are free
+      captain.captainAmount = captainAmountNum;
+      captain.finalBid = captainAmountNum; // Set finalBid for consistency
       
-      team.captain = captainId; // Use string ID
-      if (!team.players.includes(captainId)) { // Use string ID
-        team.players.push(captainId); // Use string ID
+      team.captain = captainId;
+      team.captainAmount = captainAmountNum; // Store amount in team as well
+      team.budget -= captainAmountNum; // Deduct from team budget
+      
+      if (!team.players.includes(captainId)) {
+        team.players.push(captainId);
       }
 
       dataService.setTeams(teams);
@@ -361,7 +365,7 @@ const teamController = {
       socketService.emit('playersUpdated', players);
 
       res.json({ 
-        message: 'Captain assigned successfully',
+        message: `${captain.name} assigned as captain to ${team.name} for ₹${captainAmountNum}`,
         teams,
         players,
         team,
@@ -395,16 +399,22 @@ const teamController = {
         return res.status(400).json({ error: 'No captain assigned to this team' });
       }
 
-      const captain = players.find(p => p.id === team.captain); // team.captain is already string ID
+      const captain = players.find(p => p.id === team.captain);
       if (captain) {
+        // Refund captain amount to team budget
+        const captainAmount = captain.captainAmount || team.captainAmount || 0;
+        team.budget += captainAmount;
+        
         captain.team = null;
         captain.status = 'available';
+        captain.captainAmount = 0;
         captain.finalBid = 0;
       }
 
-      const captainId = team.captain; // Store before clearing
+      const captainId = team.captain;
       team.captain = null;
-      team.players = team.players.filter(pid => pid !== captainId); // Use stored captain ID
+      team.captainAmount = 0;
+      team.players = team.players.filter(pid => pid !== captainId);
 
       dataService.setTeams(teams);
       dataService.setPlayers(players);

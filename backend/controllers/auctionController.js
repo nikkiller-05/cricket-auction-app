@@ -68,6 +68,9 @@ const auctionController = {
       
       dataService.updateSettings(newSettings);
       
+      // Broadcast settings update to all connected clients
+      socketService.emit('settingsUpdated', newSettings);
+      
       console.log('Settings saved successfully:', newSettings);
       
       res.json({ 
@@ -909,6 +912,105 @@ const auctionController = {
     } catch (error) {
       console.error('Error finishing auction:', error);
       res.status(500).json({ error: 'Error finishing auction' });
+    }
+  },
+
+  // Get current auction configuration
+  getConfig: async (req, res) => {
+    try {
+      const config = dataService.getConfig();
+      res.json({ 
+        success: true,
+        config: config || {
+          teamCount: 4,
+          startingBudget: 1000,
+          maxPlayersPerTeam: 15,
+          basePrice: 10,
+          biddingIncrements: [
+            { threshold: 50, increment: 5 },
+            { threshold: 100, increment: 10 },
+            { threshold: 200, increment: 20 }
+          ]
+        }
+      });
+    } catch (error) {
+      console.error('Error getting auction config:', error);
+      res.status(500).json({ error: 'Error getting auction configuration' });
+    }
+  },
+
+  // Update auction configuration
+  updateConfig: async (req, res) => {
+    try {
+      console.log('Updating auction config:', req.body);
+      
+      const { 
+        teamCount, 
+        startingBudget, 
+        maxPlayersPerTeam, 
+        basePrice, 
+        biddingIncrements 
+      } = req.body;
+      
+      // Validate settings
+      if (!teamCount || teamCount < 2) {
+        return res.status(400).json({ error: 'Team count must be at least 2' });
+      }
+      
+      if (!startingBudget || startingBudget < 100) {
+        return res.status(400).json({ error: 'Starting budget must be at least ₹100' });
+      }
+      
+      if (!maxPlayersPerTeam || maxPlayersPerTeam < 5) {
+        return res.status(400).json({ error: 'Max players per team must be at least 5' });
+      }
+      
+      if (!basePrice || basePrice < 1) {
+        return res.status(400).json({ error: 'Base price must be at least ₹1' });
+      }
+      
+      if (!biddingIncrements || !Array.isArray(biddingIncrements) || biddingIncrements.length === 0) {
+        return res.status(400).json({ error: 'Bidding increments are required' });
+      }
+      
+      // Update the configuration
+      const newConfig = {
+        teamCount,
+        startingBudget,
+        maxPlayersPerTeam,
+        basePrice,
+        biddingIncrements
+      };
+      
+      dataService.updateConfig(newConfig);
+      
+      // Update existing teams with new budget if team count hasn't changed
+      const teams = dataService.getTeams();
+      if (teams.length > 0) {
+        teams.forEach(team => {
+          // Only update budget if team structure remains the same
+          if (teams.length === teamCount) {
+            const soldPlayers = dataService.getPlayers().filter(p => 
+              p.status === 'sold' && p.team === team.id
+            );
+            const spent = soldPlayers.reduce((sum, p) => sum + (p.finalBid || 0), 0);
+            team.budget = startingBudget - spent;
+          }
+        });
+        dataService.setTeams(teams);
+        socketService.emit('teamsUpdated', teams);
+      }
+      
+      console.log('Auction configuration updated successfully');
+      res.json({ 
+        success: true,
+        message: 'Auction configuration updated successfully',
+        config: newConfig
+      });
+      
+    } catch (error) {
+      console.error('Error updating auction config:', error);
+      res.status(500).json({ error: 'Error updating auction configuration' });
     }
   }
 };

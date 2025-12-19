@@ -110,21 +110,27 @@ const TeamSquadViewer = ({ teams, players }) => {
   const currentTeam = teams.find(t => t.id === selectedTeam);
   const teamPlayers = players?.filter(p => p.team === selectedTeam && (p.status === 'sold' || p.status === 'retained' || p.status === 'assigned')) || [];
   
-  // Categorize players by role
+  // Find captain based on team.captain property
+  const captain = currentTeam?.captain ? teamPlayers.find(p => p.id === currentTeam.captain) : null;
+  
+  // Exclude captain from bought players and categorize by role
+  const playersExcludingCaptain = captain ? teamPlayers.filter(p => p.id !== captain.id) : teamPlayers;
+  
+  // Categorize players by role (excluding captain)
   const playersByCategory = {
-    captain: teamPlayers.filter(p => p.category === 'captain'),
-    batter: teamPlayers.filter(p => p.category === 'batter'),
-    bowler: teamPlayers.filter(p => p.category === 'bowler'),
-    allrounder: teamPlayers.filter(p => p.category === 'allrounder'),
-    'wicket-keeper': teamPlayers.filter(p => p.category === 'wicket-keeper'),
-    other: teamPlayers.filter(p => !['captain', 'batter', 'bowler', 'allrounder', 'wicket-keeper'].includes(p.category))
+    batter: playersExcludingCaptain.filter(p => p.category === 'batter'),
+    bowler: playersExcludingCaptain.filter(p => p.category === 'bowler'),
+    allrounder: playersExcludingCaptain.filter(p => p.category === 'allrounder'),
+    'wicket-keeper': playersExcludingCaptain.filter(p => p.category === 'wicket-keeper'),
+    other: playersExcludingCaptain.filter(p => !['batter', 'bowler', 'allrounder', 'wicket-keeper'].includes(p.category))
   };
   
-  const boughtPlayers = teamPlayers.filter(p => p.category !== 'captain' && p.status === 'sold').sort((a, b) => (b.finalBid || 0) - (a.finalBid || 0));
-  const teamRetainedPlayers = teamPlayers.filter(p => p.status === 'retained');
+  const boughtPlayers = playersExcludingCaptain.filter(p => p.status === 'sold').sort((a, b) => (b.finalBid || 0) - (a.finalBid || 0));
+  const teamRetainedPlayers = playersExcludingCaptain.filter(p => p.status === 'retained');
+  const captainAmount = captain ? (captain.captainAmount || currentTeam?.captainAmount || 0) : 0;
   const totalSpentOnAuction = boughtPlayers.reduce((sum, p) => sum + (p.finalBid || 0), 0);
   const totalSpentOnRetention = teamRetainedPlayers.reduce((sum, p) => sum + (p.retentionAmount || p.finalBid || 0), 0);
-  const totalSpent = totalSpentOnAuction + totalSpentOnRetention;
+  const totalSpent = totalSpentOnAuction + totalSpentOnRetention + captainAmount;
   const budgetUsed = currentTeam ? ((totalSpent / (currentTeam.budget + totalSpent)) * 100) : 0;
 
   return (
@@ -205,7 +211,7 @@ const TeamSquadViewer = ({ teams, players }) => {
             {/* Quick Stats */}
             <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
               <div className="bg-purple-50 rounded-lg p-3 text-center">
-                <div className="text-2xl font-bold text-purple-600">{playersByCategory.captain.length}</div>
+                <div className="text-2xl font-bold text-purple-600">{captain ? 1 : 0}</div>
                 <div className="text-xs text-purple-600">Captain</div>
               </div>
               <div className="bg-indigo-50 rounded-lg p-3 text-center">
@@ -229,6 +235,40 @@ const TeamSquadViewer = ({ teams, players }) => {
             </div>
           </div>
 
+          {/* Captain Section */}
+          {captain && (
+            <div className="mb-6">
+              <div className="bg-purple-50 border-2 border-purple-300 border-opacity-70 rounded-lg p-4 shadow-md">
+                <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                  <span className="text-2xl mr-3">👑</span>
+                  Team Captain
+                  <span className="ml-2 text-sm text-gray-500">(1)</span>
+                </h4>
+                <div className="bg-white bg-opacity-15 backdrop-blur-xl border-2 border-gray-200 border-opacity-50 rounded-xl p-3 hover:shadow-2xl hover:bg-opacity-25 hover:border-gray-300 hover:border-opacity-70 transition-all duration-300">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-semibold">C</div>
+                      <div>
+                        <h5 className="font-medium text-gray-900 flex items-center">
+                          {captain.name}
+                          <span className="ml-2 text-lg">👑</span>
+                        </h5>
+                        <p className="text-sm text-gray-600">{captain.role}</p>
+                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-1 bg-purple-100 text-purple-800">
+                          Captain
+                        </span>
+                      </div>
+                    </div>
+                    <div className="text-right">
+                      <div className="text-lg font-semibold text-purple-600">₹{captainAmount}</div>
+                      <div className="text-xs text-gray-500">{captain.status === 'retained' ? 'Retention Cost' : 'Assignment Cost'}</div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+
           {/* Players by Category */}
           <div className="space-y-6">
             {Object.entries(playersByCategory).map(([category, categoryPlayers]) => {
@@ -249,31 +289,21 @@ const TeamSquadViewer = ({ teams, players }) => {
                       <div key={player.id} className="bg-white bg-opacity-15 backdrop-blur-xl border-2 border-gray-200 border-opacity-50 rounded-xl p-3 hover:shadow-2xl hover:bg-opacity-25 hover:border-gray-300 hover:border-opacity-70 transition-all duration-300">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-3">
-                            {category !== 'captain' && (
-                              <div className="w-6 h-6 bg-gray-600 text-white rounded-full flex items-center justify-center text-xs font-semibold">
-                                {index + 1}
-                              </div>
-                            )}
+                            <div className="w-6 h-6 bg-gray-600 text-white rounded-full flex items-center justify-center text-xs font-semibold">
+                              {index + 1}
+                            </div>
                             <div>
                               <h5 className="font-medium text-gray-900 flex items-center">
                                 {player.name}
-                                {category === 'captain' && (
-                                  <span className="ml-2 text-lg">👑</span>
-                                )}
                               </h5>
                               <p className="text-sm text-gray-600">{player.role}</p>
                               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-1 ${style.badge}`}>
-                                {category === 'captain' ? 'Captain' : category.replace('-', ' ')}
+                                {category.replace('-', ' ')}
                               </span>
                             </div>
                           </div>
                           <div className="text-right">
-                            {category === 'captain' ? (
-                              <div>
-                                <div className="text-sm font-semibold text-purple-600">Auto-assigned</div>
-                                <div className="text-xs text-gray-500">No Cost</div>
-                              </div>
-                            ) : player.status === 'retained' ? (
+                            {player.status === 'retained' ? (
                               <div>
                                 <div className="text-lg font-semibold text-purple-600">₹{player.retentionAmount || player.finalBid}</div>
                                 <div className="text-xs text-gray-500">Retention Cost</div>
@@ -291,7 +321,7 @@ const TeamSquadViewer = ({ teams, players }) => {
                   </div>
                   
                   {/* Category Summary */}
-                  {category !== 'captain' && categoryPlayers.length > 0 && (
+                  {categoryPlayers.length > 0 && (
                     <div className="mt-3 pt-3 border-t border-gray-200 flex justify-between text-sm">
                       <span className="text-gray-600">
                         {categoryPlayers.length} player{categoryPlayers.length !== 1 ? 's' : ''}
@@ -377,6 +407,21 @@ const UnifiedDashboard = () => {
   
   // Upload Players modal state
   const [showUploadModal, setShowUploadModal] = useState(false);
+  
+  // Edit Settings modal state
+  const [showEditSettingsModal, setShowEditSettingsModal] = useState(false);
+  const [settingsConfig, setSettingsConfig] = useState({
+    teamCount: 4,
+    startingBudget: 1000,
+    maxPlayersPerTeam: 15,
+    basePrice: 10,
+    biddingIncrements: [
+      { threshold: 50, increment: 5 },
+      { threshold: 100, increment: 10 },
+      { threshold: 200, increment: 20 }
+    ]
+  });
+  const [settingsSaveLoading, setSettingsSaveLoading] = useState(false);
   
   // Undo functionality states
   const [undoLoading, setUndoLoading] = useState(false);
@@ -468,6 +513,11 @@ const UnifiedDashboard = () => {
 
     socketConnection.on('statsUpdated', (stats) => {
       setAuctionData(prev => ({ ...prev, stats }));
+    });
+
+    socketConnection.on('settingsUpdated', (settings) => {
+      setAuctionData(prev => ({ ...prev, settings }));
+      console.log('Settings updated in real-time:', settings);
     });
 
     socketConnection.on('fileUploaded', (fileInfo) => {
@@ -624,7 +674,7 @@ const UnifiedDashboard = () => {
   };
 
   // Undo functionality functions
-  const handleUndoLastSale = async () => {
+  const handleUndoLastSale = useCallback(async () => {
     const lastAction = actionHistory.find(action => 
       action.type === 'PLAYER_SOLD' || action.type === 'PLAYER_UNSOLD'
     );
@@ -662,9 +712,9 @@ const UnifiedDashboard = () => {
       }
     });
     setShowUndoConfirmModal(true);
-  };
+  }, [actionHistory, showError, showWarning, fetchActionHistory]);
 
-  const handleUndoCurrentBid = async () => {
+  const handleUndoCurrentBid = useCallback(async () => {
     setUndoConfirmAction({
       type: 'bid',
       message: 'Are you sure you want to undo the current bid? This will revert to the previous team\'s bid or base price.',
@@ -685,7 +735,7 @@ const UnifiedDashboard = () => {
       }
     });
     setShowUndoConfirmModal(true);
-  };
+  }, [showWarning, showError]);
 
   const executeUndoAction = async () => {
     setShowUndoConfirmModal(false);
@@ -756,7 +806,7 @@ const UnifiedDashboard = () => {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [userRole, undoLoading, auctionData, actionHistory, handleUndoLastSale, handleUndoCurrentBid]);
+  }, [userRole, undoLoading, auctionData, actionHistory, handleUndoLastSale, handleUndoCurrentBid, showError]);
 
   const handleLogout = () => {
     setIsAdmin(false);
@@ -881,6 +931,120 @@ const UnifiedDashboard = () => {
     } catch (error) {
       console.error('Error downloading auction summary:', error);
       showError('Error downloading auction summary');
+    }
+  };
+
+  // Settings modal functions
+  const handleOpenEditSettings = async () => {
+    try {
+      // Fetch current auction configuration
+      const response = await axios.get(`${API_BASE_URL}/api/auction/config`);
+      if (response.data.config) {
+        setSettingsConfig(response.data.config);
+      }
+      setShowEditSettingsModal(true);
+    } catch (error) {
+      console.error('Error fetching auction config:', error);
+      showError('Error loading auction settings');
+    }
+  };
+
+  const handleSaveSettings = async () => {
+    try {
+      setSettingsSaveLoading(true);
+      
+      // Validate settings
+      if (settingsConfig.teamCount < 2) {
+        showError('Team count must be at least 2');
+        setSettingsSaveLoading(false);
+        return;
+      }
+      if (settingsConfig.startingBudget < 100) {
+        showError('Starting budget must be at least 100');
+        setSettingsSaveLoading(false);
+        return;
+      }
+      if (settingsConfig.maxPlayersPerTeam < 5) {
+        showError('Max players per team must be at least 5');
+        setSettingsSaveLoading(false);
+        return;
+      }
+      if (settingsConfig.basePrice < 1) {
+        showError('Base price must be at least 1');
+        setSettingsSaveLoading(false);
+        return;
+      }
+
+      // Update auction configuration
+      const response = await axios.put(`${API_BASE_URL}/api/auction/config`, settingsConfig);
+      
+      if (response.data.success) {
+        showSuccess('Auction settings updated successfully');
+        setShowEditSettingsModal(false);
+        // Refresh auction data to reflect new settings
+        const dataResponse = await axios.get(`${API_BASE_URL}/api/auction/data`);
+        setAuctionData(dataResponse.data);
+      }
+    } catch (error) {
+      console.error('Error saving settings:', error);
+      showError(error.response?.data?.error || 'Error saving auction settings');
+    } finally {
+      setSettingsSaveLoading(false);
+    }
+  };
+
+  const handleSettingsConfigChange = (field, value) => {
+    setSettingsConfig(prev => ({
+      ...prev,
+      [field]: value === '' ? '' : value
+    }));
+  };
+
+  const handleSettingsIncrementChange = (index, field, value) => {
+    const newIncrements = [...settingsConfig.biddingIncrements];
+    
+    if (value === '') {
+      newIncrements[index] = {
+        ...newIncrements[index],
+        [field]: ''
+      };
+      setSettingsConfig(prev => ({
+        ...prev,
+        biddingIncrements: newIncrements
+      }));
+      return;
+    }
+    
+    const numericValue = parseInt(value, 10);
+    if (!isNaN(numericValue) && numericValue >= 0) {
+      newIncrements[index] = {
+        ...newIncrements[index],
+        [field]: numericValue
+      };
+      setSettingsConfig(prev => ({
+        ...prev,
+        biddingIncrements: newIncrements
+      }));
+    }
+  };
+
+  const addSettingsIncrement = () => {
+    setSettingsConfig(prev => ({
+      ...prev,
+      biddingIncrements: [
+        ...prev.biddingIncrements,
+        { threshold: 0, increment: 5 }
+      ]
+    }));
+  };
+
+  const removeSettingsIncrement = (index) => {
+    if (settingsConfig.biddingIncrements.length > 1) {
+      const newIncrements = settingsConfig.biddingIncrements.filter((_, i) => i !== index);
+      setSettingsConfig(prev => ({
+        ...prev,
+        biddingIncrements: newIncrements
+      }));
     }
   };
 
@@ -1044,6 +1208,7 @@ const UnifiedDashboard = () => {
         onDownloadSummary={downloadAuctionSummary}
         onDownloadCSV={() => downloadResults('csv')}
         onUploadPlayers={() => setShowUploadModal(true)}
+        onEditSettings={isAdmin ? handleOpenEditSettings : null}
         onUndoLastSale={handleUndoLastSale}
         canUndoLastSale={(() => {
           const lastSale = actionHistory.slice().reverse().find(action => action.type === 'PLAYER_SOLD');
@@ -2323,6 +2488,219 @@ const UnifiedDashboard = () => {
         onUploadSuccess={handleUploadSuccess}
         onDataRefresh={fetchAuctionData}
       />
+
+      {/* Edit Settings Modal */}
+      {showEditSettingsModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-2 sm:p-4" style={{ zIndex: 9999 }}>
+          <div className="bg-white rounded-lg shadow-xl max-w-4xl w-full max-h-[95vh] sm:max-h-[90vh] overflow-y-auto">
+            {/* Modal Header */}
+            <div className="sticky top-0 bg-white border-b px-4 sm:px-6 py-3 sm:py-4 flex justify-between items-center z-10">
+              <h2 className="text-xl sm:text-2xl font-bold text-gray-800">Edit Auction Settings</h2>
+              <button
+                onClick={() => setShowEditSettingsModal(false)}
+                className="text-gray-400 hover:text-gray-600 transition-colors p-1"
+              >
+                <svg className="w-5 h-5 sm:w-6 sm:h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Content */}
+            <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
+              {/* Basic Configuration */}
+              <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 sm:p-6 border border-blue-200">
+                <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">
+                  <span className="mr-2">⚙️</span>
+                  Basic Configuration
+                </h3>
+                
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                      Number of Teams
+                    </label>
+                    <input
+                      type="number"
+                      value={settingsConfig.teamCount}
+                      onChange={(e) => handleSettingsConfigChange('teamCount', parseInt(e.target.value) || '')}
+                      onBlur={(e) => {
+                        if (e.target.value === '') {
+                          handleSettingsConfigChange('teamCount', 4);
+                        } else {
+                          handleSettingsConfigChange('teamCount', parseInt(e.target.value));
+                        }
+                      }}
+                      step="any"
+                      className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                      Starting Budget (₹)
+                    </label>
+                    <input
+                      type="number"
+                      value={settingsConfig.startingBudget}
+                      onChange={(e) => handleSettingsConfigChange('startingBudget', parseInt(e.target.value) || '')}
+                      onBlur={(e) => {
+                        if (e.target.value === '') {
+                          handleSettingsConfigChange('startingBudget', 1000);
+                        } else {
+                          handleSettingsConfigChange('startingBudget', parseInt(e.target.value));
+                        }
+                      }}
+                      step="any"
+                      className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                      Max Players Per Team
+                    </label>
+                    <input
+                      type="number"
+                      value={settingsConfig.maxPlayersPerTeam}
+                      onChange={(e) => handleSettingsConfigChange('maxPlayersPerTeam', parseInt(e.target.value) || '')}
+                      onBlur={(e) => {
+                        if (e.target.value === '') {
+                          handleSettingsConfigChange('maxPlayersPerTeam', 15);
+                        } else {
+                          handleSettingsConfigChange('maxPlayersPerTeam', parseInt(e.target.value));
+                        }
+                      }}
+                      step="any"
+                      className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                      Base Price (₹)
+                    </label>
+                    <input
+                      type="number"
+                      value={settingsConfig.basePrice}
+                      onChange={(e) => handleSettingsConfigChange('basePrice', parseInt(e.target.value) || '')}
+                      onBlur={(e) => {
+                        if (e.target.value === '') {
+                          handleSettingsConfigChange('basePrice', 10);
+                        } else {
+                          handleSettingsConfigChange('basePrice', parseInt(e.target.value));
+                        }
+                      }}
+                      step="any"
+                      className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              {/* Bidding Increments */}
+              <div className="bg-gradient-to-r from-green-50 to-teal-50 rounded-lg p-4 sm:p-6 border border-green-200">
+                <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-3 sm:mb-4 gap-2">
+                  <h3 className="text-base sm:text-lg font-semibold text-gray-800 flex items-center">
+                    <span className="mr-2">📊</span>
+                    Bidding Increments
+                  </h3>
+                  <button
+                    onClick={addSettingsIncrement}
+                    className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-xs sm:text-sm font-medium"
+                  >
+                    + Add Increment
+                  </button>
+                </div>
+
+                <div className="space-y-3">
+                  {settingsConfig.biddingIncrements.map((increment, index) => (
+                    <div key={index} className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 sm:gap-3 bg-white p-3 rounded-lg border border-gray-200">
+                      <div className="flex-1">
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                          Price Threshold (₹)
+                        </label>
+                        <input
+                          type="number"
+                          value={increment.threshold}
+                          onChange={(e) => handleSettingsIncrementChange(index, 'threshold', e.target.value)}
+                          onBlur={(e) => {
+                            if (e.target.value === '') {
+                              handleSettingsIncrementChange(index, 'threshold', '0');
+                            }
+                          }}
+                          step="any"
+                          className="w-full px-2 sm:px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        />
+                      </div>
+                      <div className="flex-1">
+                        <label className="block text-xs font-medium text-gray-600 mb-1">
+                          Bid Increment (₹)
+                        </label>
+                        <input
+                          type="number"
+                          value={increment.increment}
+                          onChange={(e) => handleSettingsIncrementChange(index, 'increment', e.target.value)}
+                          onBlur={(e) => {
+                            if (e.target.value === '') {
+                              handleSettingsIncrementChange(index, 'increment', '5');
+                            }
+                          }}
+                          step="any"
+                          className="w-full px-2 sm:px-3 py-2 text-sm border border-gray-300 rounded-md focus:ring-2 focus:ring-green-500 focus:border-green-500"
+                        />
+                      </div>
+                      {settingsConfig.biddingIncrements.length > 1 && (
+                        <button
+                          onClick={() => removeSettingsIncrement(index)}
+                          className="sm:mt-5 p-2 text-red-600 hover:bg-red-50 rounded-md transition-colors self-center"
+                          title="Remove increment"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                          </svg>
+                        </button>
+                      )}
+                    </div>
+                  ))}
+                </div>
+
+                <p className="mt-3 text-xs sm:text-sm text-gray-600">
+                  <span className="font-medium">Tip:</span> Increments are applied based on the current bid amount. Lower thresholds are used for lower bids.
+                </p>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            <div className="sticky bottom-0 bg-gray-50 border-t px-4 sm:px-6 py-3 sm:py-4 flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3">
+              <button
+                onClick={() => setShowEditSettingsModal(false)}
+                disabled={settingsSaveLoading}
+                className="w-full sm:w-auto px-4 sm:px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium text-sm sm:text-base"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={handleSaveSettings}
+                disabled={settingsSaveLoading}
+                className="w-full sm:w-auto px-4 sm:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm sm:text-base"
+              >
+                {settingsSaveLoading ? (
+                  <>
+                    <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Saving...
+                  </>
+                ) : (
+                  'Save Settings'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
