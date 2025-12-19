@@ -1,13 +1,22 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 
 const StatsDisplay = ({ stats, teams, players }) => {
-  // Calculate additional stats
-  const soldPlayers = players?.filter(p => p.status === 'sold' && p.category !== 'captain') || [];
-  const captains = players?.filter(p => p.category === 'captain') || [];
-  const availablePlayers = players?.filter(p => p.status === 'available' && p.category !== 'captain') || [];
-  const unsoldPlayers = players?.filter(p => p.status === 'unsold') || [];
-  
-  const totalSpent = soldPlayers.reduce((sum, p) => sum + (p.finalBid || 0), 0);
+  // Memoize calculated stats to avoid recalculation on every render
+  const { soldPlayers, captains, availablePlayers, unsoldPlayers, totalSpent } = useMemo(() => {
+    const sold = players?.filter(p => p.status === 'sold' && p.category !== 'captain') || [];
+    const caps = players?.filter(p => p.category === 'captain') || [];
+    const available = players?.filter(p => p.status === 'available' && p.category !== 'captain') || [];
+    const unsold = players?.filter(p => p.status === 'unsold') || [];
+    const spent = sold.reduce((sum, p) => sum + (p.finalBid || 0), 0);
+    
+    return {
+      soldPlayers: sold,
+      captains: caps,
+      availablePlayers: available,
+      unsoldPlayers: unsold,
+      totalSpent: spent
+    };
+  }, [players]);
 
   return (
     <div className="space-y-6">

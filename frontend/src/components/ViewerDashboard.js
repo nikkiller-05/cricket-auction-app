@@ -1,9 +1,20 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useNotification } from './NotificationSystem';
 
 const ViewerDashboard = ({ auctionData, socket }) => {
   const { showError } = useNotification();
   const [selectedTab, setSelectedTab] = useState('auction');
+
+  // Memoize filtered player lists for performance
+  const availablePlayers = useMemo(() => 
+    auctionData.players?.filter(p => p.status === 'available' && p.category !== 'captain') || [],
+    [auctionData.players]
+  );
+  
+  const unsoldPlayers = useMemo(() => 
+    auctionData.players?.filter(p => p.status === 'unsold') || [],
+    [auctionData.players]
+  );
 
   const getCategoryColor = (category) => {
     const colors = {
@@ -127,30 +138,26 @@ const ViewerDashboard = ({ auctionData, socket }) => {
             <div className="bg-white shadow rounded-lg p-6">
               <h3 className="text-lg font-medium text-gray-900 mb-4">Available Players</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {auctionData.players
-                  .filter(p => p.status === 'available' && p.category !== 'captain')
-                  .map(player => (
-                    <div key={player.id} className="border border-gray-200 rounded-lg p-4">
-                      <div className="flex justify-between items-start mb-2">
-                        <h5 className="font-medium text-gray-900">{player.name}</h5>
-                        <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(player.category)}`}>
-                          {player.category}
-                        </span>
-                      </div>
-                      <p className="text-sm text-gray-600">{player.role}</p>
+                {availablePlayers.map(player => (
+                  <div key={player.id} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex justify-between items-start mb-2">
+                      <h5 className="font-medium text-gray-900">{player.name}</h5>
+                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(player.category)}`}>
+                        {player.category}
+                      </span>
                     </div>
-                  ))}
+                    <p className="text-sm text-gray-600">{player.role}</p>
+                  </div>
+                ))}
               </div>
             </div>
 
             {/* Unsold Players */}
-            {auctionData.players.filter(p => p.status === 'unsold').length > 0 && (
+            {unsoldPlayers.length > 0 && (
               <div className="bg-white shadow rounded-lg p-6">
                 <h3 className="text-lg font-medium text-gray-900 mb-4">Unsold Players</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {auctionData.players
-                    .filter(p => p.status === 'unsold')
-                    .map(player => (
+                  {unsoldPlayers.map(player => (
                       <div key={player.id} className="border border-gray-200 rounded-lg p-4 opacity-60">
                         <div className="flex justify-between items-start mb-2">
                           <h5 className="font-medium text-gray-900">{player.name}</h5>
@@ -243,7 +250,7 @@ const ViewerDashboard = ({ auctionData, socket }) => {
               <div className="bg-white p-6 rounded-lg shadow">
                 <h3 className="text-sm font-medium text-gray-500">Available</h3>
                 <p className="text-2xl font-bold text-gray-900">
-                  {auctionData.players.filter(p => p.status === 'available' && p.category !== 'captain').length}
+                  {availablePlayers.length}
                 </p>
               </div>
             </div>

@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import axios from 'axios';
 import { useNotification } from './NotificationSystem';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
-const SubAdminManagement = ({ userRole }) => {
+const SubAdminManagement = memo(({ userRole }) => {
   const { showSuccess, showError } = useNotification();
   const [subAdmins, setSubAdmins] = useState([]);
   const [showCreateForm, setShowCreateForm] = useState(false);
@@ -241,6 +241,8 @@ const SubAdminManagement = ({ userRole }) => {
       </div>
     </div>
   );
-};
+});
+
+SubAdminManagement.displayName = 'SubAdminManagement';
 
 export default SubAdminManagement;

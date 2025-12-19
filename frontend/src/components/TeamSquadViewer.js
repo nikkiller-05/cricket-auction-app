@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 
 const TeamSquadViewer = ({ teams, players }) => {
   const [selectedTeam, setSelectedTeam] = useState(teams[0]?.id || null);
@@ -14,18 +14,29 @@ const TeamSquadViewer = ({ teams, players }) => {
   }
 
   const currentTeam = teams.find(t => t.id === selectedTeam);
-  const teamPlayers = players?.filter(p => 
-    String(p.team) === String(selectedTeam) && 
-    (p.status === 'sold' || p.status === 'assigned' || p.status === 'retained')
-  ) || [];
+  
+  // Memoize filtered team players to avoid recalculation on every render
+  const teamPlayers = useMemo(() => 
+    players?.filter(p => 
+      String(p.team) === String(selectedTeam) && 
+      (p.status === 'sold' || p.status === 'assigned' || p.status === 'retained')
+    ) || [], 
+    [players, selectedTeam]
+  );
   
   // Find captain - must match team.captain ID exactly
-  const captain = currentTeam?.captain ? teamPlayers.find(p => p.id === currentTeam.captain) : null;
+  const captain = useMemo(() => 
+    currentTeam?.captain ? teamPlayers.find(p => p.id === currentTeam.captain) : null,
+    [currentTeam, teamPlayers]
+  );
   
-  // Exclude captain from bought players list
-  const boughtPlayers = captain 
-    ? teamPlayers.filter(p => p.id !== captain.id).sort((a, b) => (b.finalBid || 0) - (a.finalBid || 0))
-    : teamPlayers.sort((a, b) => (b.finalBid || 0) - (a.finalBid || 0));
+  // Exclude captain from bought players list - memoized
+  const boughtPlayers = useMemo(() => {
+    const filtered = captain 
+      ? teamPlayers.filter(p => p.id !== captain.id)
+      : teamPlayers;
+    return filtered.sort((a, b) => (b.finalBid || 0) - (a.finalBid || 0));
+  }, [captain, teamPlayers]);
   
   const captainAmount = captain ? (captain.captainAmount || currentTeam?.captainAmount || 0) : 0;
   const boughtPlayersTotal = boughtPlayers.reduce((sum, p) => sum + (p.finalBid || 0), 0);

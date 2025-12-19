@@ -1,8 +1,8 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, memo } from 'react';
 import './Header.css';
 import AuctionToggleButton from './AuctionToggleButton';
 
-const Header = ({ 
+const Header = memo(({ 
   username = "Super Admin", 
   userRole = "spectator",
   onLogout = () => {}, 
@@ -347,6 +347,8 @@ const Header = ({
       </div>
     </header>
   );
-};
+});
+
+Header.displayName = 'Header';
 
 export default Header;

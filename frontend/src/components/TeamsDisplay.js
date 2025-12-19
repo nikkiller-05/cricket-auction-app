@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 
 const TeamsDisplay = ({ teams, players }) => {
   const getCategoryColor = (category) => {
@@ -13,34 +13,47 @@ const TeamsDisplay = ({ teams, players }) => {
     return colors[category] || colors.other;
   };
 
+  // Memoize team-related calculations to avoid recalculation on every render
+  const teamsData = useMemo(() => {
+    return teams.map(team => {
+      const teamPlayers = players.filter(p => p.team === team.id);
+      const captain = teamPlayers.find(p => p.category === 'captain');
+      const soldPlayers = teamPlayers.filter(p => p.status === 'sold');
+      const totalSpent = soldPlayers.reduce((sum, player) => sum + player.finalBid, 0);
+      
+      return {
+        ...team,
+        teamPlayers,
+        captain,
+        soldPlayers,
+        totalSpent
+      };
+    });
+  }, [teams, players]);
+
   return (
     <div className="bg-white shadow rounded-lg p-6">
       <h3 className="text-lg font-medium text-gray-900 mb-6">Team Squads</h3>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {teams.map(team => {
-          const teamPlayers = players.filter(p => p.team === team.id);
-          const captain = teamPlayers.find(p => p.category === 'captain');
-          const soldPlayers = teamPlayers.filter(p => p.status === 'sold');
-          const totalSpent = soldPlayers.reduce((sum, player) => sum + player.finalBid, 0);
-          
+        {teamsData.map(teamData => {
           return (
-            <div key={team.id} className="border border-gray-200 rounded-lg p-4">
+            <div key={teamData.id} className="border border-gray-200 rounded-lg p-4">
               <div className="flex justify-between items-center mb-4">
-                <h4 className="text-xl font-bold text-gray-900">{team.name}</h4>
+                <h4 className="text-xl font-bold text-gray-900">{teamData.name}</h4>
                 <div className="text-right">
                   <div className="text-sm text-gray-600">Budget Left</div>
-                  <div className="text-lg font-bold text-green-600">₹{team.budget}</div>
+                  <div className="text-lg font-bold text-green-600">₹{teamData.budget}</div>
                 </div>
               </div>
 
-              {captain && (
+              {teamData.captain && (
                 <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
                   <div className="flex justify-between items-center">
                     <div>
                       <span className="text-xs font-medium text-purple-600 uppercase tracking-wide">Captain</span>
-                      <div className="font-medium text-purple-800">{captain.name}</div>
-                      <div className="text-sm text-purple-600">{captain.role}</div>
+                      <div className="font-medium text-purple-800">{teamData.captain.name}</div>
+                      <div className="text-sm text-purple-600">{teamData.captain.role}</div>
                     </div>
                     <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-200 text-purple-800">
                       Auto-assigned
@@ -51,7 +64,7 @@ const TeamsDisplay = ({ teams, players }) => {
 
               <div className="space-y-3">
                 {['batter', 'bowler', 'allrounder', 'wicket-keeper', 'other'].map(category => {
-                  const categoryPlayers = soldPlayers.filter(p => p.category === category);
+                  const categoryPlayers = teamData.soldPlayers.filter(p => p.category === category);
                   if (categoryPlayers.length === 0) return null;
 
                   return (

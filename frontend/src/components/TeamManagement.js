@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import axios from 'axios';
 import { useNotification } from './NotificationSystem';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
-const TeamManagement = ({ teams, auctionData, onTeamsUpdate, onPlayersUpdate }) => {
+const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdate }) => {
   const { showSuccess, showError, showWarning, showInfo, confirm } = useNotification();
   const [teamNames, setTeamNames] = useState(
     teams.reduce((acc, team) => {
@@ -22,13 +22,33 @@ const TeamManagement = ({ teams, auctionData, onTeamsUpdate, onPlayersUpdate }) 
   const [captainSearchTerms, setCaptainSearchTerms] = useState({}); // {teamId: searchTerm}
   const [captainDropdownOpen, setCaptainDropdownOpen] = useState({}); // {teamId: boolean}
 
-  // Get all players for captain selection (any player can be captain now)
-  const allPlayers = auctionData?.players || [];
-  const availableForCaptain = allPlayers.filter(p => 
-    (p.status === 'available' || !p.team) && 
-    p.status !== 'retained' &&
-    p.status !== 'sold'
+  // Get all players for captain selection (any player can be captain now) - MEMOIZED
+  const allPlayers = useMemo(() => auctionData?.players || [], [auctionData?.players]);
+  
+  const availableForCaptain = useMemo(() => 
+    allPlayers.filter(p => 
+      (p.status === 'available' || !p.team) && 
+      p.status !== 'retained' &&
+      p.status !== 'sold'
+    ), [allPlayers]
   );
+
+  // Function to get available players for captain selection for a specific team
+  // Includes: unsold players + players sold to that specific team
+  // Memoized to cache results per team
+  const getAvailablePlayersForTeamCaptain = useCallback((teamId) => {
+    return allPlayers.filter(p => {
+      // Include players that are available/unsold (no team assigned)
+      const isUnsold = (p.status === 'available' || !p.team) && 
+                       p.status !== 'retained' &&
+                       p.status !== 'sold';
+      
+      // Include players that are sold to this specific team
+      const isSoldToThisTeam = p.status === 'sold' && p.team === teamId;
+      
+      return isUnsold || isSoldToThisTeam;
+    });
+  }, [allPlayers]);
 
   // Local retention controls (independent of auction settings)
   // Initialize retention state from existing retained players
@@ -207,29 +227,50 @@ const TeamManagement = ({ teams, auctionData, onTeamsUpdate, onPlayersUpdate }) 
 
   const assignCaptainFromDropdown = async (teamId) => {
     const playerId = selectedCaptains[teamId];
-    const amount = captainAmountInputs[teamId] || 0;
+    const selectedPlayer = allPlayers.find(p => p.id === playerId);
     
     if (!playerId) {
       showNotification('Please select a player first', 'error');
       return;
     }
     
+    // For sold players, use their sold price; for unsold players, use the input amount
+    const amount = selectedPlayer?.status === 'sold' 
+      ? selectedPlayer.finalBid 
+      : (captainAmountInputs[teamId] || 0);
+    
     await assignCaptain(teamId, playerId, parseInt(amount) || 0);
   };
 
-  const handleCaptainSelection = (teamId, playerId) => {
+  const handleCaptainSelection = useCallback((teamId, playerId) => {
     setSelectedCaptains(prev => ({
       ...prev,
       [teamId]: playerId
     }));
-  };
+    
+    // If the selected player is sold, auto-populate the amount with their sold price
+    // If unsold, clear the amount field
+    const selectedPlayer = allPlayers.find(p => p.id === playerId);
+    if (selectedPlayer && selectedPlayer.status === 'sold') {
+      setCaptainAmountInputs(prev => ({
+        ...prev,
+        [teamId]: selectedPlayer.finalBid || 0
+      }));
+    } else {
+      // Clear the amount field for unsold players
+      setCaptainAmountInputs(prev => ({
+        ...prev,
+        [teamId]: ''
+      }));
+    }
+  }, [allPlayers]);
 
-  const handleCaptainAmountInput = (teamId, amount) => {
+  const handleCaptainAmountInput = useCallback((teamId, amount) => {
     setCaptainAmountInputs(prev => ({
       ...prev,
       [teamId]: amount
     }));
-  };
+  }, []);
 
   const unassignCaptain = async (teamId) => {
     setAssigningCaptain(true);
@@ -630,7 +671,7 @@ const TeamManagement = ({ teams, auctionData, onTeamsUpdate, onPlayersUpdate }) 
                                 [team.id]: true
                               }));
                               // Find exact match
-                              const matchedPlayer = availableForCaptain.find(p => 
+                              const matchedPlayer = getAvailablePlayersForTeamCaptain(team.id).find(p => 
                                 `${p.name} (${p.category}) - ${p.role}` === value
                               );
                               if (matchedPlayer) {
@@ -699,19 +740,22 @@ const TeamManagement = ({ teams, auctionData, onTeamsUpdate, onPlayersUpdate }) 
                         </div>
                         
                         {/* Custom Dropdown List */}
-                        {captainDropdownOpen[team.id] && (
-                          <div className="absolute z-[9999] w-full mt-1 bg-white border-2 border-blue-300 rounded-md shadow-2xl max-h-60 overflow-y-auto">
-                            {availableForCaptain
-                              .filter(player => {
-                                const searchTerm = (captainSearchTerms[team.id] || '').toLowerCase();
-                                if (!searchTerm) return true;
-                                return (
-                                  player.name.toLowerCase().includes(searchTerm) ||
-                                  player.category.toLowerCase().includes(searchTerm) ||
-                                  player.role.toLowerCase().includes(searchTerm)
-                                );
-                              })
-                              .map((player) => (
+                        {captainDropdownOpen[team.id] && (() => {
+                          // Cache filtered players to avoid recalculation
+                          const availablePlayers = getAvailablePlayersForTeamCaptain(team.id);
+                          const searchTerm = (captainSearchTerms[team.id] || '').toLowerCase();
+                          const filteredPlayers = availablePlayers.filter(player => {
+                            if (!searchTerm) return true;
+                            return (
+                              player.name.toLowerCase().includes(searchTerm) ||
+                              player.category.toLowerCase().includes(searchTerm) ||
+                              player.role.toLowerCase().includes(searchTerm)
+                            );
+                          });
+                          
+                          return (
+                            <div className="absolute z-[9999] w-full mt-1 bg-white border-2 border-blue-300 rounded-md shadow-2xl max-h-60 overflow-y-auto">
+                              {filteredPlayers.map((player) => (
                                 <button
                                   key={player.id}
                                   type="button"
@@ -745,19 +789,12 @@ const TeamManagement = ({ teams, auctionData, onTeamsUpdate, onPlayersUpdate }) 
                                   <div className="text-xs text-gray-500 mt-1">{player.role}</div>
                                 </button>
                               ))}
-                            {availableForCaptain.filter(player => {
-                              const searchTerm = (captainSearchTerms[team.id] || '').toLowerCase();
-                              if (!searchTerm) return true;
-                              return (
-                                player.name.toLowerCase().includes(searchTerm) ||
-                                player.category.toLowerCase().includes(searchTerm) ||
-                                player.role.toLowerCase().includes(searchTerm)
-                              );
-                            }).length === 0 && (
-                              <div className="px-3 py-2 text-sm text-gray-500">No players found</div>
-                            )}
-                          </div>
-                        )}
+                              {filteredPlayers.length === 0 && (
+                                <div className="px-3 py-2 text-sm text-gray-500">No players found</div>
+                              )}
+                            </div>
+                          );
+                        })()}
                       </div>
 
                       {/* Amount Input */}
@@ -765,19 +802,42 @@ const TeamManagement = ({ teams, auctionData, onTeamsUpdate, onPlayersUpdate }) 
                         <label className="block text-xs font-medium text-gray-600 mb-1">
                           💰 Captain Amount (₹)
                         </label>
-                        <input
-                          type="number"
-                          step="any"
-                          value={captainAmountInputs[team.id] || ''}
-                          onChange={(e) => handleCaptainAmountInput(team.id, e.target.value)}
-                          onBlur={(e) => {
-                            if (e.target.value !== '') {
-                              e.target.value = captainAmountInputs[team.id];
-                            }
-                          }}
-                          placeholder="0"
-                          className="w-full px-3 py-2 border-2 border-blue-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all hover:border-blue-400"
-                        />
+                        {(() => {
+                          // Cache player lookup to avoid repeated finds
+                          const selectedPlayerId = selectedCaptains[team.id];
+                          const selectedPlayer = selectedPlayerId ? 
+                            allPlayers.find(p => p.id === selectedPlayerId) : null;
+                          const isSoldPlayer = selectedPlayer?.status === 'sold';
+                          const soldAmount = selectedPlayer?.finalBid || 0;
+                          
+                          return (
+                            <>
+                              <input
+                                type="number"
+                                step="any"
+                                value={isSoldPlayer ? soldAmount : (captainAmountInputs[team.id] || '')}
+                                onChange={(e) => handleCaptainAmountInput(team.id, e.target.value)}
+                                onBlur={(e) => {
+                                  if (e.target.value !== '') {
+                                    e.target.value = captainAmountInputs[team.id];
+                                  }
+                                }}
+                                placeholder="0"
+                                disabled={isSoldPlayer}
+                                className={`w-full px-3 py-2 border-2 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 shadow-sm transition-all ${
+                                  isSoldPlayer 
+                                    ? 'bg-gray-100 border-gray-300 text-gray-600 cursor-not-allowed' 
+                                    : 'bg-white border-blue-300 hover:border-blue-400'
+                                }`}
+                              />
+                              {isSoldPlayer && (
+                                <p className="text-xs text-gray-500 mt-1">
+                                  ℹ️ Sold player - amount locked at ₹{soldAmount}
+                                </p>
+                              )}
+                            </>
+                          );
+                        })()}
                       </div>
 
                       {/* Assign Button */}
@@ -792,7 +852,7 @@ const TeamManagement = ({ teams, auctionData, onTeamsUpdate, onPlayersUpdate }) 
                       </div>
                     </div>
                     
-                    {availableForCaptain.length === 0 && (
+                    {getAvailablePlayersForTeamCaptain(team.id).length === 0 && (
                       <div className="mt-2 text-xs text-gray-500 text-center">
                         No players available for captain assignment
                       </div>
@@ -1208,6 +1268,8 @@ const TeamManagement = ({ teams, auctionData, onTeamsUpdate, onPlayersUpdate }) 
       )}
     </div>
   );
-};
+});
+
+TeamManagement.displayName = 'TeamManagement';
 
 export default TeamManagement;

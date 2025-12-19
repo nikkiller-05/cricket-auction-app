@@ -1,9 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import axios from 'axios';
 import { useNotification } from './NotificationSystem';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
-const ResetControls = ({ auctionData, onReset }) => {
+const ResetControls = memo(({ auctionData, onReset }) => {
   const { showSuccess, showError, showWarning, showInfo, confirm } = useNotification();
   const [loading, setLoading] = useState(false);
 
@@ -232,6 +232,8 @@ const ResetControls = ({ auctionData, onReset }) => {
       </div>
     </div>
   );
-};
+});
+
+ResetControls.displayName = 'ResetControls';
 
 export default ResetControls;

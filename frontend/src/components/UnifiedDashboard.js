@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import io from 'socket.io-client';
 import axios from 'axios';
@@ -432,6 +432,28 @@ const UnifiedDashboard = () => {
   // Auction toggle state
   const [auctionToggleLoading, setAuctionToggleLoading] = useState(false);
 
+  // Memoized player lists for performance - MUST BE BEFORE ANY CONDITIONAL RETURNS
+  const soldPlayers = useMemo(() => 
+    auctionData?.players?.filter(p => p.status === 'sold' && p.category !== 'captain') || [], 
+    [auctionData?.players]
+  );
+  const retainedPlayers = useMemo(() => 
+    auctionData?.players?.filter(p => p.status === 'retained') || [], 
+    [auctionData?.players]
+  );
+  const captains = useMemo(() => 
+    auctionData?.players?.filter(p => p.category === 'captain') || [], 
+    [auctionData?.players]
+  );
+  const availablePlayers = useMemo(() => 
+    auctionData?.players?.filter(p => p.status === 'available' && p.category !== 'captain') || [], 
+    [auctionData?.players]
+  );
+  const unsoldPlayers = useMemo(() => 
+    auctionData?.players?.filter(p => p.status === 'unsold') || [], 
+    [auctionData?.players]
+  );
+
   useEffect(() => {
     // Check if user is admin from location state or localStorage
     const adminFromState = location.state?.isAdmin;
@@ -465,11 +487,11 @@ const UnifiedDashboard = () => {
     });
 
     socketConnection.on('playersUpdated', (players) => {
-      setAuctionData(prev => ({ ...prev, players }));
+      setAuctionData(prev => prev ? { ...prev, players } : prev);
     });
 
     socketConnection.on('teamsUpdated', (teams) => {
-      setAuctionData(prev => ({ ...prev, teams }));
+      setAuctionData(prev => prev ? { ...prev, teams } : prev);
     });
 
     socketConnection.on('playerSold', (data) => {
@@ -1110,13 +1132,6 @@ const UnifiedDashboard = () => {
   const biddingTeam = auctionData.currentBid && auctionData.currentBid.biddingTeam
     ? auctionData.teams?.find(t => t.id === parseInt(auctionData.currentBid.biddingTeam))
     : null;
-
-  // Separate sold players (exclude captains) and captains
-  const soldPlayers = auctionData.players?.filter(p => p.status === 'sold' && p.category !== 'captain') || [];
-  const retainedPlayers = auctionData.players?.filter(p => p.status === 'retained') || [];
-  const captains = auctionData.players?.filter(p => p.category === 'captain') || [];
-  const availablePlayers = auctionData.players?.filter(p => p.status === 'available' && p.category !== 'captain') || [];
-  const unsoldPlayers = auctionData.players?.filter(p => p.status === 'unsold') || [];
 
   // Define tabs based on user role
   const spectatorTabs = [
