@@ -90,7 +90,19 @@ const ViewerDashboard = ({ auctionData, socket }) => {
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div>
                     <h3 className="text-lg font-bold text-gray-800">Player</h3>
-                    <p className="text-2xl font-bold text-blue-900">{player?.name}</p>
+                    {player?.cricHeroesLink ? (
+                      <a
+                        href={player.cricHeroesLink}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-2xl font-bold text-blue-600 hover:text-blue-800 hover:underline transition-colors duration-200 active:text-blue-900 inline-block"
+                        style={{ WebkitTapHighlightColor: 'transparent' }}
+                      >
+                        {player.name}
+                      </a>
+                    ) : (
+                      <p className="text-2xl font-bold text-blue-900">{player?.name}</p>
+                    )}
                     <p className="text-gray-700 font-medium">{player?.role}</p>
                   </div>
                   <div>

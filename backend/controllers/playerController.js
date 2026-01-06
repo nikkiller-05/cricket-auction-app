@@ -104,6 +104,7 @@ const playerController = {
         const name = row['Name'] || row['Player Name'] || row['PlayerName'] || '';
         const role = row['Role/Category'] || row['Role'] || row['Category'] || '';
         const slNo = row['Sl.No'] || row['SlNo'] || row['Serial'] || (index + 1);
+        const cricHeroesLink = row['CricHeroes Link'] || row['Profile URL'] || row['Link'] || row['CricHeroes'] || row['Profile'] || '';
 
         if (!name.trim()) {
           return null; // Skip empty names
@@ -115,6 +116,7 @@ const playerController = {
           name: name.trim(),
           role: role.trim(),
           category: determineCategory(role),
+          cricHeroesLink: cricHeroesLink.trim(),
           status: 'available',
           currentBid: 0,
           finalBid: 0,

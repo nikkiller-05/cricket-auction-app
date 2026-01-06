@@ -1263,15 +1263,31 @@ const UnifiedDashboard = () => {
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 text-center">
               <div>
                 <h3 className="text-lg font-semibold mb-2 text-gray-800">Player</h3>
-                <p 
-                  className="text-2xl font-bold transform hover:scale-110 transition-all duration-500 cursor-pointer relative text-blue-900"
-                  style={{
-                    animation: 'playerNameGlow 2s ease-in-out infinite',
-                    textShadow: '0 0 8px rgba(59, 130, 246, 0.4), 0 0 15px rgba(59, 130, 246, 0.3)'
-                  }}
-                >
-                  {currentPlayer.name}
-                </p>
+                {currentPlayer.cricHeroesLink ? (
+                  <a
+                    href={currentPlayer.cricHeroesLink}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="text-2xl font-bold transform hover:scale-110 transition-all duration-500 cursor-pointer relative text-blue-900 hover:text-blue-700 inline-block"
+                    style={{
+                      animation: 'playerNameGlow 2s ease-in-out infinite',
+                      textShadow: '0 0 8px rgba(59, 130, 246, 0.4), 0 0 15px rgba(59, 130, 246, 0.3)',
+                      WebkitTapHighlightColor: 'transparent'
+                    }}
+                  >
+                    {currentPlayer.name}
+                  </a>
+                ) : (
+                  <p 
+                    className="text-2xl font-bold transform hover:scale-110 transition-all duration-500 cursor-pointer relative text-blue-900"
+                    style={{
+                      animation: 'playerNameGlow 2s ease-in-out infinite',
+                      textShadow: '0 0 8px rgba(59, 130, 246, 0.4), 0 0 15px rgba(59, 130, 246, 0.3)'
+                    }}
+                  >
+                    {currentPlayer.name}
+                  </p>
+                )}
                 <p className="text-sm text-gray-700 font-medium">{currentPlayer.role}</p>
                 <p className="text-xs text-gray-600">{currentPlayer.category}</p>
               </div>

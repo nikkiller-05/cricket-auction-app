@@ -208,7 +208,19 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole 
                       <div className="flex flex-col items-center">
                         <div>
                           <div className="text-lg font-bold text-gray-900 flex items-center justify-center">
-                            {player.name}
+                            {player.cricHeroesLink ? (
+                              <a
+                                href={player.cricHeroesLink}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:text-blue-800 hover:underline transition-colors duration-200 active:text-blue-900"
+                                style={{ WebkitTapHighlightColor: 'transparent' }}
+                              >
+                                {player.name}
+                              </a>
+                            ) : (
+                              player.name
+                            )}
                             {teams?.some(t => t.captain === player.id) && (
                               <span className="ml-2 text-lg bg-yellow-100 px-1 py-0.5 rounded-full border border-yellow-300">👑</span>
                             )}
