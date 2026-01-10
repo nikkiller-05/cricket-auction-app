@@ -57,7 +57,24 @@ const secureExcelService = {
             const headerName = headers[colNumber - 1];
             if (headerName) {
               const cellValue = cell.value;
-              rowData[headerName] = cellValue !== null && cellValue !== undefined ? String(cellValue).trim() : '';
+              
+              // Handle hyperlinks (Excel stores them as objects with text and hyperlink properties)
+              if (cellValue && typeof cellValue === 'object') {
+                if (cellValue.hyperlink) {
+                  // Extract the actual hyperlink URL
+                  rowData[headerName] = String(cellValue.hyperlink).trim();
+                } else if (cellValue.text) {
+                  // If it's a rich text object, extract text
+                  rowData[headerName] = String(cellValue.text).trim();
+                } else {
+                  // For other objects, try to stringify
+                  rowData[headerName] = String(cellValue).trim();
+                }
+              } else {
+                // Regular text or number
+                rowData[headerName] = cellValue !== null && cellValue !== undefined ? String(cellValue).trim() : '';
+              }
+              
               if (rowData[headerName]) {
                 hasData = true;
               }
