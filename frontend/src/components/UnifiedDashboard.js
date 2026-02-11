@@ -2452,6 +2452,7 @@ const UnifiedDashboard = () => {
               stats={auctionData.stats || {}}
               teams={auctionData.teams || []}
               players={auctionData.players || []}
+              settings={auctionData.settings || {}}
             />
           )}
         </div>

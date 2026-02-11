@@ -529,6 +529,7 @@ const AdminDashboard = ({ auctionData, onLogout, socket, onDataRefresh }) => {
               stats={auctionData.stats || {}}
               teams={auctionData.teams || []}
               players={auctionData.players || []}
+              settings={auctionData.settings || {}}
             />
           )}
         </div>

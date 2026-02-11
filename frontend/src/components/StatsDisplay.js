@@ -1,6 +1,6 @@
 import React, { useMemo } from 'react';
 
-const StatsDisplay = ({ stats, teams, players }) => {
+const StatsDisplay = ({ stats, teams, players, settings }) => {
   // Memoize calculated stats to avoid recalculation on every render
   const { soldPlayers, captains, availablePlayers, unsoldPlayers, totalSpent } = useMemo(() => {
     const sold = players?.filter(p => p.status === 'sold' && p.category !== 'captain') || [];
@@ -172,7 +172,8 @@ const StatsDisplay = ({ stats, teams, players }) => {
             const teamPlayers = players?.filter(p => p.team === team.id && (p.status === 'sold' || p.status === 'assigned')) || [];
             const boughtPlayers = teamPlayers.filter(p => p.category !== 'captain');
             const totalSpentByTeam = boughtPlayers.reduce((sum, p) => sum + (p.finalBid || 0), 0);
-            const budgetUsed = ((totalSpentByTeam / 1000) * 100); // Assuming 1000 starting budget
+            const startingBudget = settings?.startingBudget || 1000;
+            const budgetUsed = ((totalSpentByTeam / startingBudget) * 100);
             
             return (
               <div key={team.id} className="space-y-2">
