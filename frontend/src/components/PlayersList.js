@@ -1,9 +1,11 @@
 import React, { useState, memo, useMemo, useCallback } from 'react';
 import axios from 'axios';
 import { useNotification } from './NotificationSystem';
+import PlayerAvatar from './PlayerAvatar';
+import PlayerImageUpload from './PlayerImageUpload';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
-const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole }) => {
+const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole, onDataRefresh }) => {
   const { showWarning, showError } = useNotification();
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -206,6 +208,7 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole 
                   <tr key={player.id} className={isCurrentlyBidding ? 'bg-yellow-100 bg-opacity-70 border-b border-gray-400 border-opacity-40' : 'hover:bg-gray-100 hover:bg-opacity-50 border-b border-gray-300 border-opacity-30'}>
                     <td className="px-6 py-4 whitespace-nowrap border-r border-gray-300 border-opacity-30 text-center">
                       <div className="flex flex-col items-center">
+                        <PlayerAvatar player={player} size="md" className="mb-2" />
                         <div>
                           <div className="text-lg font-bold text-gray-900 flex items-center justify-center">
                             {player.cricHeroesLink ? (
@@ -280,7 +283,11 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole 
                     </td>
                     {canPerformBidActions && (
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
-                        <div className="flex justify-center">
+                        <div className="flex flex-wrap items-center justify-center gap-2">
+                          <PlayerImageUpload
+                            playerId={player.id}
+                            onUploaded={() => onDataRefresh && onDataRefresh()}
+                          />
                           {canStartBiddingForPlayer && (
                             <button
                               onClick={() => handleStartBidding(player.id)}

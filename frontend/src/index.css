@@ -9,15 +9,41 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  background: linear-gradient(135deg, 
-    rgba(219, 234, 254, 0.9) 0%,
-    rgba(191, 219, 254, 0.8) 25%,
-    rgba(147, 197, 253, 0.7) 50%,
-    rgba(196, 181, 253, 0.8) 75%,
-    rgba(233, 213, 255, 0.9) 100%
-  );
+  color: #0f172a; /* slate-900 default text */
+  /* Modern "aurora mesh" — soft radial color blooms over a near-white slate
+     base. Echoes the dark hero card's indigo / cyan / fuchsia palette at low
+     opacity so the page feels cohesive without competing for attention. */
+  background-color: #f5f7fb;
+  background-image:
+    radial-gradient(at 12% 8%, rgba(99, 102, 241, 0.18) 0px, transparent 55%),
+    radial-gradient(at 88% 6%, rgba(34, 211, 238, 0.16) 0px, transparent 50%),
+    radial-gradient(at 78% 92%, rgba(217, 70, 239, 0.16) 0px, transparent 55%),
+    radial-gradient(at 18% 95%, rgba(56, 189, 248, 0.14) 0px, transparent 50%),
+    radial-gradient(at 50% 50%, rgba(168, 85, 247, 0.08) 0px, transparent 60%),
+    linear-gradient(180deg, #f8fafc 0%, #eef2ff 50%, #f5f3ff 100%);
   min-height: 100vh;
   background-attachment: fixed;
+  background-repeat: no-repeat;
+}
+
+/* Subtle grain overlay for premium "matte" finish — applied via ::before
+   on body so it stays behind all content but above the gradient. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  background-image:
+    radial-gradient(circle at 1px 1px, rgba(15, 23, 42, 0.035) 1px, transparent 0);
+  background-size: 24px 24px;
+  opacity: 0.6;
+}
+
+/* Make sure app content stacks above the grain overlay */
+#root {
+  position: relative;
+  z-index: 1;
 }
 
 code {

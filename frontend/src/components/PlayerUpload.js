@@ -102,7 +102,7 @@ const PlayerUpload = ({ onUploadSuccess, onDataRefresh }) => {
     }
 
     try {
-  await axios.post(`${API_BASE_URL}/api/players/clear`);
+  await axios.delete(`${API_BASE_URL}/api/players/clear`);
       setMessage('Auction data cleared successfully');
       setFile(null);
       setValidationResult(null);

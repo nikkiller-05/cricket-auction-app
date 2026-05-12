@@ -6,6 +6,9 @@ const { verifyConfigPermission } = require('../middlewares/authMiddleware');
 // Upload players file (admin/super-admin only)
 router.post('/upload', playerController.uploadMiddleware, verifyConfigPermission, playerController.uploadPlayers);
 
+// Upload player image (admin/super-admin only)
+router.post('/upload-image/:playerId', playerController.uploadMiddleware, verifyConfigPermission, playerController.uploadPlayerImage);
+
 // Validate file before upload
 router.post('/validate', playerController.uploadMiddleware, playerController.validateFile);
 

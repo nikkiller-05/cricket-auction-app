@@ -442,6 +442,8 @@ const AdminDashboard = ({ auctionData, onLogout, socket, onDataRefresh }) => {
                   teams={auctionData.teams}
                   currentBid={auctionData.currentBid}
                   auctionStatus={auctionData.auctionStatus}
+                  userRole={auctionData.userRole || 'admin'}
+                  onDataRefresh={onDataRefresh}
                 />
               ) : (
                 <div className="text-center py-16">

@@ -10,6 +10,9 @@ import PlayersList from './PlayersList';
 import StatsDisplay from './StatsDisplay';
 import SubAdminManagement from './SubAdminManagement';
 import Header from './Header';
+import PlayerAvatar from './PlayerAvatar';
+import PlayerStatsStrip from './PlayerStatsStrip';
+import LiveBiddingCard from './LiveBiddingCard';
 import { useNotification } from './NotificationSystem';
 
 // Use environment variable for backend URL, fallback to localhost for dev
@@ -1251,72 +1254,19 @@ const UnifiedDashboard = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 border-2 border-blue-200 border-opacity-30 rounded-2xl bg-white bg-opacity-5 backdrop-blur-sm shadow-xl">
         {/* SINGLE Live Bidding Section - Visible to everyone */}
         {auctionData.currentBid && currentPlayer && (
-          <div className="mb-8 bg-gradient-to-r from-yellow-400 to-orange-500 rounded-2xl p-6 text-white shadow-2xl border-2 border-yellow-300 border-opacity-70">
-            <div className="text-center mb-4">
-              <h2 className="text-3xl font-bold flex items-center justify-center">
-                🔥 LIVE BIDDING 
-                {auctionData.auctionStatus === 'fast-track' && 
-                  <span className="ml-2 bg-orange-600 px-2 py-1 rounded text-sm">FAST TRACK</span>
-                }
-              </h2>
-            </div>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 sm:gap-6 text-center">
+          <LiveBiddingCard
+            player={currentPlayer}
+            currentAmount={auctionData.currentBid.currentAmount}
+            leadingTeamName={biddingTeam ? cleanTeamName(biddingTeam.name) : null}
+            leadingTeamBudget={biddingTeam ? biddingTeam.budget : null}
+            isFastTrack={auctionData.auctionStatus === 'fast-track'}
+            rightSlot={isAdmin ? (
               <div>
-                <h3 className="text-lg font-semibold mb-2 text-gray-800">Player</h3>
-                {currentPlayer.cricHeroesLink ? (
-                  <a
-                    href={currentPlayer.cricHeroesLink}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="text-2xl font-bold transform hover:scale-110 transition-all duration-500 cursor-pointer relative text-blue-900 hover:text-blue-700 inline-block"
-                    style={{
-                      animation: 'playerNameGlow 2s ease-in-out infinite',
-                      textShadow: '0 0 8px rgba(59, 130, 246, 0.4), 0 0 15px rgba(59, 130, 246, 0.3)',
-                      WebkitTapHighlightColor: 'transparent'
-                    }}
-                  >
-                    {currentPlayer.name}
-                  </a>
-                ) : (
-                  <p 
-                    className="text-2xl font-bold transform hover:scale-110 transition-all duration-500 cursor-pointer relative text-blue-900"
-                    style={{
-                      animation: 'playerNameGlow 2s ease-in-out infinite',
-                      textShadow: '0 0 8px rgba(59, 130, 246, 0.4), 0 0 15px rgba(59, 130, 246, 0.3)'
-                    }}
-                  >
-                    {currentPlayer.name}
-                  </p>
-                )}
-                <p className="text-sm text-gray-700 font-medium">{currentPlayer.role}</p>
-                <p className="text-xs text-gray-600">{currentPlayer.category}</p>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold mb-2 text-gray-800">Current Bid</h3>
-                <p 
-                  className="text-4xl font-bold transform hover:scale-125 transition-all duration-500 cursor-pointer relative text-green-700"
-                  style={{
-                    animation: 'bidAmountPulse 1.5s ease-in-out infinite, pulse 2s ease-in-out infinite',
-                    textShadow: '0 0 12px rgba(34, 197, 94, 0.6), 0 0 25px rgba(34, 197, 94, 0.5), 0 0 35px rgba(34, 197, 94, 0.4)',
-                    filter: 'drop-shadow(0 0 6px rgba(34, 197, 94, 0.5))'
-                  }}
-                >
-                  ₹{auctionData.currentBid.currentAmount}
+                {/* Section label */}
+                <p className="text-[10px] sm:text-xs uppercase tracking-[0.25em] font-bold text-white/70 text-center mb-3">
+                  Place Bid
                 </p>
-              </div>
-              <div>
-                <h3 className="text-lg font-semibold mb-2 text-gray-800">Leading Team</h3>
-                <p className="text-2xl font-bold text-purple-700">{biddingTeam ? cleanTeamName(biddingTeam.name) : 'No bids yet'}</p>
-                {biddingTeam && (
-                  <p className="text-sm text-gray-600 font-medium">Budget: ₹{biddingTeam.budget}</p>
-                )}
-              </div>
-            </div>
-
-            {/* Admin bidding controls - Available to ALL admin roles including sub-admin */}
-            {isAdmin && (
-              <div className="mt-6 pt-4 bg-white bg-opacity-10 backdrop-blur-lg rounded-lg p-4">
-                <div className="flex flex-wrap justify-center gap-1 sm:gap-2 mb-4">
+                <div className="flex flex-wrap justify-center gap-2 sm:gap-2.5 mb-5">
                   {auctionData.teams?.map(team => {
                     const increment = 5;
                     const nextBidAmount = auctionData.currentBid.currentAmount + increment;
@@ -1335,10 +1285,10 @@ const UnifiedDashboard = () => {
                           }
                         }}
                         disabled={!canBid}
-                        className={`px-2 sm:px-4 py-1.5 sm:py-2.5 text-xs sm:text-sm rounded-full font-semibold transition-all duration-200 border-2 ${
+                        className={`group relative overflow-hidden px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 border ${
                           canBid 
-                            ? 'bg-gradient-to-r from-blue-200 to-cyan-300 hover:from-blue-300 hover:to-cyan-400 text-gray-800 border-blue-300 hover:border-cyan-400 transform hover:scale-105 active:scale-95 shadow-md hover:shadow-lg' 
-                            : 'bg-gray-700 text-gray-400 cursor-not-allowed opacity-60 border-gray-600 shadow-inner'
+                            ? 'bg-gradient-to-br from-cyan-400/90 to-blue-600/90 text-white border-cyan-300/60 shadow-lg shadow-cyan-500/30 hover:shadow-xl hover:shadow-cyan-400/50 hover:-translate-y-0.5 hover:from-cyan-300 hover:to-blue-500 active:scale-95' 
+                            : 'bg-white/5 text-white/40 cursor-not-allowed border-white/10'
                         }`}
                         title={
                           hasMaxPlayers 
@@ -1348,21 +1298,24 @@ const UnifiedDashboard = () => {
                               : `Bid ₹${nextBidAmount} for ${cleanTeamName(team.name)}`
                         }
                       >
-                        {cleanTeamName(team.name)}
-                        <div className="text-xs opacity-75">₹{team.budget}</div>
+                        {canBid && (
+                          <span className="pointer-events-none absolute inset-x-2 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent" />
+                        )}
+                        <div className="relative flex flex-col items-center leading-tight">
+                          <span className="tracking-wide">{cleanTeamName(team.name)}</span>
+                          <span className={`text-[10px] mt-0.5 font-semibold ${canBid ? 'text-white/85' : 'text-white/30'}`}>₹{team.budget}</span>
+                        </div>
                       </button>
                     );
                   })}
                 </div>
                 
                 {/* Primary Action Buttons */}
-                <div className="flex flex-wrap justify-center gap-2 sm:gap-3 md:gap-4 mb-4">
+                <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
                   <button
                     onClick={async () => {
                       try {
                         await axios.post(`${API_BASE_URL}/api/auction/bidding/sell`);
-                        // Note: Success notification will come from socket event with player details
-                        // Update action history for undo functionality
                         if (userRole === 'super-admin') {
                           fetchActionHistory();
                         }
@@ -1371,17 +1324,16 @@ const UnifiedDashboard = () => {
                       }
                     }}
                     disabled={!auctionData.currentBid.biddingTeam}
-                    className="px-4 sm:px-6 md:px-8 py-3 bg-gradient-to-r from-green-500 to-emerald-600 hover:from-green-600 hover:to-emerald-700 disabled:from-gray-400 disabled:to-gray-500 disabled:cursor-not-allowed text-white rounded-full font-bold text-xs sm:text-sm md:text-base shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 transition-all duration-200 flex items-center space-x-1 sm:space-x-2"
+                    className="group relative overflow-hidden px-5 sm:px-7 py-2.5 sm:py-3 bg-gradient-to-br from-emerald-400 to-green-600 hover:from-emerald-300 hover:to-green-500 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed disabled:opacity-50 text-white rounded-xl font-bold text-xs sm:text-sm shadow-lg shadow-emerald-500/40 hover:shadow-xl hover:shadow-emerald-400/60 hover:-translate-y-0.5 active:scale-95 transition-all duration-300 border border-emerald-300/50 inline-flex items-center gap-2"
                   >
-                    <span>✅</span>
-                    <span>Sell</span>
+                    <span className="absolute inset-x-3 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+                    <span className="text-base">✅</span>
+                    <span className="tracking-wide">SELL</span>
                   </button>
                   <button
                     onClick={async () => {
                       try {
                         await axios.post(`${API_BASE_URL}/api/auction/bidding/unsold`);
-                        // Note: Success notification will come from socket event with player details
-                        // Update action history for undo functionality
                         if (userRole === 'super-admin') {
                           fetchActionHistory();
                         }
@@ -1389,28 +1341,27 @@ const UnifiedDashboard = () => {
                         showError(error.response?.data?.error || 'Error marking as unsold');
                       }
                     }}
-                    className="px-4 sm:px-6 md:px-8 py-3 bg-gradient-to-r from-red-500 to-rose-600 hover:from-red-600 hover:to-rose-700 text-white rounded-full font-bold text-xs sm:text-sm md:text-base shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 transition-all duration-200 flex items-center space-x-1 sm:space-x-2"
+                    className="group relative overflow-hidden px-5 sm:px-7 py-2.5 sm:py-3 bg-gradient-to-br from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 text-white rounded-xl font-bold text-xs sm:text-sm shadow-lg shadow-rose-500/40 hover:shadow-xl hover:shadow-rose-400/60 hover:-translate-y-0.5 active:scale-95 transition-all duration-300 border border-rose-300/50 inline-flex items-center gap-2"
                   >
-                    <span>❌</span>
-                    <span>Unsold</span>
+                    <span className="absolute inset-x-3 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
+                    <span className="text-base">❌</span>
+                    <span className="tracking-wide">UNSOLD</span>
                   </button>
-
                 </div>
                 
                 {/* Undo Controls - Only for super-admin */}
                 {userRole === 'super-admin' && (
-                  <div className="flex flex-wrap justify-center gap-3 pt-4 border-t border-white border-opacity-20">
+                  <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mt-4 pt-4 border-t border-white/15">
                     <button
                       onClick={handleUndoCurrentBid}
                       disabled={undoLoading || !auctionData.currentBid}
-                      className="px-4 sm:px-5 py-2.5 bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed disabled:shadow-inner text-white rounded-full text-xs sm:text-sm font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 transition-all duration-200 flex items-center space-x-1.5 border border-purple-300 hover:border-indigo-400 backdrop-blur-sm"
+                      className="group relative overflow-hidden px-4 py-2 bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50 text-white rounded-lg text-xs font-semibold border border-white/20 hover:border-white/40 backdrop-blur-sm transition-all duration-200 active:scale-95 inline-flex items-center gap-1.5"
                       title="Undo Last Bid - Removes the most recent bid during active bidding"
                     >
                       <span>⏪</span>
-                      <span className="hidden sm:inline">Undo Last Bid</span>
+                      <span className="hidden sm:inline tracking-wide">Undo Last Bid</span>
                     </button>
                     
-                    {/* Cancel Bidding Button - Available to all admins */}
                     <button
                       onClick={async () => {
                         const confirmed = await confirm(
@@ -1427,18 +1378,18 @@ const UnifiedDashboard = () => {
                         }
                       }}
                       disabled={!auctionData.currentBid}
-                      className="px-4 sm:px-5 py-2.5 bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-500 hover:to-blue-600 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed disabled:shadow-inner text-white rounded-full text-xs sm:text-sm font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 transition-all duration-200 flex items-center space-x-1.5 border border-sky-300 hover:border-blue-400 backdrop-blur-sm"
+                      className="group relative overflow-hidden px-4 py-2 bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50 text-white rounded-lg text-xs font-semibold border border-white/20 hover:border-white/40 backdrop-blur-sm transition-all duration-200 active:scale-95 inline-flex items-center gap-1.5"
                       title="Cancel bidding and return player to available status"
                     >
-                      <span>❌</span>
-                      <span className="hidden sm:inline">Cancel</span>
+                      <span>⛔</span>
+                      <span className="hidden sm:inline tracking-wide">Cancel</span>
                     </button>
                   </div>
                 )}
                 
                 {/* Cancel Button for Regular Admins (when super-admin controls not shown) */}
                 {isAdmin && userRole !== 'super-admin' && (
-                  <div className="flex flex-wrap justify-center gap-3 pt-4 border-t border-white border-opacity-20">
+                  <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mt-4 pt-4 border-t border-white/15">
                     <button
                       onClick={async () => {
                         const confirmed = await confirm(
@@ -1455,17 +1406,17 @@ const UnifiedDashboard = () => {
                         }
                       }}
                       disabled={!auctionData.currentBid}
-                      className="px-4 sm:px-5 py-2.5 bg-gradient-to-r from-sky-400 to-blue-500 hover:from-sky-500 hover:to-blue-600 disabled:from-gray-500 disabled:to-gray-600 disabled:cursor-not-allowed disabled:shadow-inner text-white rounded-full text-xs sm:text-sm font-semibold shadow-lg hover:shadow-xl transform hover:scale-105 active:scale-95 transition-all duration-200 flex items-center space-x-1.5 border border-sky-300 hover:border-blue-400 backdrop-blur-sm"
+                      className="group relative overflow-hidden px-4 py-2 bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50 text-white rounded-lg text-xs font-semibold border border-white/20 hover:border-white/40 backdrop-blur-sm transition-all duration-200 active:scale-95 inline-flex items-center gap-1.5"
                       title="Cancel bidding and return player to available status"
                     >
-                      <span>❌</span>
-                      <span className="hidden sm:inline">Cancel</span>
+                      <span>⛔</span>
+                      <span className="hidden sm:inline tracking-wide">Cancel</span>
                     </button>
                   </div>
                 )}
               </div>
-            )}
-          </div>
+            ) : null}
+          />
         )}
 
         {/* Quick Stats */}
@@ -1895,6 +1846,7 @@ const UnifiedDashboard = () => {
                     currentBid={auctionData.currentBid}
                     auctionStatus={auctionData.auctionStatus}
                     userRole={userRole}
+                    onDataRefresh={fetchAuctionData}
                   />
                 ) : (
                   // Spectator view of players
