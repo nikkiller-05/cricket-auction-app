@@ -261,7 +261,7 @@ const AuctionSetup = () => {
         {/* Main Content */}
         <main className="flex-1 flex items-center justify-center px-4 py-8">
           <div className="max-w-2xl w-full">
-            <div className="bg-white bg-opacity-10 backdrop-blur-lg rounded-2xl p-8 border border-white border-opacity-20">
+            <div className="bg-white bg-opacity-10 rounded-2xl p-8 border border-white border-opacity-20">
               
               {/* Step 1: Basic Settings */}
               {currentStep === 1 && (
@@ -525,7 +525,7 @@ const AuctionSetup = () => {
                       />
                       <label
                         htmlFor="file-upload"
-                        className={`inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700 cursor-pointer ${
+                        className={`inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-gradient-to-br from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 cursor-pointer ${
                           loading ? 'opacity-50 cursor-not-allowed' : ''
                         }`}
                       >
@@ -622,7 +622,7 @@ const AuctionSetup = () => {
                     disabled={!canProceedToNext()}
                     className={`px-6 py-3 rounded-lg font-medium transition-all ${
                       canProceedToNext()
-                        ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                        ? 'bg-gradient-to-br from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150'
                         : 'bg-gray-500 bg-opacity-30 text-gray-400 cursor-not-allowed'
                     }`}
                   >
@@ -632,9 +632,9 @@ const AuctionSetup = () => {
                   <button
                     onClick={handleFinishSetup}
                     disabled={!canProceedToNext() || loading}
-                    className={`px-8 py-3 rounded-lg font-medium transition-all ${
+                    className={`px-8 py-3 rounded-lg font-semibold ${
                       canProceedToNext() && !loading
-                        ? 'bg-green-600 hover:bg-green-700 text-white'
+                        ? 'bg-gradient-to-br from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150'
                         : 'bg-gray-500 bg-opacity-30 text-gray-400 cursor-not-allowed'
                     }`}
                   >

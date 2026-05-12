@@ -106,36 +106,36 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
   return (
     <div className="space-y-6">
       <div className="flex justify-between items-center">
-        <h3 className="text-2xl font-bold text-gray-900">
+        <h3 className="text-2xl font-bold text-slate-900 tracking-tight">
           Players Management
           {auctionStatus === 'fast-track' && (
-            <span className="ml-2 bg-orange-100 text-orange-800 px-2 py-1 rounded text-base font-semibold">
-              FAST TRACK MODE
+            <span className="ml-2 inline-flex items-center px-2.5 py-1 rounded-full text-xs font-bold bg-amber-100 text-amber-800 border border-amber-200">
+              ⚡ FAST TRACK
             </span>
           )}
         </h3>
       </div>
 
       {/* Search and Filter Controls */}
-      <div className="bg-white bg-opacity-20 backdrop-blur-xl rounded-xl shadow-2xl p-6 border-2 border-blue-400 border-opacity-70 hover:bg-opacity-30 transition-all duration-300">
+      <div className="rounded-2xl border border-slate-200/70 bg-white/90 p-5 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)]">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label className="block text-base font-semibold text-gray-700 mb-1">Search Players</label>
+            <label className="block text-[11px] uppercase tracking-[0.18em] font-semibold text-slate-500 mb-1.5">Search</label>
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Search by name or role..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              placeholder="Search by name or role…"
+              className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all"
             />
           </div>
           
           <div>
-            <label className="block text-base font-semibold text-gray-700 mb-1">Filter by Category</label>
+            <label className="block text-[11px] uppercase tracking-[0.18em] font-semibold text-slate-500 mb-1.5">Category</label>
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all"
             >
               <option value="all">All Categories</option>
               <option value="captain">Captain</option>
@@ -147,11 +147,11 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
           </div>
           
           <div>
-            <label className="block text-base font-semibold text-gray-700 mb-1">Filter by Status</label>
+            <label className="block text-[11px] uppercase tracking-[0.18em] font-semibold text-slate-500 mb-1.5">Status</label>
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-indigo-500"
+              className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all"
             >
               <option value="all">All Status</option>
               <option value="available">Available</option>
@@ -163,40 +163,41 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
       </div>
 
       {/* Players Table */}
-      <div className="bg-white bg-opacity-20 backdrop-blur-xl rounded-xl shadow-2xl overflow-hidden border-2 border-gray-400 border-opacity-60">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h4 className="text-xl font-bold text-gray-900">
-            Players List ({filteredPlayers.length} players)
+      <div className="rounded-2xl border border-slate-200/70 bg-white/90 overflow-hidden shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)]">
+        <div className="px-6 py-4 border-b border-slate-200/70 flex items-center justify-between">
+          <h4 className="text-lg font-bold text-slate-900 tracking-tight">
+            Players List
           </h4>
+          <span className="text-xs font-semibold text-slate-500">{filteredPlayers.length} {filteredPlayers.length === 1 ? 'player' : 'players'}</span>
         </div>
         
         <div className="overflow-x-auto">
-          <table className="min-w-full divide-y divide-gray-400 divide-opacity-50 border-2 border-gray-400 border-opacity-30">
-            <thead className="bg-gray-100 bg-opacity-80">
-              <tr className="border-b-2 border-gray-400 border-opacity-40">
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider border-r border-gray-300">
+          <table className="min-w-full">
+            <thead className="bg-slate-50/80">
+              <tr>
+                <th className="px-6 py-3 text-center text-[10px] font-semibold text-slate-500 uppercase tracking-[0.18em]">
                   Player
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider border-r border-gray-300">
+                <th className="px-6 py-3 text-center text-[10px] font-semibold text-slate-500 uppercase tracking-[0.18em]">
                   Category
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider border-r border-gray-300">
+                <th className="px-6 py-3 text-center text-[10px] font-semibold text-slate-500 uppercase tracking-[0.18em]">
                   Status
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider border-r border-gray-300">
-                  Current/Final Bid
+                <th className="px-6 py-3 text-center text-[10px] font-semibold text-slate-500 uppercase tracking-[0.18em]">
+                  Bid
                 </th>
-                <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider border-r border-gray-300">
+                <th className="px-6 py-3 text-center text-[10px] font-semibold text-slate-500 uppercase tracking-[0.18em]">
                   Team
                 </th>
                 {canPerformBidActions && (
-                  <th className="px-6 py-3 text-center text-xs font-medium text-gray-700 uppercase tracking-wider">
+                  <th className="px-6 py-3 text-center text-[10px] font-semibold text-slate-500 uppercase tracking-[0.18em]">
                     Actions
                   </th>
                 )}
               </tr>
             </thead>
-            <tbody className="bg-white bg-opacity-20 divide-y divide-gray-400 divide-opacity-40">
+            <tbody className="divide-y divide-slate-100">
               {filteredPlayers.map((player) => {
                 const team = teams?.find(t => t.id === player.team);
                 const isCurrentlyBidding = currentBid?.playerId === player.id;
@@ -206,8 +207,8 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
                                                !currentBid;
 
                 return (
-                  <tr key={player.id} className={isCurrentlyBidding ? 'bg-yellow-100 bg-opacity-70 border-b border-gray-400 border-opacity-40' : 'hover:bg-gray-100 hover:bg-opacity-50 border-b border-gray-300 border-opacity-30'}>
-                    <td className="px-6 py-4 whitespace-nowrap border-r border-gray-300 border-opacity-30 text-center">
+                  <tr key={player.id} className={isCurrentlyBidding ? 'bg-amber-50/70' : 'hover:bg-slate-50/70 transition-colors'}>
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
                       <div className="flex flex-col items-center">
                         <PlayerAvatar player={player} size="md" className="mb-2" />
                         <div>
@@ -241,14 +242,14 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap border-r border-gray-300 border-opacity-30 text-center">
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
                       <div className="flex justify-center">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getCategoryStyle(player.category)}`}>
                           {player.category === 'wicket-keeper' ? 'keeper' : player.category}
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap border-r border-gray-300 border-opacity-30 text-center">
+                    <td className="px-6 py-4 whitespace-nowrap text-center">
                       <div className="flex justify-center">
                         <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusStyle(player.status)}`}>
                           {player.status === 'assigned' ? 'Captain' : 
@@ -260,26 +261,26 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
                         </span>
                       </div>
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-300 border-opacity-30 text-center">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 text-center">
                       {player.status === 'sold' ? (
-                        <span className="font-bold text-green-600">₹{player.finalBid}</span>
+                        <span className="font-bold text-emerald-600">₹{player.finalBid}</span>
                       ) : player.status === 'assigned' ? (
                         <span className="font-bold text-purple-600">Captain</span>
                       ) : player.status === 'retained' ? (
-                        <span className="font-bold text-blue-600">₹{player.retentionAmount || player.finalBid}</span>
+                        <span className="font-bold text-cyan-600">₹{player.retentionAmount || player.finalBid}</span>
                       ) : player.currentBid > 0 ? (
-                        <span className="font-bold text-blue-600">₹{player.currentBid}</span>
+                        <span className="font-bold text-indigo-600">₹{player.currentBid}</span>
                       ) : (
-                        <span className="text-gray-400">-</span>
+                        <span className="text-slate-300">—</span>
                       )}
                     </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900 border-r border-gray-300 border-opacity-30 text-center">
+                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 text-center">
                       <div className="flex items-center justify-center">
                         {team ? (
                           <span className={`px-3 py-1 rounded-full text-xs font-bold inline-block ${getTeamStyle(player.team, teams)}`}>
                             🏏 {cleanTeamName(team.name)}
                           </span>
-                        ) : '-'}
+                        ) : <span className="text-slate-300">—</span>}
                       </div>
                     </td>
                     {canPerformBidActions && (
@@ -293,29 +294,14 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
                             <button
                               onClick={() => handleStartBidding(player.id)}
                               disabled={loading}
-                              className="bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white px-3 py-1 rounded text-xs font-medium"
+                              className="inline-flex items-center gap-1 bg-gradient-to-br from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:opacity-50 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm shadow-indigo-500/30"
                             >
-                              {loading ? 'Starting...' : '🔨 Start Bidding'}
+                              {loading ? 'Starting…' : '🔨 Start Bidding'}
                             </button>
                           )}
                           {isCurrentlyBidding && (
-                            <span className="text-yellow-600 font-medium">
-                              🔥 Currently Bidding
-                            </span>
-                          )}
-                          {player.status === 'sold' && (
-                            <span className="text-green-600 font-medium">
-                              ✅ Sold
-                            </span>
-                          )}
-                          {player.status === 'unsold' && (
-                            <span className="text-red-600 font-medium">
-                              ❌ Unsold
-                            </span>
-                          )}
-                          {teams?.some(t => t.captain === player.id) && (
-                            <span className="text-purple-600 font-medium">
-                              👑 Captain
+                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-700 border border-amber-200 animate-pulse">
+                              🔥 Bidding
                             </span>
                           )}
                         </div>

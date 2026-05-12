@@ -119,7 +119,7 @@ const ResetControls = memo(({ auctionData, onReset }) => {
   const availablePlayersCount = auctionData.players?.filter(p => p.status === 'available' && p.category !== 'captain').length || 0;
 
   return (
-    <div className="bg-white bg-opacity-20 backdrop-blur-xl rounded-xl shadow-2xl p-6 border-2 border-red-400 border-opacity-70 hover:bg-opacity-30 transition-all duration-300">
+    <div className="bg-white bg-opacity-20 rounded-xl shadow-2xl p-6 border-2 border-red-400 border-opacity-70 hover:bg-opacity-30 transition-all duration-300">
       <h3 className="text-2xl font-bold text-gray-900 mb-4">Auction Management</h3>
       
       {/* Current Status */}
@@ -150,7 +150,7 @@ const ResetControls = memo(({ auctionData, onReset }) => {
           <button
             onClick={resetAuction}
             disabled={loading || !auctionData.fileUploaded}
-            className="bg-red-600 hover:bg-red-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md text-sm font-medium border-2 border-red-500 shadow-md transition-all"
+            className="bg-gradient-to-br from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 disabled:from-slate-400 disabled:to-slate-400 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 px-4 py-2 rounded-xl text-sm font-semibold border border-rose-500/40 shadow-md"
           >
             {loading ? 'Resetting...' : 'Reset Auction'}
           </button>
@@ -172,7 +172,7 @@ const ResetControls = memo(({ auctionData, onReset }) => {
               <button
                 onClick={endFastTrack}
                 disabled={loading}
-                className="bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md text-sm font-medium"
+                className="bg-gradient-to-br from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 disabled:from-slate-400 disabled:to-slate-400 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 px-4 py-2 rounded-xl text-sm font-semibold"
               >
                 {loading ? 'Ending...' : 'End Fast Track'}
               </button>
@@ -181,7 +181,7 @@ const ResetControls = memo(({ auctionData, onReset }) => {
             <button
               onClick={startFastTrack}
               disabled={loading || unsoldPlayersCount === 0}
-              className="bg-orange-600 hover:bg-orange-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md text-sm font-medium border-2 border-orange-500 shadow-md transition-all"
+              className="bg-gradient-to-br from-amber-500 to-orange-600 hover:from-amber-400 hover:to-orange-500 disabled:from-slate-400 disabled:to-slate-400 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 px-4 py-2 rounded-xl text-sm font-semibold border border-orange-500/40 shadow-md"
             >
               {loading ? 'Starting...' : `Start Fast Track (${unsoldPlayersCount} players)`}
             </button>
@@ -199,7 +199,7 @@ const ResetControls = memo(({ auctionData, onReset }) => {
             <button
               onClick={finishEntireAuction}
               disabled={loading}
-              className="bg-gray-600 hover:bg-gray-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md text-sm font-medium border-2 border-gray-500 shadow-md transition-all"
+              className="bg-slate-700 hover:bg-slate-800 disabled:from-slate-400 disabled:to-slate-400 text-white px-4 py-2 rounded-xl text-sm font-medium border border-slate-400/40 shadow-md transition-all"
             >
               {loading ? 'Finishing...' : 'Finish Entire Auction'}
             </button>

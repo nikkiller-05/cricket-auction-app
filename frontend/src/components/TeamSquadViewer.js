@@ -44,19 +44,19 @@ const TeamSquadViewer = ({ teams, players }) => {
   const budgetUsed = currentTeam ? ((totalSpent / (1000)) * 100) : 0; // Assuming 1000 initial budget
 
   return (
-    <div className="bg-white bg-opacity-20 backdrop-blur-xl rounded-xl shadow-2xl border-2 border-cyan-400 border-opacity-70 hover:bg-opacity-30 transition-all duration-300 overflow-hidden">
+    <div className="rounded-2xl border border-slate-200/70 bg-white/90 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)] overflow-hidden">
       {/* Team Selector Header */}
-      <div className="border-b-2 border-cyan-300 border-opacity-50 px-4 sm:px-6 py-4 bg-cyan-50 bg-opacity-30 rounded-t-xl">
+      <div className="border-b border-slate-200/70 px-4 sm:px-6 py-4 bg-slate-50/60">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-          <h3 className="text-2xl font-extrabold text-gray-900 tracking-tight">Team Squads</h3>
+          <h3 className="text-2xl font-bold text-slate-900 tracking-tight">Team Squads</h3>
           
           {/* Team Selector */}
           <div className="flex items-center space-x-3">
-            <label className="text-lg font-bold text-gray-800">Select Team:</label>
+            <label className="text-xs uppercase tracking-[0.18em] font-semibold text-slate-500">Team</label>
             <select
               value={selectedTeam || ''}
               onChange={(e) => setSelectedTeam(parseInt(e.target.value))}
-              className="border-2 border-gray-400 rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 bg-white shadow-sm"
+              className="border border-slate-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 bg-white shadow-sm transition-all"
             >
               {teams.map(team => (
                 <option key={team.id} value={team.id}>
@@ -71,18 +71,19 @@ const TeamSquadViewer = ({ teams, players }) => {
         <div className="mt-4 flex flex-wrap gap-2">
           {teams.map(team => {
             const teamPlayerCount = players?.filter(p => p.team === team.id && (p.status === 'sold' || p.status === 'assigned' || p.status === 'retained')).length || 0;
+            const isActive = selectedTeam === team.id;
             return (
                 <button
                 key={team.id}
                 onClick={() => setSelectedTeam(team.id)}
-                className={`px-3 py-2 rounded-full text-sm font-semibold transition-colors border-2 flex-shrink-0 ${
-                  selectedTeam === team.id
-                    ? 'bg-indigo-600 text-white border-indigo-500'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200 border-gray-300 hover:border-gray-400'
+                className={`px-3.5 py-1.5 rounded-full text-sm font-semibold transition-all border flex-shrink-0 ${
+                  isActive
+                    ? 'bg-gradient-to-br from-slate-900 via-indigo-900 to-indigo-700 text-white border-indigo-500/40 shadow-[0_8px_20px_-10px_rgba(79,70,229,0.6)]'
+                    : 'bg-white text-slate-700 hover:text-slate-900 hover:bg-slate-50 border-slate-200'
                 }`}
               >
                 <span className="truncate">{team.name}</span>
-                <span className="ml-2 text-xs opacity-75">({teamPlayerCount})</span>
+                <span className={`ml-2 text-[10px] font-bold px-1.5 py-0.5 rounded-full ${isActive ? 'bg-white/20 text-white' : 'bg-slate-100 text-slate-600'}`}>{teamPlayerCount}</span>
               </button>
             );
           })}
@@ -116,7 +117,7 @@ const TeamSquadViewer = ({ teams, players }) => {
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
-                  className={`h-2 rounded-full transition-all duration-300 ${
+                  className={`h-2 rounded-full transition-colors duration-200 ${
                     budgetUsed > 90 ? 'bg-red-500' : 
                     budgetUsed > 70 ? 'bg-yellow-500' : 'bg-green-500'
                   }`}
@@ -231,7 +232,7 @@ const TeamSquadViewer = ({ teams, players }) => {
                   const categorySpent = categoryPlayers.reduce((sum, p) => sum + (p.finalBid || 0), 0);
                   
                   return (
-                    <div key={category} className="bg-white bg-opacity-15 backdrop-blur-xl border-2 border-gray-200 border-opacity-50 rounded-xl p-3 hover:bg-opacity-25 hover:border-gray-300 hover:border-opacity-70 transition-all duration-300 shadow-lg">
+                    <div key={category} className="bg-white bg-opacity-15 backdrop-blur-xl border-2 border-gray-200 border-opacity-50 rounded-xl p-3 hover:bg-opacity-25 hover:border-gray-300 hover:border-opacity-70 transition-colors duration-200 shadow-lg">
                       <div className="text-center">
                         <div className="text-xl font-bold text-gray-900">{categoryPlayers.length}</div>
                         <div className="text-xs text-gray-500 capitalize mb-1">{category.replace('-', ' ')}</div>

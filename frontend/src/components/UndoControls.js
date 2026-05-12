@@ -193,7 +193,7 @@ const UndoControls = ({ userRole, auctionData }) => {
 
   return (
     <div className="space-y-6">
-      <div className="bg-white bg-opacity-20 backdrop-blur-lg rounded-lg p-4 border-2 border-red-300 border-opacity-60 shadow-lg">
+      <div className="bg-white bg-opacity-20 rounded-lg p-4 border-2 border-red-300 border-opacity-60 shadow-lg">
         <h3 className="text-2xl font-bold text-gray-900">🚨 Undo Controls (Super Admin)</h3>
       </div>
       
@@ -218,7 +218,7 @@ const UndoControls = ({ userRole, auctionData }) => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         
         {/* Undo Current Bid Card */}
-        <div className="bg-white bg-opacity-20 backdrop-blur-xl rounded-xl shadow-2xl border-2 border-orange-400 border-opacity-70 hover:bg-opacity-30 transition-all duration-300">
+        <div className="bg-white bg-opacity-20 rounded-xl shadow-2xl border-2 border-orange-400 border-opacity-70 hover:bg-opacity-30 transition-all duration-300">
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
@@ -265,7 +265,7 @@ const UndoControls = ({ userRole, auctionData }) => {
                   <button
                     onClick={handleUndoCurrentBid}
                     disabled={loading}
-                    className="w-full bg-yellow-600 hover:bg-yellow-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-3 rounded-md font-medium transition-colors border-2 border-yellow-400 border-opacity-60 shadow-md"
+                    className="w-full bg-gradient-to-br from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 disabled:opacity-50 disabled:cursor-not-allowed text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 px-4 py-3 rounded-xl font-semibold border border-amber-400/40 shadow-md"
                   >
                     {loading ? (
                       <span className="flex items-center justify-center">
@@ -298,7 +298,7 @@ const UndoControls = ({ userRole, auctionData }) => {
         </div>
 
         {/* Undo Last Sale/Unsold Card */}
-        <div className="bg-white bg-opacity-20 backdrop-blur-xl rounded-xl shadow-2xl border-2 border-red-400 border-opacity-70 hover:bg-opacity-30 transition-all duration-300">
+        <div className="bg-white bg-opacity-20 rounded-xl shadow-2xl border-2 border-red-400 border-opacity-70 hover:bg-opacity-30 transition-all duration-300">
           <div className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center">
@@ -351,7 +351,7 @@ const UndoControls = ({ userRole, auctionData }) => {
                 <button
                   onClick={handleUndoLastSale}
                   disabled={loading}
-                  className="w-full bg-red-600 hover:bg-red-700 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-3 rounded-md font-medium transition-colors border-2 border-red-500 border-opacity-60 shadow-md"
+                  className="w-full bg-gradient-to-br from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 disabled:opacity-50 disabled:cursor-not-allowed text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 px-4 py-3 rounded-xl font-semibold border border-rose-500/40 shadow-md"
                 >
                   {loading ? (
                     <span className="flex items-center justify-center">
@@ -385,7 +385,7 @@ const UndoControls = ({ userRole, auctionData }) => {
       </div>
 
       {/* Action History */}
-      <div className="bg-white bg-opacity-20 backdrop-blur-xl rounded-xl shadow-2xl border-2 border-indigo-300 border-opacity-70 hover:bg-opacity-30 transition-all duration-300">
+      <div className="bg-white bg-opacity-20 rounded-xl shadow-2xl border-2 border-indigo-300 border-opacity-70 hover:bg-opacity-30 transition-all duration-300">
         <div className="px-6 py-4 border-b-2 border-indigo-200 border-opacity-60">
           <div className="flex items-center justify-between">
             <h4 className="text-lg font-semibold text-gray-900">📜 Recent Action History</h4>
@@ -461,7 +461,7 @@ const UndoControls = ({ userRole, auctionData }) => {
       {/* Confirmation Modal */}
       {showConfirmModal && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-50 overflow-y-auto h-full w-full z-50 flex items-center justify-center">
-          <div className="relative bg-white bg-opacity-20 backdrop-blur-xl rounded-xl shadow-2xl max-w-md mx-4 w-full border-2 border-yellow-400 border-opacity-70">
+          <div className="relative bg-white bg-opacity-20 rounded-xl shadow-2xl max-w-md mx-4 w-full border-2 border-yellow-400 border-opacity-70">
             <div className="p-6">
               <div className="flex items-center mb-4">
                 <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
@@ -490,8 +490,8 @@ const UndoControls = ({ userRole, auctionData }) => {
                   onClick={executeAction}
                   className={`flex-1 font-medium py-2 px-4 rounded-md transition-colors border-2 shadow-sm ${
                     confirmAction?.type === 'sale' 
-                      ? 'bg-red-600 hover:bg-red-700 text-white border-red-500 border-opacity-60'
-                      : 'bg-yellow-600 hover:bg-yellow-700 text-white border-yellow-500 border-opacity-60'
+                      ? 'bg-gradient-to-br from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 border-red-500 border-opacity-60'
+                      : 'bg-gradient-to-br from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 border-yellow-500 border-opacity-60'
                   }`}
                 >
                   {confirmAction?.type === 'sale' ? 'Undo Sale' : 'Revert Bid'}

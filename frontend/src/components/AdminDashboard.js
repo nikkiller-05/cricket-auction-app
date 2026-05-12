@@ -231,7 +231,7 @@ const AdminDashboard = ({ auctionData, onLogout, socket, onDataRefresh }) => {
     <div className="min-h-screen bg-gray-50">
 
       {/* Header */}
-      <header className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 shadow-xl sticky top-0 z-40 backdrop-blur-xl bg-opacity-90">
+      <header className="bg-gradient-to-r from-blue-600 via-purple-600 to-blue-800 shadow-xl sticky top-0 z-40 bg-opacity-90">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center py-4 space-y-4 sm:space-y-0">
             <div className="flex flex-col sm:flex-row sm:items-center space-y-2 sm:space-y-0 sm:space-x-4">
@@ -262,7 +262,7 @@ const AdminDashboard = ({ auctionData, onLogout, socket, onDataRefresh }) => {
                 <button
                   onClick={() => downloadResults('excel')}
                   disabled={!auctionData.fileUploaded || downloadLoading}
-                  className="bg-green-600 hover:bg-green-700 disabled:bg-gray-400 text-white px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors flex items-center"
+                  className="bg-gradient-to-br from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 disabled:from-slate-400 disabled:to-slate-400 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center"
                   title="Download Excel file with auction results"
                 >
                   {downloadLoading ? (
@@ -280,7 +280,7 @@ const AdminDashboard = ({ auctionData, onLogout, socket, onDataRefresh }) => {
                 <button
                   onClick={() => downloadResults('csv')}
                   disabled={!auctionData.fileUploaded || downloadLoading}
-                  className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-3 py-2 rounded-md text-xs sm:text-sm font-medium transition-colors flex items-center"
+                  className="bg-gradient-to-br from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 disabled:from-slate-400 disabled:to-slate-400 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 px-3 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center"
                   title="Download CSV file with auction results"
                 >
                   {downloadLoading ? (
@@ -299,7 +299,7 @@ const AdminDashboard = ({ auctionData, onLogout, socket, onDataRefresh }) => {
               
               <button
                 onClick={onLogout}
-                className="bg-red-600 hover:bg-red-700 text-white px-4 py-2 rounded-md text-sm font-medium transition-colors flex items-center"
+                className="bg-gradient-to-br from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 px-4 py-2 rounded-xl text-sm font-semibold flex items-center"
               >
                 <svg className="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
@@ -314,7 +314,7 @@ const AdminDashboard = ({ auctionData, onLogout, socket, onDataRefresh }) => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Quick Stats Bar */}
         {auctionData.fileUploaded && (
-          <div className="mb-6 bg-white bg-opacity-15 backdrop-blur-xl rounded-xl shadow-2xl p-4 border-2 border-blue-200 border-opacity-50 hover:bg-opacity-25 transition-all duration-300">
+          <div className="mb-6 bg-white bg-opacity-15 rounded-xl shadow-2xl p-4 border-2 border-blue-200 border-opacity-50 hover:bg-opacity-25 transition-all duration-300">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center">
               <div className="p-3 bg-blue-50 rounded-lg">
                 <div className="text-2xl font-bold text-blue-600">{availablePlayersCount}</div>
@@ -356,7 +356,7 @@ const AdminDashboard = ({ auctionData, onLogout, socket, onDataRefresh }) => {
               <div className="ml-3">
                 <button
                   onClick={() => setActiveTab('upload')}
-                  className="bg-yellow-600 hover:bg-yellow-700 text-white px-3 py-2 rounded-md text-sm font-medium"
+                  className="bg-gradient-to-br from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 px-3 py-2 rounded-xl text-sm font-semibold transition-[background-color,box-shadow,transform,border-color] duration-150 hover:-translate-y-0.5 active:translate-y-0"
                 >
                   Upload Now
                 </button>
@@ -455,7 +455,7 @@ const AdminDashboard = ({ auctionData, onLogout, socket, onDataRefresh }) => {
                         <p className="text-gray-600 mb-6">Please upload a player file first to see the players list.</p>
                         <button
                           onClick={() => setActiveTab('upload')}
-                          className="bg-indigo-600 text-white px-6 py-3 rounded-md hover:bg-indigo-700 font-medium"
+                          className="bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 font-medium"
                         >
                           Upload Players
                         </button>
@@ -467,7 +467,7 @@ const AdminDashboard = ({ auctionData, onLogout, socket, onDataRefresh }) => {
                         <p className="text-gray-600 mb-6">The uploaded file doesn't contain any valid players.</p>
                         <button
                           onClick={() => setActiveTab('upload')}
-                          className="bg-indigo-600 text-white px-6 py-3 rounded-md hover:bg-indigo-700 font-medium"
+                          className="bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 font-medium"
                         >
                           Upload New File
                         </button>
@@ -502,7 +502,7 @@ const AdminDashboard = ({ auctionData, onLogout, socket, onDataRefresh }) => {
                     <p className="text-gray-600 mb-6">Please upload a player file first to initialize teams.</p>
                     <button
                       onClick={() => setActiveTab('upload')}
-                      className="bg-indigo-600 text-white px-6 py-3 rounded-md hover:bg-indigo-700 font-medium"
+                      className="bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 font-medium"
                     >
                       Upload Players
                     </button>

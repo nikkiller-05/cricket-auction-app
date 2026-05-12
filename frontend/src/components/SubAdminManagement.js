@@ -70,11 +70,11 @@ const SubAdminManagement = memo(({ userRole }) => {
 
   return (
     <div className="space-y-6">
-      <div className="flex justify-between items-center bg-white bg-opacity-20 backdrop-blur-lg rounded-lg p-4 border-2 border-indigo-300 border-opacity-60 shadow-lg">
+      <div className="flex justify-between items-center bg-white bg-opacity-20 rounded-lg p-4 border-2 border-indigo-300 border-opacity-60 shadow-lg">
         <h3 className="text-2xl font-bold text-gray-900">Sub-Admin Management</h3>
         <button
           onClick={() => setShowCreateForm(true)}
-          className="bg-indigo-600 hover:bg-indigo-700 text-white px-4 py-2 rounded-md font-medium border-2 border-indigo-500 shadow-md transition-all"
+          className="bg-gradient-to-br from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 px-4 py-2 rounded-xl font-semibold border border-indigo-500/40 shadow-md"
         >
           + Create Sub-Admin
         </button>
@@ -82,7 +82,7 @@ const SubAdminManagement = memo(({ userRole }) => {
 
       {/* Create Sub-Admin Form */}
       {showCreateForm && (
-        <div className="bg-white bg-opacity-20 backdrop-blur-xl rounded-xl shadow-2xl p-6 border-2 border-blue-400 border-opacity-70 hover:bg-opacity-30 transition-all duration-300">
+        <div className="bg-white bg-opacity-20 rounded-xl shadow-2xl p-6 border-2 border-blue-400 border-opacity-70 hover:bg-opacity-30 transition-all duration-300">
           <h4 className="text-xl font-bold text-gray-900 mb-4">Create New Sub-Admin</h4>
           <form onSubmit={handleCreateSubAdmin} className="space-y-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -135,7 +135,7 @@ const SubAdminManagement = memo(({ userRole }) => {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white py-2 px-4 rounded-md border-2 border-indigo-500 shadow-md transition-all"
+                className="flex-1 bg-gradient-to-br from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:opacity-50 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 py-2 px-4 rounded-xl border border-indigo-500/40 shadow-md"
               >
                 {loading ? 'Creating...' : 'Create Sub-Admin'}
               </button>
@@ -145,7 +145,7 @@ const SubAdminManagement = memo(({ userRole }) => {
       )}
 
       {/* Sub-Admins List */}
-      <div className="bg-white bg-opacity-20 backdrop-blur-xl rounded-xl shadow-2xl border-2 border-green-400 border-opacity-70 hover:bg-opacity-30 transition-all duration-300">
+      <div className="bg-white bg-opacity-20 rounded-xl shadow-2xl border-2 border-green-400 border-opacity-70 hover:bg-opacity-30 transition-all duration-300">
         <div className="px-6 py-4 border-b-2 border-green-300 border-opacity-50 bg-green-50 bg-opacity-30">
           <h4 className="text-xl font-bold text-gray-900">Active Sub-Admins ({subAdmins.length})</h4>
         </div>

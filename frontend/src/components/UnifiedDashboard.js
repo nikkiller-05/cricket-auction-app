@@ -135,7 +135,7 @@ const TeamSquadViewer = ({ teams, players }) => {
   const budgetUsed = currentTeam ? ((totalSpent / (currentTeam.budget + totalSpent)) * 100) : 0;
 
   return (
-    <div className="bg-white bg-opacity-25 backdrop-blur-lg shadow-xl rounded-lg border border-white border-opacity-20">
+    <div className="bg-white bg-opacity-25 shadow-xl rounded-lg border border-white border-opacity-20">
       {/* Team Selector Header */}
       <div className="border-b border-gray-200 px-6 py-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
@@ -155,7 +155,7 @@ const TeamSquadViewer = ({ teams, players }) => {
                   selectedTeam === team.id
                     ? 'bg-blue-500 text-white shadow-xl border-blue-600'
                     : 'bg-white bg-opacity-20 text-gray-800 hover:text-gray-900 hover:bg-white hover:bg-opacity-30 border-white border-opacity-30'
-                } whitespace-nowrap py-2 px-4 font-medium text-sm flex items-center rounded-lg backdrop-blur-lg border shadow-lg min-w-fit`}
+                } whitespace-nowrap py-2 px-4 font-medium text-sm flex items-center rounded-lg border shadow-lg min-w-fit`}
               >
                 🏏 {cleanTeamName(team.name)}
                 {teamPlayerCount > 0 && (
@@ -200,7 +200,7 @@ const TeamSquadViewer = ({ teams, players }) => {
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
                 <div 
-                  className={`h-2 rounded-full transition-all duration-300 ${
+                  className={`h-2 rounded-full transition-colors duration-200 ${
                     budgetUsed > 90 ? 'bg-red-500' : 
                     budgetUsed > 70 ? 'bg-yellow-500' : 'bg-green-500'
                   }`}
@@ -245,7 +245,7 @@ const TeamSquadViewer = ({ teams, players }) => {
                   Team Captain
                   <span className="ml-2 text-sm text-gray-500">(1)</span>
                 </h4>
-                <div className="bg-white bg-opacity-15 backdrop-blur-xl border-2 border-gray-200 border-opacity-50 rounded-xl p-3 hover:shadow-2xl hover:bg-opacity-25 hover:border-gray-300 hover:border-opacity-70 transition-all duration-300">
+                <div className="bg-white bg-opacity-15 border-2 border-gray-200 border-opacity-50 rounded-xl p-3 hover:shadow-2xl hover:bg-opacity-25 hover:border-gray-300 hover:border-opacity-70 transition-colors duration-200">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
                       <div className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-semibold">C</div>
@@ -287,7 +287,7 @@ const TeamSquadViewer = ({ teams, players }) => {
                   
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {categoryPlayers.map((player, index) => (
-                      <div key={player.id} className="bg-white bg-opacity-15 backdrop-blur-xl border-2 border-gray-200 border-opacity-50 rounded-xl p-3 hover:shadow-2xl hover:bg-opacity-25 hover:border-gray-300 hover:border-opacity-70 transition-all duration-300">
+                      <div key={player.id} className="bg-white bg-opacity-15 border-2 border-gray-200 border-opacity-50 rounded-xl p-3 hover:shadow-2xl hover:bg-opacity-25 hover:border-gray-300 hover:border-opacity-70 transition-colors duration-200">
                         <div className="flex items-center justify-between">
                           <div className="flex items-center space-x-3">
                             <div className="w-6 h-6 bg-gray-600 text-white rounded-full flex items-center justify-center text-xs font-semibold">
@@ -1154,7 +1154,7 @@ const UnifiedDashboard = () => {
           </p>
           <button
             onClick={() => navigate('/')}
-            className="bg-indigo-600 hover:bg-indigo-700 text-white px-6 py-3 rounded-lg font-medium"
+            className="bg-gradient-to-br from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 px-6 py-3 rounded-xl font-semibold transition-[background-color,box-shadow,transform,border-color] duration-150 hover:-translate-y-0.5 active:translate-y-0"
           >
             Go Home
           </button>
@@ -1217,7 +1217,7 @@ const UnifiedDashboard = () => {
           {notifications.map(notification => (
             <div
               key={notification.id}
-              className={`max-w-sm p-4 rounded-lg shadow-lg border-l-4 transform transition-all duration-300 ${
+              className={`max-w-sm p-4 rounded-lg shadow-lg border-l-4 transform transition-colors duration-200 ${
                 notification.type === 'success' ? 'bg-green-50 border-green-400 text-green-800' :
                 notification.type === 'error' ? 'bg-red-50 border-red-400 text-red-800' :
                 notification.type === 'warning' ? 'bg-yellow-50 border-yellow-400 text-yellow-800' :
@@ -1275,10 +1275,10 @@ const UnifiedDashboard = () => {
 
       {/* Current Bid Indicator - only show when there's an active bid */}
       {auctionData.currentBid && (
-        <div className="bg-white bg-opacity-20 backdrop-blur-lg border-b border-white border-opacity-30 py-3">
+        <div className="bg-white bg-opacity-20 border-b border-white border-opacity-30 py-3">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-center">
-              <div className="px-4 py-2 rounded-full text-sm font-medium bg-yellow-400 bg-opacity-80 backdrop-blur-sm text-yellow-900 animate-pulse shadow-lg border border-yellow-300">
+              <div className="px-4 py-2 rounded-full text-sm font-medium bg-yellow-400 bg-opacity-80 text-yellow-900 animate-pulse shadow-lg border border-yellow-300">
                 💰 Current Bid: ₹{auctionData.currentBid.currentAmount}
               </div>
             </div>
@@ -1286,7 +1286,7 @@ const UnifiedDashboard = () => {
         </div>
       )}
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 border-2 border-blue-200 border-opacity-30 rounded-2xl bg-white bg-opacity-5 backdrop-blur-sm shadow-xl">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 rounded-2xl border border-white/60 bg-white/55 backdrop-blur-xl shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_12px_28px_-16px_rgba(15,23,42,0.18)]">
         {/* SINGLE Live Bidding Section - Visible to everyone */}
         {auctionData.currentBid && currentPlayer && (
           <LiveBiddingCard
@@ -1320,10 +1320,10 @@ const UnifiedDashboard = () => {
                           }
                         }}
                         disabled={!canBid}
-                        className={`group relative overflow-hidden px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-all duration-300 border ${
+                        className={`group relative overflow-hidden px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-colors duration-200 border ${
                           canBid 
                             ? 'bg-gradient-to-br from-cyan-400/90 to-blue-600/90 text-white border-cyan-300/60 shadow-lg shadow-cyan-500/30 hover:shadow-xl hover:shadow-cyan-400/50 hover:-translate-y-0.5 hover:from-cyan-300 hover:to-blue-500 active:scale-95' 
-                            : 'bg-white/5 text-white/40 cursor-not-allowed border-white/10'
+                            : 'bg-white/5 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150/40 cursor-not-allowed border-white/10'
                         }`}
                         title={
                           hasMaxPlayers 
@@ -1359,7 +1359,7 @@ const UnifiedDashboard = () => {
                       }
                     }}
                     disabled={!auctionData.currentBid.biddingTeam}
-                    className="group relative overflow-hidden px-5 sm:px-7 py-2.5 sm:py-3 bg-gradient-to-br from-emerald-400 to-green-600 hover:from-emerald-300 hover:to-green-500 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed disabled:opacity-50 text-white rounded-xl font-bold text-xs sm:text-sm shadow-lg shadow-emerald-500/40 hover:shadow-xl hover:shadow-emerald-400/60 hover:-translate-y-0.5 active:scale-95 transition-all duration-300 border border-emerald-300/50 inline-flex items-center gap-2"
+                    className="group relative overflow-hidden px-5 sm:px-7 py-2.5 sm:py-3 bg-gradient-to-br from-emerald-400 to-green-600 hover:from-emerald-300 hover:to-green-500 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed disabled:opacity-50 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 rounded-xl font-bold text-xs sm:text-sm shadow-lg shadow-emerald-500/40 hover:shadow-xl hover:shadow-emerald-400/60 hover:-translate-y-0.5 active:scale-95 duration-200 border border-emerald-300/50 inline-flex items-center gap-2"
                   >
                     <span className="absolute inset-x-3 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
                     <span className="text-base">✅</span>
@@ -1376,7 +1376,7 @@ const UnifiedDashboard = () => {
                         showError(error.response?.data?.error || 'Error marking as unsold');
                       }
                     }}
-                    className="group relative overflow-hidden px-5 sm:px-7 py-2.5 sm:py-3 bg-gradient-to-br from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 text-white rounded-xl font-bold text-xs sm:text-sm shadow-lg shadow-rose-500/40 hover:shadow-xl hover:shadow-rose-400/60 hover:-translate-y-0.5 active:scale-95 transition-all duration-300 border border-rose-300/50 inline-flex items-center gap-2"
+                    className="group relative overflow-hidden px-5 sm:px-7 py-2.5 sm:py-3 bg-gradient-to-br from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 rounded-xl font-bold text-xs sm:text-sm shadow-lg shadow-rose-500/40 hover:shadow-xl hover:shadow-rose-400/60 hover:-translate-y-0.5 active:scale-95 duration-200 border border-rose-300/50 inline-flex items-center gap-2"
                   >
                     <span className="absolute inset-x-3 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
                     <span className="text-base">❌</span>
@@ -1390,7 +1390,7 @@ const UnifiedDashboard = () => {
                     <button
                       onClick={handleUndoCurrentBid}
                       disabled={undoLoading || !auctionData.currentBid}
-                      className="group relative overflow-hidden px-4 py-2 bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50 text-white rounded-lg text-xs font-semibold border border-white/20 hover:border-white/40 backdrop-blur-sm transition-all duration-200 active:scale-95 inline-flex items-center gap-1.5"
+                      className="group relative overflow-hidden px-4 py-2 bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50 text-white rounded-lg text-xs font-semibold border border-white/20 hover:border-white/40 transition-colors duration-150 active:scale-95 inline-flex items-center gap-1.5"
                       title="Undo Last Bid - Removes the most recent bid during active bidding"
                     >
                       <span>⏪</span>
@@ -1413,7 +1413,7 @@ const UnifiedDashboard = () => {
                         }
                       }}
                       disabled={!auctionData.currentBid}
-                      className="group relative overflow-hidden px-4 py-2 bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50 text-white rounded-lg text-xs font-semibold border border-white/20 hover:border-white/40 backdrop-blur-sm transition-all duration-200 active:scale-95 inline-flex items-center gap-1.5"
+                      className="group relative overflow-hidden px-4 py-2 bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50 text-white rounded-lg text-xs font-semibold border border-white/20 hover:border-white/40 transition-colors duration-150 active:scale-95 inline-flex items-center gap-1.5"
                       title="Cancel bidding and return player to available status"
                     >
                       <span>⛔</span>
@@ -1441,7 +1441,7 @@ const UnifiedDashboard = () => {
                         }
                       }}
                       disabled={!auctionData.currentBid}
-                      className="group relative overflow-hidden px-4 py-2 bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50 text-white rounded-lg text-xs font-semibold border border-white/20 hover:border-white/40 backdrop-blur-sm transition-all duration-200 active:scale-95 inline-flex items-center gap-1.5"
+                      className="group relative overflow-hidden px-4 py-2 bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50 text-white rounded-lg text-xs font-semibold border border-white/20 hover:border-white/40 transition-colors duration-150 active:scale-95 inline-flex items-center gap-1.5"
                       title="Cancel bidding and return player to available status"
                     >
                       <span>⛔</span>
@@ -1455,31 +1455,24 @@ const UnifiedDashboard = () => {
         )}
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-4 mb-8">
-          <div className="bg-white bg-opacity-15 backdrop-blur-xl rounded-xl p-4 text-center shadow-2xl border-2 border-blue-200 border-opacity-50 hover:bg-opacity-25 hover:scale-105 hover:border-blue-300 hover:border-opacity-70 transition-all duration-300">
-            <div className="text-3xl font-bold text-blue-600">{auctionData.players?.length || 0}</div>
-            <div className="text-sm text-gray-700 font-medium">Total Players</div>
-          </div>
-          <div className="bg-white bg-opacity-15 backdrop-blur-xl rounded-xl p-4 text-center shadow-2xl border-2 border-green-200 border-opacity-50 hover:bg-opacity-25 hover:scale-105 hover:border-green-300 hover:border-opacity-70 transition-all duration-300">
-            <div className="text-3xl font-bold text-green-600">{soldPlayers.length}</div>
-            <div className="text-sm text-gray-700 font-medium">Players Sold</div>
-          </div>
-          <div className="bg-white bg-opacity-15 backdrop-blur-xl rounded-xl p-4 text-center shadow-2xl border-2 border-purple-200 border-opacity-50 hover:bg-opacity-25 hover:scale-105 hover:border-purple-300 hover:border-opacity-70 transition-all duration-300">
-            <div className="text-3xl font-bold text-purple-600">{retainedPlayers.length}</div>
-            <div className="text-sm text-gray-700 font-medium">Retained</div>
-          </div>
-          <div className="bg-white bg-opacity-15 backdrop-blur-xl rounded-xl p-4 text-center shadow-2xl border-2 border-indigo-200 border-opacity-50 hover:bg-opacity-25 hover:scale-105 hover:border-indigo-300 hover:border-opacity-70 transition-all duration-300">
-            <div className="text-3xl font-bold text-indigo-600">{captains.length}</div>
-            <div className="text-sm text-gray-700 font-medium">Captains</div>
-          </div>
-          <div className="bg-white bg-opacity-15 backdrop-blur-xl rounded-xl p-4 text-center shadow-2xl border-2 border-orange-200 border-opacity-50 hover:bg-opacity-25 hover:scale-105 hover:border-orange-300 hover:border-opacity-70 transition-all duration-300">
-            <div className="text-3xl font-bold text-orange-600">{availablePlayers.length}</div>
-            <div className="text-sm text-gray-700 font-medium">Available</div>
-          </div>
-          <div className="bg-white bg-opacity-15 backdrop-blur-xl rounded-xl p-4 text-center shadow-2xl border-2 border-red-200 border-opacity-50 hover:bg-opacity-25 hover:scale-105 hover:border-red-300 hover:border-opacity-70 transition-all duration-300">
-            <div className="text-3xl font-bold text-red-600">{unsoldPlayers.length}</div>
-            <div className="text-sm text-gray-700 font-medium">Unsold</div>
-          </div>
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mb-8">
+          {[
+            { label: 'Total Players', value: auctionData.players?.length || 0, accent: 'from-indigo-500 to-violet-500' },
+            { label: 'Players Sold', value: soldPlayers.length, accent: 'from-emerald-500 to-teal-500' },
+            { label: 'Retained', value: retainedPlayers.length, accent: 'from-fuchsia-500 to-purple-500' },
+            { label: 'Captains', value: captains.length, accent: 'from-amber-500 to-orange-500' },
+            { label: 'Available', value: availablePlayers.length, accent: 'from-sky-500 to-cyan-500' },
+            { label: 'Unsold', value: unsoldPlayers.length, accent: 'from-rose-500 to-red-500' },
+          ].map((stat) => (
+            <div
+              key={stat.label}
+              className="group relative overflow-hidden rounded-xl border border-slate-200/70 bg-white/90 p-4 text-left shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_6px_16px_-10px_rgba(15,23,42,0.18)] hover:-translate-y-0.5 hover:border-slate-300/80 transition-[transform,box-shadow,border-color] duration-200"
+            >
+              <span className={`absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r ${stat.accent} opacity-80`} />
+              <div className="text-[11px] uppercase tracking-[0.18em] font-semibold text-slate-500">{stat.label}</div>
+              <div className={`mt-1 text-3xl font-bold bg-gradient-to-br ${stat.accent} bg-clip-text text-transparent`}>{stat.value}</div>
+            </div>
+          ))}
         </div>
 
         {/* Warning for spectators when no auction data */}
@@ -1533,28 +1526,28 @@ const UnifiedDashboard = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`tab-button ${activeTab === tab.id ? 'active' : ''} ${
                   activeTab === tab.id
-                    ? 'bg-blue-500 bg-opacity-90 text-white shadow-2xl border-2 border-blue-300 border-opacity-80 scale-105'
-                    : 'bg-white bg-opacity-15 text-gray-800 hover:text-gray-900 hover:bg-white hover:bg-opacity-25 border-2 border-blue-200 border-opacity-40 hover:border-blue-300 hover:border-opacity-60'
-                } whitespace-nowrap py-3 px-6 font-bold text-sm flex items-center rounded-xl backdrop-blur-xl shadow-xl min-w-fit transition-all duration-300`}
+                    ? 'bg-gradient-to-br from-slate-900 via-indigo-900 to-indigo-700 text-white border-indigo-500/40 shadow-[0_10px_24px_-12px_rgba(79,70,229,0.6)]'
+                    : 'bg-white/70 text-slate-700 hover:text-slate-900 hover:bg-white border-slate-200/80 hover:border-slate-300'
+                } whitespace-nowrap py-2.5 px-5 font-semibold text-sm flex items-center rounded-xl border shadow-sm min-w-fit transition-colors duration-150`}
               >
                 <span className="mr-2">{tab.icon}</span>
                 {tab.name}
                 
                 {tab.count !== undefined && tab.count > 0 && (
-                  <span className={`ml-2 text-xs font-medium px-2 py-1 rounded-full ${
+                  <span className={`ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${
                     activeTab === tab.id 
-                      ? 'bg-white bg-opacity-20 text-white' 
-                      : 'bg-white bg-opacity-40 text-gray-700'
+                      ? 'bg-white/20 text-white' 
+                      : 'bg-slate-100 text-slate-600'
                   }`}>
                     {tab.count}
                   </span>
                 )}
                 
                 {tab.badge !== undefined && tab.badge > 0 && (
-                  <span className={`ml-2 text-xs font-medium px-2 py-1 rounded-full ${
+                  <span className={`ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${
                     activeTab === tab.id 
-                      ? 'bg-red-400 text-white' 
-                      : 'bg-red-200 text-red-800'
+                      ? 'bg-rose-400 text-white' 
+                      : 'bg-rose-100 text-rose-700'
                   }`}>
                     {tab.badge}
                   </span>
@@ -1565,30 +1558,29 @@ const UnifiedDashboard = () => {
         </div>
 
         {/* Tab Content */}
-        <div className="tab-content bg-white bg-opacity-20 backdrop-blur-lg rounded-xl p-8 border-2 border-yellow-300 border-opacity-60 shadow-2xl mt-4">
+        <div className="tab-content rounded-2xl p-6 sm:p-8 mt-4 border border-white/60 bg-white/65 backdrop-blur-xl shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_20px_50px_-30px_rgba(15,23,42,0.25)]">
           {/* Live Status Tab - Available to everyone */}
           {activeTab === 'live' && (
             <div className="space-y-6">
-              <h3 className="text-2xl font-bold text-gray-900 tracking-wide">Live Auction Status</h3>
+              <h3 className="text-2xl font-bold text-slate-900 tracking-tight">Live Auction Status</h3>
               
               {/* Overview Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="bg-white bg-opacity-20 backdrop-blur-xl rounded-xl p-4 text-center shadow-2xl border-2 border-green-400 border-opacity-70 hover:bg-opacity-30 hover:scale-105 hover:border-green-500 hover:border-opacity-90 transition-all duration-300">
-                  <div className="text-2xl font-bold text-green-600">{soldPlayers.length}</div>
-                  <div className="text-sm text-gray-700 font-medium">Sold</div>
-                </div>
-                <div className="bg-white bg-opacity-20 backdrop-blur-xl rounded-xl p-4 text-center shadow-2xl border-2 border-red-400 border-opacity-70 hover:bg-opacity-30 hover:scale-105 hover:border-red-500 hover:border-opacity-90 transition-all duration-300">
-                  <div className="text-2xl font-bold text-red-600">{unsoldPlayers.length}</div>
-                  <div className="text-sm text-gray-700 font-medium">Unsold</div>
-                </div>
-                <div className="bg-white bg-opacity-20 backdrop-blur-xl rounded-xl p-4 text-center shadow-2xl border-2 border-orange-400 border-opacity-70 hover:bg-opacity-30 hover:scale-105 hover:border-orange-500 hover:border-opacity-90 transition-all duration-300">
-                  <div className="text-2xl font-bold text-orange-600">{availablePlayers.length}</div>
-                  <div className="text-sm text-gray-700 font-medium">Available</div>
-                </div>
-                <div className="bg-white bg-opacity-20 backdrop-blur-xl rounded-xl p-4 text-center shadow-2xl border-2 border-purple-400 border-opacity-70 hover:bg-opacity-30 hover:scale-105 hover:border-purple-500 hover:border-opacity-90 transition-all duration-300">
-                  <div className="text-2xl font-bold text-purple-600">{captains.length}</div>
-                  <div className="text-sm text-gray-700 font-medium">Captains</div>
-                </div>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {[
+                  { label: 'Sold', value: soldPlayers.length, accent: 'from-emerald-500 to-teal-500' },
+                  { label: 'Unsold', value: unsoldPlayers.length, accent: 'from-rose-500 to-red-500' },
+                  { label: 'Available', value: availablePlayers.length, accent: 'from-sky-500 to-cyan-500' },
+                  { label: 'Captains', value: captains.length, accent: 'from-amber-500 to-orange-500' },
+                ].map((stat) => (
+                  <div
+                    key={stat.label}
+                    className="group relative overflow-hidden rounded-xl border border-slate-200/70 bg-white/90 p-4 text-left shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_6px_16px_-10px_rgba(15,23,42,0.18)] hover:-translate-y-0.5 transition-[transform,box-shadow,border-color] duration-200"
+                  >
+                    <span className={`absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r ${stat.accent}`} />
+                    <div className="text-[11px] uppercase tracking-[0.18em] font-semibold text-slate-500">{stat.label}</div>
+                    <div className={`mt-1 text-2xl font-bold bg-gradient-to-br ${stat.accent} bg-clip-text text-transparent`}>{stat.value}</div>
+                  </div>
+                ))}
               </div>
               
               {auctionData.auctionStatus === 'stopped' && !auctionData.currentBid && (
@@ -1609,9 +1601,9 @@ const UnifiedDashboard = () => {
               )}
 
               {/* Enhanced Recent Transactions */}
-              <div className="bg-white bg-opacity-25 backdrop-blur-lg rounded-lg shadow-xl p-6 border-2 border-blue-300 border-opacity-50">
+              <div className="rounded-2xl border border-slate-200/70 bg-white/90 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)] p-6">
                 <div className="flex justify-between items-center mb-4">
-                  <h4 className="text-xl font-bold text-gray-900">Recent Auction Activity</h4>
+                  <h4 className="text-xl font-bold text-slate-900 tracking-tight">Recent Auction Activity</h4>
                   {transactionHistory.length > transactionsPerPage && (
                     <div className="text-sm text-gray-600">
                       Showing {Math.min(transactionsPerPage, transactionHistory.length)} of {transactionHistory.length} transactions
@@ -1810,14 +1802,14 @@ const UnifiedDashboard = () => {
                       <button
                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                         disabled={currentPage === 1}
-                        className="px-3 py-1 text-sm bg-white bg-opacity-20 hover:bg-white hover:bg-opacity-30 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg backdrop-blur-lg border border-white border-opacity-30 shadow-md"
+                        className="px-3 py-1 text-sm bg-white bg-opacity-20 hover:bg-white hover:bg-opacity-30 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg border border-white border-opacity-30 shadow-md"
                       >
                         Previous
                       </button>
                       <button
                         onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(transactionHistory.length / transactionsPerPage)))}
                         disabled={currentPage >= Math.ceil(transactionHistory.length / transactionsPerPage)}
-                        className="px-3 py-1 text-sm bg-white bg-opacity-20 hover:bg-white hover:bg-opacity-30 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg backdrop-blur-lg border border-white border-opacity-30 shadow-md"
+                        className="px-3 py-1 text-sm bg-white bg-opacity-20 hover:bg-white hover:bg-opacity-30 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg border border-white border-opacity-30 shadow-md"
                       >
                         Next
                       </button>
@@ -1849,7 +1841,7 @@ const UnifiedDashboard = () => {
 
           {/* Access Denied for Sub-Admins trying to access config tabs */}
           {isAdmin && !canConfigure && ['upload', 'reset', 'subadmins'].includes(activeTab) && (
-            <div className="text-center py-12 bg-white bg-opacity-25 backdrop-blur-lg rounded-lg border-2 border-red-300 border-opacity-60 shadow-xl">
+            <div className="text-center py-12 bg-white bg-opacity-25 rounded-lg border-2 border-red-300 border-opacity-60 shadow-xl">
               <div className="text-6xl mb-4">🔒</div>
               <h3 className="text-lg font-medium mb-2 text-gray-900">Access Restricted</h3>
               <p className="text-gray-600 mb-4">
@@ -1857,7 +1849,7 @@ const UnifiedDashboard = () => {
               </p>
               <button
                 onClick={() => setActiveTab('live')}
-                className="bg-indigo-600 text-white px-6 py-3 rounded-md hover:bg-indigo-700 border-2 border-indigo-500 shadow-md transition-all"
+                className="bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 border border-indigo-500/40 shadow-md transition-all"
               >
                 Go to Live Status
               </button>
@@ -1866,7 +1858,7 @@ const UnifiedDashboard = () => {
 
           {/* Access Denied for non-super-admins trying to access undo tab */}
           {isAdmin && activeTab === 'undo' && userRole !== 'super-admin' && (
-            <div className="text-center py-12 bg-white bg-opacity-25 backdrop-blur-lg rounded-lg border-2 border-red-300 border-opacity-60 shadow-xl">
+            <div className="text-center py-12 bg-white bg-opacity-25 rounded-lg border-2 border-red-300 border-opacity-60 shadow-xl">
               <div className="text-6xl mb-4">🔒</div>
               <h3 className="text-lg font-medium mb-2 text-gray-900">Super Admin Access Required</h3>
               <p className="text-gray-600 mb-4">
@@ -1874,7 +1866,7 @@ const UnifiedDashboard = () => {
               </p>
               <button
                 onClick={() => setActiveTab('live')}
-                className="bg-indigo-600 text-white px-6 py-3 rounded-md hover:bg-indigo-700 border-2 border-indigo-500 shadow-md transition-all"
+                className="bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 border border-indigo-500/40 shadow-md transition-all"
               >
                 Go to Live Status
               </button>
@@ -1917,7 +1909,7 @@ const UnifiedDashboard = () => {
                               spectatorPlayerFilter === filter.id
                                 ? 'bg-blue-500 text-white shadow-xl border-2 border-blue-600'
                                 : 'bg-white bg-opacity-25 text-gray-800 hover:text-gray-900 hover:bg-white hover:bg-opacity-35 border-2 border-white border-opacity-50 hover:border-opacity-70'
-                            } whitespace-nowrap py-2 px-4 font-medium text-sm flex items-center rounded-lg backdrop-blur-lg shadow-lg min-w-fit transition-all duration-200`}
+                            } whitespace-nowrap py-2 px-4 font-medium text-sm flex items-center rounded-lg shadow-lg min-w-fit transition-colors duration-150`}
                           >
                             <span className="mr-2">{filter.icon}</span>
                             {filter.name}
@@ -1940,7 +1932,7 @@ const UnifiedDashboard = () => {
                       // Filter logic based on selected filter
                       if (spectatorPlayerFilter === 'captains') {
                         return captains.length > 0 && (
-                          <div className="bg-white bg-opacity-30 backdrop-blur-lg rounded-lg shadow-xl p-6 border-2 border-yellow-300 border-opacity-60">
+                          <div className="bg-white bg-opacity-30 rounded-lg shadow-xl p-6 border-2 border-yellow-300 border-opacity-60">
                             <h4 className="text-lg font-medium text-gray-900 mb-4">
                               Captains ({captains.length})
                             </h4>
@@ -1978,7 +1970,7 @@ const UnifiedDashboard = () => {
                       
                       if (spectatorPlayerFilter === 'sold') {
                         return soldPlayers.length > 0 && (
-                          <div className="bg-white bg-opacity-30 backdrop-blur-lg rounded-lg shadow-xl p-6 border-2 border-green-300 border-opacity-60">
+                          <div className="bg-white bg-opacity-30 rounded-lg shadow-xl p-6 border-2 border-green-300 border-opacity-60">
                             <h4 className="text-lg font-bold text-gray-900 mb-6">
                               Players Sold Through Bidding ({soldPlayers.length})
                             </h4>
@@ -1986,7 +1978,7 @@ const UnifiedDashboard = () => {
                               {soldPlayers.map((player) => {
                                 const team = auctionData.teams?.find(t => t.id === player.team);
                                 return (
-                                  <div key={player.id} className="bg-green-50 border-2 border-green-300 border-opacity-60 rounded-lg p-4 hover:shadow-lg hover:border-green-400 hover:border-opacity-80 transition-all duration-200">
+                                  <div key={player.id} className="bg-green-50 border-2 border-green-300 border-opacity-60 rounded-lg p-4 hover:shadow-lg hover:border-green-400 hover:border-opacity-80 transition-colors duration-150">
                                     <div className="flex justify-between items-start mb-2">
                                       <h5 className="text-lg font-bold text-gray-900">{player.name}</h5>
                                       <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
@@ -2018,7 +2010,7 @@ const UnifiedDashboard = () => {
                       
                       if (spectatorPlayerFilter === 'available') {
                         return availablePlayers.length > 0 && (
-                          <div className="bg-white bg-opacity-25 backdrop-blur-lg rounded-lg shadow-xl p-6 border border-white border-opacity-20">
+                          <div className="bg-white bg-opacity-25 rounded-lg shadow-xl p-6 border border-white border-opacity-20">
                             <h4 className="text-lg font-medium text-gray-900 mb-4">
                               Available for Bidding ({availablePlayers.length})
                             </h4>
@@ -2054,7 +2046,7 @@ const UnifiedDashboard = () => {
                       
                       if (spectatorPlayerFilter === 'unsold') {
                         return unsoldPlayers.length > 0 && (
-                          <div className="bg-white bg-opacity-25 backdrop-blur-lg rounded-lg shadow-xl p-6 border border-white border-opacity-20">
+                          <div className="bg-white bg-opacity-25 rounded-lg shadow-xl p-6 border border-white border-opacity-20">
                             <h4 className="text-lg font-medium text-gray-900 mb-4">
                               Unsold Players ({unsoldPlayers.length})
                             </h4>
@@ -2088,7 +2080,7 @@ const UnifiedDashboard = () => {
                       
                       if (spectatorPlayerFilter === 'retained') {
                         return retainedPlayers.length > 0 ? (
-                          <div className="bg-white bg-opacity-25 backdrop-blur-lg rounded-lg shadow-xl p-6 border-2 border-cyan-300 border-opacity-60">
+                          <div className="bg-white bg-opacity-25 rounded-lg shadow-xl p-6 border-2 border-cyan-300 border-opacity-60">
                             <h4 className="text-lg font-medium text-gray-900 mb-6">
                               Retained Players - Team-wise Overview ({retainedPlayers.length} total)
                             </h4>
@@ -2105,7 +2097,7 @@ const UnifiedDashboard = () => {
                                 );
                                 
                                 return (
-                                  <div key={team.id} className="bg-white bg-opacity-20 backdrop-blur-xl rounded-xl shadow-xl border-2 border-cyan-300 border-opacity-70 mb-4">
+                                  <div key={team.id} className="bg-white bg-opacity-20 rounded-xl shadow-xl border-2 border-cyan-300 border-opacity-70 mb-4">
                                     {/* Team Header */}
                                     <div className="px-6 py-4 bg-cyan-100 bg-opacity-30 border-b-2 border-cyan-300 border-opacity-60 rounded-t-xl">
                                       <div className="flex items-center justify-between">
@@ -2216,7 +2208,7 @@ const UnifiedDashboard = () => {
                             </div>
                           </div>
                         ) : (
-                          <div className="bg-white bg-opacity-25 backdrop-blur-lg rounded-lg shadow-xl p-12 border-2 border-cyan-300 border-opacity-60 text-center">
+                          <div className="bg-white bg-opacity-25 rounded-lg shadow-xl p-12 border-2 border-cyan-300 border-opacity-60 text-center">
                             <div className="text-6xl mb-4">🔒</div>
                             <h4 className="text-lg font-medium text-gray-900 mb-2">No Retained Players</h4>
                             <p className="text-gray-600">No players have been retained by teams yet.</p>
@@ -2229,7 +2221,7 @@ const UnifiedDashboard = () => {
                         <>
                           {/* Captains Section */}
                           {captains.length > 0 && (
-                            <div className="bg-white bg-opacity-20 backdrop-blur-xl rounded-xl shadow-2xl p-6 border-2 border-yellow-400 border-opacity-70 hover:bg-opacity-30 transition-all duration-300">
+                            <div className="bg-white bg-opacity-20 rounded-xl shadow-2xl p-6 border-2 border-yellow-400 border-opacity-70 hover:bg-opacity-30 transition-colors duration-200">
                               <h4 className="text-lg font-medium text-gray-900 mb-4">
                                 Captains ({captains.length})
                               </h4>
@@ -2274,7 +2266,7 @@ const UnifiedDashboard = () => {
                             if (players.length === 0) return null;
                             
                             return (
-                              <div key={status} className="bg-white bg-opacity-20 backdrop-blur-xl rounded-xl shadow-2xl p-6 border-2 border-indigo-400 border-opacity-70 hover:bg-opacity-30 transition-all duration-300">
+                              <div key={status} className="bg-white bg-opacity-20 rounded-xl shadow-2xl p-6 border-2 border-indigo-400 border-opacity-70 hover:bg-opacity-30 transition-colors duration-200">
                                 <h4 className="text-lg font-medium text-gray-900 mb-4">
                                   {title} ({players.length})
                                 </h4>
@@ -2360,7 +2352,7 @@ const UnifiedDashboard = () => {
                           (spectatorPlayerFilter === 'retained' && retainedPlayers.length === 0);
                         
                         return isEmpty && (
-                          <div className="text-center py-12 bg-white bg-opacity-20 backdrop-blur-lg rounded-lg border-2 border-gray-300 border-opacity-50 shadow-lg">
+                          <div className="text-center py-12 bg-white bg-opacity-20 rounded-lg border-2 border-gray-300 border-opacity-50 shadow-lg">
                             <div className="text-4xl mb-4">🔍</div>
                             <h3 className="text-lg font-medium text-gray-900 mb-2">No Players Found</h3>
                             <p className="text-gray-600">
@@ -2373,7 +2365,7 @@ const UnifiedDashboard = () => {
                   </div>
                 )
               ) : (
-                <div className="text-center py-12 bg-white bg-opacity-25 backdrop-blur-lg rounded-lg border-2 border-gray-300 border-opacity-60 shadow-xl">
+                <div className="text-center py-12 bg-white bg-opacity-25 rounded-lg border-2 border-gray-300 border-opacity-60 shadow-xl">
                   <div className="text-6xl mb-4">👥</div>
                   <h3 className="text-lg font-medium mb-2 text-gray-900">No Players Available</h3>
                   <p className="text-gray-600">
@@ -2385,7 +2377,7 @@ const UnifiedDashboard = () => {
                   {isAdmin && canConfigure && (
                     <button
                       onClick={() => setShowUploadModal(true)}
-                      className="mt-4 bg-indigo-600 text-white px-6 py-3 rounded-md hover:bg-indigo-700 border-2 border-indigo-500 shadow-md"
+                      className="mt-4 bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 border border-indigo-500/40 shadow-md"
                     >
                       Upload Players
                     </button>
@@ -2416,7 +2408,7 @@ const UnifiedDashboard = () => {
                   
                   {/* Message for admin when no team management access */}
                   {isAdmin && !canConfigure && (
-                    <div className="text-center py-12 text-gray-500 bg-white bg-opacity-25 backdrop-blur-lg rounded-lg border-2 border-gray-300 border-opacity-60 shadow-xl">
+                    <div className="text-center py-12 text-gray-500 bg-white bg-opacity-25 rounded-lg border-2 border-gray-300 border-opacity-60 shadow-xl">
                       <div className="text-6xl mb-4">🔐</div>
                       <h3 className="text-lg font-medium mb-2 text-gray-900">Access Restricted</h3>
                       <p className="text-gray-600">Team management is only available to super-admin and admin roles.</p>
@@ -2425,7 +2417,7 @@ const UnifiedDashboard = () => {
                   )}
                 </>
               ) : (
-                <div className="text-center py-12 text-gray-500 bg-white bg-opacity-25 backdrop-blur-lg rounded-lg border-2 border-gray-300 border-opacity-60 shadow-xl">
+                <div className="text-center py-12 text-gray-500 bg-white bg-opacity-25 rounded-lg border-2 border-gray-300 border-opacity-60 shadow-xl">
                   <div className="text-6xl mb-4">⚙️</div>
                   <h3 className="text-2xl font-bold mb-2 text-gray-900">Team Management Not Available</h3>
                   <p className="text-lg font-semibold text-gray-700">Team management features will be available once player data is uploaded.</p>
@@ -2443,7 +2435,7 @@ const UnifiedDashboard = () => {
                   players={auctionData.players || []}
                 />
               ) : (
-                <div className="text-center py-12 text-gray-500 bg-white bg-opacity-25 backdrop-blur-lg rounded-lg border-2 border-gray-300 border-opacity-60 shadow-xl">
+                <div className="text-center py-12 text-gray-500 bg-white bg-opacity-25 rounded-lg border-2 border-gray-300 border-opacity-60 shadow-xl">
                   <div className="text-6xl mb-4">👥</div>
                   <h3 className="text-2xl font-bold mb-2 text-gray-900">Team Squads Not Available</h3>
                   <p className="text-lg font-semibold text-gray-700">Team squads will be available once player data is uploaded.</p>
@@ -2467,7 +2459,7 @@ const UnifiedDashboard = () => {
       {/* Undo Confirmation Modal */}
       {showUndoConfirmModal && (
         <div className="fixed inset-0 bg-gray-600 bg-opacity-60 overflow-y-auto h-full w-full z-50 flex items-center justify-center p-4">
-          <div className="relative bg-white bg-opacity-25 backdrop-blur-xl rounded-xl shadow-2xl max-w-md w-full mx-auto border-2 border-red-400 border-opacity-70">
+          <div className="relative bg-white bg-opacity-25 rounded-xl shadow-2xl max-w-md w-full mx-auto border-2 border-red-400 border-opacity-70">
             <div className="p-6">
               <div className="flex items-center justify-center mb-4">
                 <div className="mx-auto flex items-center justify-center h-12 w-12 rounded-full bg-red-100">
@@ -2497,8 +2489,8 @@ const UnifiedDashboard = () => {
                   disabled={undoLoading}
                   className={`flex-1 font-medium py-2 px-4 rounded-md transition-colors ${
                     undoConfirmAction?.type === 'sale' 
-                      ? 'bg-red-600 hover:bg-red-700 text-white'
-                      : 'bg-yellow-600 hover:bg-yellow-700 text-white'
+                      ? 'bg-gradient-to-br from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150'
+                      : 'bg-gradient-to-br from-amber-500 to-orange-500 hover:from-amber-400 hover:to-orange-400 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150'
                   } disabled:opacity-50`}
                 >
                   {undoLoading ? (

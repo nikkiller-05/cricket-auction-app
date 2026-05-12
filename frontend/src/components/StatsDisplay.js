@@ -20,72 +20,71 @@ const StatsDisplay = ({ stats, teams, players, settings }) => {
 
   return (
     <div className="space-y-6">
-      <h3 className="text-2xl font-bold text-gray-900">Auction Statistics</h3>
+      <h3 className="text-2xl font-bold text-slate-900 tracking-tight">Auction Statistics</h3>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Overall Statistics */}
-        <div className="bg-indigo-50 bg-opacity-80 backdrop-blur-xl rounded-xl shadow-2xl p-6 border-2 border-indigo-400 border-opacity-70 hover:bg-opacity-90 transition-all duration-300">
-          <h4 className="text-xl font-bold text-indigo-900 mb-4">Overall Statistics</h4>
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white/90 p-6 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)]">
+          <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-indigo-500 to-violet-500" />
+          <h4 className="text-xs uppercase tracking-[0.18em] font-semibold text-slate-500 mb-4">Overall</h4>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-base font-semibold text-gray-600">Total Players:</span>
-              <span className="text-lg font-bold">{players?.length || 0}</span>
+              <span className="text-sm text-slate-600">Total Players</span>
+              <span className="text-lg font-bold text-slate-900">{players?.length || 0}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-base font-semibold text-gray-600">Players Sold (Bidding):</span>
-              <span className="text-lg font-bold text-green-600">{soldPlayers.length}</span>
+              <span className="text-sm text-slate-600">Players Sold (Bidding)</span>
+              <span className="text-lg font-bold text-emerald-600">{soldPlayers.length}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-base font-semibold text-gray-600">Team Captains:</span>
+              <span className="text-sm text-slate-600">Team Captains</span>
               <span className="text-lg font-bold text-purple-600">{captains.length}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-base font-semibold text-gray-600">Players Available:</span>
-              <span className="text-lg font-bold text-yellow-600">{availablePlayers.length}</span>
+              <span className="text-sm text-slate-600">Players Available</span>
+              <span className="text-lg font-bold text-amber-600">{availablePlayers.length}</span>
             </div>
             <div className="flex justify-between items-center">
-              <span className="text-base font-semibold text-gray-600">Players Unsold:</span>
-              <span className="text-lg font-bold text-red-600">{unsoldPlayers.length}</span>
+              <span className="text-sm text-slate-600">Players Unsold</span>
+              <span className="text-lg font-bold text-rose-600">{unsoldPlayers.length}</span>
             </div>
           </div>
         </div>
 
         {/* Financial Statistics */}
-        <div className="bg-green-50 bg-opacity-80 backdrop-blur-xl rounded-xl shadow-2xl p-6 border-2 border-green-400 border-opacity-70 hover:bg-opacity-90 transition-all duration-300">
-          <h4 className="text-xl font-bold text-green-900 mb-4">Financial Statistics</h4>
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white/90 p-6 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)]">
+          <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-emerald-500 to-teal-500" />
+          <h4 className="text-xs uppercase tracking-[0.18em] font-semibold text-slate-500 mb-4">Financials</h4>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
-              <span className="text-base font-semibold text-gray-600">Total Spent:</span>
-              <span className="text-lg font-bold text-green-600">₹{totalSpent}</span>
+              <span className="text-sm text-slate-600">Total Spent</span>
+              <span className="text-lg font-bold text-emerald-600">₹{totalSpent}</span>
             </div>
             
-            {/* RESTORED: Better Highest Bid UI */}
             {stats?.highestBid && stats.highestBid.player && (
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Highest Bid:</span>
-                <span className="font-semibold text-green-600">₹{stats.highestBid.amount}</span>
+                <span className="text-sm text-slate-600">Highest Bid</span>
+                <span className="font-semibold text-emerald-600">₹{stats.highestBid.amount}</span>
               </div>
             )}
             
-            {/* RESTORED: Better Lowest Bid UI */}
             {stats?.lowestBid && stats.lowestBid.player && (
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Lowest Bid:</span>
-                <span className="font-semibold text-blue-600">₹{stats.lowestBid.amount}</span>
+                <span className="text-sm text-slate-600">Lowest Bid</span>
+                <span className="font-semibold text-sky-600">₹{stats.lowestBid.amount}</span>
               </div>
             )}
             
-            {/* Average Price */}
             {stats?.averageBid && stats.averageBid > 0 && (
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Average Sale Price:</span>
+                <span className="text-sm text-slate-600">Average Sale Price</span>
                 <span className="font-semibold text-indigo-600">₹{Math.round(stats.averageBid)}</span>
               </div>
             )}
 
             {soldPlayers.length > 0 && (
               <div className="flex justify-between items-center">
-                <span className="text-gray-600">Success Rate:</span>
+                <span className="text-sm text-slate-600">Success Rate</span>
                 <span className="font-semibold text-purple-600">
                   {Math.round((soldPlayers.length / (soldPlayers.length + unsoldPlayers.length)) * 100)}%
                 </span>
@@ -165,8 +164,9 @@ const StatsDisplay = ({ stats, teams, players, settings }) => {
       )}
 
       {/* Team Budget Analysis */}
-      <div className="bg-purple-50 bg-opacity-80 backdrop-blur-xl rounded-xl shadow-2xl p-6 border-2 border-purple-400 border-opacity-70 hover:bg-opacity-90 transition-all duration-300">
-        <h4 className="text-lg font-medium text-purple-900 mb-4">Team Budget Analysis</h4>
+      <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white/90 p-6 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)]">
+        <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-fuchsia-500 to-purple-500" />
+        <h4 className="text-xs uppercase tracking-[0.18em] font-semibold text-slate-500 mb-4">Team Budget Analysis</h4>
         <div className="space-y-4">
           {teams?.map((team) => {
             const teamPlayers = players?.filter(p => p.team === team.id && (p.status === 'sold' || p.status === 'assigned')) || [];
@@ -187,7 +187,7 @@ const StatsDisplay = ({ stats, teams, players, settings }) => {
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
                   <div 
-                    className={`h-2 rounded-full transition-all duration-300 ${
+                    className={`h-2 rounded-full transition-colors duration-200 ${
                       budgetUsed > 90 ? 'bg-red-500' : 
                       budgetUsed > 70 ? 'bg-yellow-500' : 'bg-green-500'
                     }`}
@@ -205,8 +205,9 @@ const StatsDisplay = ({ stats, teams, players, settings }) => {
       </div>
 
       {/* Category Breakdown */}
-      <div className="bg-orange-50 bg-opacity-80 backdrop-blur-xl rounded-xl shadow-2xl p-6 border-2 border-orange-400 border-opacity-70 hover:bg-opacity-90 transition-all duration-300">
-        <h4 className="text-lg font-medium text-orange-900 mb-4">Category Breakdown</h4>
+      <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white/90 p-6 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)]">
+        <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-amber-500 to-orange-500" />
+        <h4 className="text-xs uppercase tracking-[0.18em] font-semibold text-slate-500 mb-4">Category Breakdown</h4>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {['batter', 'bowler', 'allrounder', 'wicket-keeper'].map(category => {
             const categoryPlayers = players?.filter(p => p.category === category) || [];

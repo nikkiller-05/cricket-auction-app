@@ -119,7 +119,7 @@ const PlayerUpload = ({ onUploadSuccess, onDataRefresh }) => {
   };
 
   return (
-    <div className="bg-white bg-opacity-15 backdrop-blur-xl rounded-xl shadow-2xl p-6 border-2 border-green-200 border-opacity-50 hover:bg-opacity-25 transition-all duration-300">
+    <div className="bg-white bg-opacity-15 rounded-xl shadow-2xl p-6 border-2 border-green-200 border-opacity-50 hover:bg-opacity-25 transition-all duration-300">
       <div className="flex justify-between items-center mb-4">
         <h3 className="text-lg font-medium text-gray-900">Upload Players</h3>
         <button
@@ -187,7 +187,7 @@ const PlayerUpload = ({ onUploadSuccess, onDataRefresh }) => {
         <button
           type="submit"
           disabled={uploading || !file || (validationResult && !validationResult.valid)}
-          className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md text-sm font-medium flex items-center"
+          className="bg-gradient-to-br from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:from-slate-400 disabled:to-slate-400 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 px-4 py-2 rounded-xl text-sm font-semibold flex items-center"
         >
           {uploading && (
             <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>

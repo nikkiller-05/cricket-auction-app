@@ -490,7 +490,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
   };
 
   return (
-    <div className="bg-white bg-opacity-20 backdrop-blur-xl rounded-xl shadow-2xl p-4 sm:p-6 border-2 border-cyan-400 border-opacity-70 hover:bg-opacity-30 transition-all duration-300 overflow-hidden">
+    <div className="rounded-2xl border border-slate-200/70 bg-white/90 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)] p-4 sm:p-6 overflow-hidden">
       <h3 className="text-2xl font-bold text-gray-900 mb-4 tracking-tight">Team Management</h3>
 
       {/* Retention Controls */}
@@ -543,7 +543,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
               {!retentionConfigSaved ? (
                 <button
                   onClick={saveRetentionConfig}
-                  className="px-3 py-1 bg-green-600 hover:bg-green-700 text-white text-xs font-semibold rounded-md shadow-sm transition-colors"
+                  className="px-3 py-1 bg-gradient-to-br from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 text-xs font-semibold rounded-xl shadow-sm"
                 >
                   Save Config
                 </button>
@@ -552,13 +552,13 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
                   <span className="text-xs text-green-600 font-semibold">✓ Saved</span>
                   <button
                     onClick={editRetentionConfig}
-                    className="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-md shadow-sm transition-colors"
+                    className="px-3 py-1 bg-gradient-to-br from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 text-xs font-semibold rounded-xl shadow-sm"
                   >
                     Edit
                   </button>
                   <button
                     onClick={resetRetentionConfig}
-                    className="px-3 py-1 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold rounded-md shadow-sm transition-colors"
+                    className="px-3 py-1 bg-gradient-to-br from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 text-xs font-semibold rounded-xl shadow-sm"
                   >
                     Reset
                   </button>
@@ -592,7 +592,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
           const teamCaptain = getTeamCaptain(team.id);
           
           return (
-            <div key={team.id} className="border-2 border-gray-300 border-opacity-70 rounded-lg p-4 bg-white bg-opacity-30 shadow-md">
+            <div key={team.id} className="rounded-xl border border-slate-200/70 bg-white/85 p-4 shadow-sm hover:shadow-md hover:border-slate-300 transition-[box-shadow,border-color] duration-150">
               {/* Team Name Section */}
               <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4 mb-4">
                 <label className="text-lg font-bold text-gray-800 sm:w-20 whitespace-nowrap">
@@ -846,7 +846,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
                         <button
                           onClick={() => assignCaptainFromDropdown(team.id)}
                           disabled={assigningCaptain || !selectedCaptains[team.id]}
-                          className="w-full bg-blue-600 hover:bg-blue-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md text-sm font-medium shadow-md transition-all disabled:cursor-not-allowed"
+                          className="w-full bg-gradient-to-br from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 disabled:from-slate-400 disabled:to-slate-400 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 px-4 py-2 rounded-xl text-sm font-semibold shadow-md disabled:cursor-not-allowed"
                         >
                           {assigningCaptain ? 'Assigning...' : '👑 Assign Captain'}
                         </button>
@@ -870,7 +870,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
         <button
           onClick={updateTeams}
           disabled={updating}
-          className="bg-indigo-600 hover:bg-indigo-700 disabled:bg-gray-400 text-white px-4 py-2 rounded-md text-sm font-medium border-2 border-indigo-500 border-opacity-60 shadow-md"
+          className="bg-gradient-to-br from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:from-slate-400 disabled:to-slate-400 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 px-4 py-2 rounded-xl text-sm font-semibold border border-indigo-500/40 shadow-md"
         >
           {updating ? 'Updating...' : 'Update Team Names'}
         </button>
@@ -929,7 +929,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
               const canRetainMore = canRetainMorePlayers(team.id);
               
               return (
-                <div key={team.id} className="bg-white bg-opacity-15 backdrop-blur-xl rounded-xl border-2 border-purple-200 border-opacity-50 p-4 hover:bg-opacity-25 hover:border-purple-300 hover:border-opacity-70 transition-all duration-300 shadow-lg overflow-visible relative"
+                <div key={team.id} className="rounded-xl border border-slate-200/70 bg-white/85 p-4 hover:border-slate-300 transition-all shadow-sm overflow-visible relative"
                   style={{ zIndex: dropdownOpen[team.id] ? 100 : 1 }}
                 >
                   <div className="flex justify-between items-center mb-4">

@@ -44,24 +44,23 @@ const HomePage = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-900 via-indigo-800 to-purple-900">
+    <div className="min-h-screen relative overflow-hidden" style={{background: 'radial-gradient(60rem 40rem at -10% -20%, rgba(139,92,246,0.45) 0%, transparent 60%), radial-gradient(55rem 38rem at 110% 110%, rgba(217,70,239,0.35) 0%, transparent 60%), radial-gradient(40rem 28rem at 50% 40%, rgba(34,211,238,0.18) 0%, transparent 60%), linear-gradient(160deg, #0b1020 0%, #1e1b4b 50%, #312e81 100%)'}}>
       {/* Background Pattern */}
-      <div className="absolute inset-0 bg-black bg-opacity-20"></div>
       <div 
-        className="absolute inset-0 opacity-10"
+        className="absolute inset-0 opacity-[0.07] pointer-events-none"
         style={{
-          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.1'%3E%3Ccircle cx='30' cy='30' r='2'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
+          backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Ccircle cx='30' cy='30' r='1.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
         }}
       ></div>
 
       <div className="relative z-10 min-h-screen flex flex-col">
         {/* Header */}
-        <header className="pt-8 pb-4">
+        <header className="pt-12 pb-4">
           <div className="max-w-6xl mx-auto px-4 text-center">
-            <h1 className="text-5xl md:text-7xl font-extrabold text-white mb-4 tracking-tight">
+            <h1 className="text-5xl md:text-7xl font-extrabold mb-4 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-100 to-fuchsia-200 drop-shadow-[0_4px_30px_rgba(139,92,246,0.4)]">
               🏏 Cricket Auction
             </h1>
-            <p className="text-xl md:text-2xl text-blue-200 font-light">
+            <p className="text-lg md:text-xl text-indigo-200/90 font-light">
               Experience the thrill of live player auctions
             </p>
           </div>
@@ -70,7 +69,7 @@ const HomePage = () => {
         {/* Main Content */}
         <main className="flex-1 flex items-center justify-center px-4 py-8">
           <div className="max-w-lg w-full">
-            <div className="bg-white bg-opacity-10 backdrop-blur-lg rounded-2xl p-8 border border-white border-opacity-20">
+            <div className="rounded-2xl p-8 border border-white/15 bg-white/[0.06] backdrop-blur-2xl shadow-[0_1px_0_rgba(255,255,255,0.15)_inset,0_30px_80px_-30px_rgba(0,0,0,0.6)]">
               <div className="text-center mb-8">
                 <h2 className="text-3xl font-bold text-white mb-4">Welcome to the Auction</h2>
                 <p className="text-blue-200">
@@ -86,7 +85,7 @@ const HomePage = () => {
                 <div className="space-y-4">
                   <button
                     onClick={handleViewerAccess}
-                    className="w-full bg-gradient-to-r from-green-500 to-blue-600 hover:from-green-600 hover:to-blue-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                    className="w-full bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 font-bold py-4 px-6 rounded-xl duration-200 transform hover:-translate-y-0.5 shadow-lg shadow-emerald-500/30"
                   >
                     <div className="flex items-center justify-center">
                       <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -108,7 +107,7 @@ const HomePage = () => {
 
                   <button
                     onClick={() => setShowAdminLogin(true)}
-                    className="w-full bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 transform hover:scale-105 shadow-lg hover:shadow-xl"
+                    className="w-full bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 hover:from-indigo-400 hover:via-violet-400 hover:to-fuchsia-400 text-white font-bold py-4 px-6 rounded-xl transition-colors duration-200 transform hover:-translate-y-0.5 shadow-lg shadow-violet-500/30"
                   >
                     <div className="flex items-center justify-center">
                       <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -167,14 +166,14 @@ const HomePage = () => {
                         setLoginError('');
                         setCredentials({ username: '', password: '' });
                       }}
-                      className="flex-1 bg-gray-500 hover:bg-gray-600 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+                      className="flex-1 bg-slate-200 hover:bg-slate-300 !text-slate-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
                     >
                       Back
                     </button>
                     <button
                       type="submit"
                       disabled={loginLoading}
-                      className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 disabled:opacity-50 text-white font-bold py-3 px-4 rounded-lg transition-all duration-300"
+                      className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 disabled:opacity-50 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 font-bold py-3 px-4 rounded-lg duration-200"
                     >
                       {loginLoading ? (
                         <div className="flex items-center justify-center">
