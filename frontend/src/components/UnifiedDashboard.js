@@ -11,6 +11,7 @@ import StatsDisplay from './StatsDisplay';
 import SubAdminManagement from './SubAdminManagement';
 import Header from './Header';
 import LiveBiddingCard from './LiveBiddingCard';
+import PlayerNameLink from './PlayerNameLink';
 import { useNotification } from './NotificationSystem';
 
 // Use environment variable for backend URL, fallback to localhost for dev
@@ -251,7 +252,7 @@ const TeamSquadViewer = ({ teams, players }) => {
                       <div className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-semibold">C</div>
                       <div>
                         <h5 className="font-medium text-gray-900 flex items-center">
-                          {captain.name}
+                          <PlayerNameLink player={captain} />
                           <span className="ml-2 text-lg">👑</span>
                         </h5>
                         <p className="text-sm text-gray-600">{captain.role}</p>
@@ -295,7 +296,7 @@ const TeamSquadViewer = ({ teams, players }) => {
                             </div>
                             <div>
                               <h5 className="font-medium text-gray-900 flex items-center">
-                                {player.name}
+                                <PlayerNameLink player={player} />
                               </h5>
                               <p className="text-sm text-gray-600">{player.role}</p>
                               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-1 ${style.badge}`}>
@@ -1702,7 +1703,7 @@ const UnifiedDashboard = () => {
                         >
                           <div className="flex-1">
                             <div className="flex items-center space-x-2">
-                              <span className="font-medium text-gray-900">{player.name}</span>
+                              <PlayerNameLink player={player} className="font-medium text-gray-900" />
                               <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                                 player.category === 'batter' ? 'bg-blue-100 text-blue-800' :
                                 player.category === 'bowler' ? 'bg-red-100 text-red-800' :
@@ -1735,7 +1736,7 @@ const UnifiedDashboard = () => {
                         >
                           <div className="flex-1">
                             <div className="flex items-center space-x-2">
-                              <span className="font-medium text-gray-900">{player.name}</span>
+                              <PlayerNameLink player={player} className="font-medium text-gray-900" />
                               <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                                 player.category === 'batter' ? 'bg-blue-100 text-blue-800' :
                                 player.category === 'bowler' ? 'bg-red-100 text-red-800' :
@@ -1766,7 +1767,7 @@ const UnifiedDashboard = () => {
                       >
                         <div className="flex-1">
                           <div className="flex items-center space-x-2">
-                            <span className="font-medium text-gray-900">{player.name}</span>
+                            <PlayerNameLink player={player} className="font-medium text-gray-900" />
                             <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                               player.category === 'batter' ? 'bg-blue-100 text-blue-800' :
                               player.category === 'bowler' ? 'bg-red-100 text-red-800' :
@@ -1945,7 +1946,7 @@ const UnifiedDashboard = () => {
                                     <div className="flex justify-between items-start mb-2">
                                       <h5 className="font-medium text-gray-900 flex items-center">
                                         <span className="mr-1">👑</span>
-                                        {player.name}
+                                        <PlayerNameLink player={player} />
                                       </h5>
                                       <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                                         Captain
@@ -1980,7 +1981,7 @@ const UnifiedDashboard = () => {
                                 return (
                                   <div key={player.id} className="bg-green-50 border-2 border-green-300 border-opacity-60 rounded-lg p-4 hover:shadow-lg hover:border-green-400 hover:border-opacity-80 transition-colors duration-150">
                                     <div className="flex justify-between items-start mb-2">
-                                      <h5 className="text-lg font-bold text-gray-900">{player.name}</h5>
+                                      <h5 className="text-lg font-bold text-gray-900"><PlayerNameLink player={player} /></h5>
                                       <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
                                         player.category === 'batter' ? 'bg-blue-100 text-blue-800' :
                                         player.category === 'bowler' ? 'bg-red-100 text-red-800' :
@@ -2019,7 +2020,7 @@ const UnifiedDashboard = () => {
                                 return (
                                   <div key={player.id} className="border rounded-lg p-4 bg-yellow-50">
                                     <div className="flex justify-between items-start mb-2">
-                                      <h5 className="font-medium text-gray-900">{player.name}</h5>
+                                      <h5 className="font-medium text-gray-900"><PlayerNameLink player={player} /></h5>
                                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                                         player.category === 'batter' ? 'bg-blue-100 text-blue-800' :
                                         player.category === 'bowler' ? 'bg-red-100 text-red-800' :
@@ -2055,7 +2056,7 @@ const UnifiedDashboard = () => {
                                 return (
                                   <div key={player.id} className="border border-red-200 rounded-lg p-4 bg-red-50">
                                     <div className="flex justify-between items-start mb-2">
-                                      <h5 className="font-medium text-gray-900">{player.name}</h5>
+                                      <h5 className="font-medium text-gray-900"><PlayerNameLink player={player} /></h5>
                                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                                         player.category === 'batter' ? 'bg-blue-100 text-blue-800' :
                                         player.category === 'bowler' ? 'bg-red-100 text-red-800' :
@@ -2145,7 +2146,7 @@ const UnifiedDashboard = () => {
                                             >
                                               <td className="py-4 px-6 text-sm border-r border-cyan-200 border-opacity-30">
                                                 <div className="flex items-center space-x-2">
-                                                  <span className="font-medium text-gray-900">{player.name}</span>
+                                                  <PlayerNameLink player={player} className="font-medium text-gray-900" />
                                                   <span className="px-2 py-1 rounded-full text-xs font-medium bg-cyan-200 bg-opacity-80 text-cyan-900 border border-cyan-400">
                                                     🔒 Retained
                                                   </span>
@@ -2234,7 +2235,7 @@ const UnifiedDashboard = () => {
                                       <div className="flex justify-between items-start mb-2">
                                         <h5 className="font-medium text-gray-900 flex items-center">
                                           <span className="mr-1">👑</span>
-                                          {player.name}
+                                          <PlayerNameLink player={player} />
                                         </h5>
                                         <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                                           Captain
@@ -2276,7 +2277,7 @@ const UnifiedDashboard = () => {
                                     return (
                                       <div key={player.id} className="border-2 border-gray-300 rounded-lg p-4 bg-white bg-opacity-40">
                                         <div className="flex justify-between items-start mb-2">
-                                          <h5 className="font-medium text-gray-900">{player.name}</h5>
+                                          <h5 className="font-medium text-gray-900"><PlayerNameLink player={player} /></h5>
                                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${
                                             player.category === 'batter' ? 'bg-blue-100 text-blue-800' :
                                             player.category === 'bowler' ? 'bg-red-100 text-red-800' :

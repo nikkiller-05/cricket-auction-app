@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import PlayerAvatar from './PlayerAvatar';
 import PlayerStatsStrip from './PlayerStatsStrip';
 import LiveBiddingCard from './LiveBiddingCard';
+import PlayerNameLink from './PlayerNameLink';
 import { useNotification } from './NotificationSystem';
 
 const ViewerDashboard = ({ auctionData, socket }) => {
@@ -131,7 +132,7 @@ const ViewerDashboard = ({ auctionData, socket }) => {
                 {availablePlayers.map(player => (
                   <div key={player.id} className="border border-gray-200 rounded-lg p-4">
                     <div className="flex justify-between items-start mb-2">
-                      <h5 className="font-medium text-gray-900">{player.name}</h5>
+                      <h5 className="font-medium text-gray-900"><PlayerNameLink player={player} /></h5>
                       <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(player.category)}`}>
                         {player.category}
                       </span>
@@ -150,7 +151,7 @@ const ViewerDashboard = ({ auctionData, socket }) => {
                   {unsoldPlayers.map(player => (
                       <div key={player.id} className="border border-gray-200 rounded-lg p-4 opacity-60">
                         <div className="flex justify-between items-start mb-2">
-                          <h5 className="font-medium text-gray-900">{player.name}</h5>
+                          <h5 className="font-medium text-gray-900"><PlayerNameLink player={player} /></h5>
                           <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(player.category)}`}>
                             {player.category}
                           </span>
@@ -184,7 +185,7 @@ const ViewerDashboard = ({ auctionData, socket }) => {
                   {captain && (
                     <div className="mb-4 p-3 bg-purple-50 rounded-lg">
                       <h4 className="font-medium text-purple-800 mb-1">Captain</h4>
-                      <p className="text-purple-700">{captain.name}</p>
+                      <p className="text-purple-700"><PlayerNameLink player={captain} linkClassName="text-purple-700 hover:text-purple-900 hover:underline" /></p>
                     </div>
                   )}
 
@@ -199,7 +200,7 @@ const ViewerDashboard = ({ auctionData, socket }) => {
                           <div className="space-y-1">
                             {categoryPlayers.map(player => (
                               <div key={player.id} className="flex justify-between items-center text-sm">
-                                <span>{player.name}</span>
+                                <PlayerNameLink player={player} />
                                 <span className="font-medium text-gray-600">₹{player.finalBid}</span>
                               </div>
                             ))}

@@ -1,4 +1,5 @@
 import React, { useMemo } from 'react';
+import PlayerNameLink from './PlayerNameLink';
 
 const TeamsDisplay = ({ teams, players }) => {
   const getCategoryColor = (category) => {
@@ -76,7 +77,7 @@ const TeamsDisplay = ({ teams, players }) => {
                         {categoryPlayers.map(player => (
                           <div key={player.id} className="flex justify-between items-center p-2 bg-gray-50 rounded">
                             <div className="flex items-center space-x-2">
-                              <span className="font-medium">{player.name}</span>
+                              <PlayerNameLink player={player} className="font-medium" />
                               <span className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(player.category)}`}>
                                 {player.category}
                               </span>

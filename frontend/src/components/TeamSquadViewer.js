@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import PlayerNameLink from './PlayerNameLink';
 
 const TeamSquadViewer = ({ teams, players }) => {
   const [selectedTeam, setSelectedTeam] = useState(teams[0]?.id || null);
@@ -190,7 +191,9 @@ const TeamSquadViewer = ({ teams, players }) => {
                           {index + 1}
                         </div>
                         <div className="min-w-0 flex-1">
-                          <h5 className="text-lg font-bold text-gray-900">{player.name}</h5>
+                          <h5 className="text-lg font-bold text-gray-900">
+                            <PlayerNameLink player={player} />
+                          </h5>
                           <p className="text-sm text-gray-600">{player.role}</p>
                           <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-semibold mt-1 ${
                             player.category === 'batter' ? 'bg-blue-100 text-blue-800' :
