@@ -355,8 +355,13 @@ const TeamSquadViewer = ({ teams, players }) => {
               <h4 className="text-lg font-semibold text-gray-900 mb-4">Team Composition Summary</h4>
               <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
                 {['captain', 'batter', 'bowler', 'allrounder', 'wicket-keeper'].map(category => {
-                  const categoryPlayers = playersByCategory[category] || [];
-                  const categorySpent = categoryPlayers.reduce((sum, p) => sum + (p.finalBid || 0), 0);
+                  const isCaptainCol = category === 'captain';
+                  const categoryPlayers = isCaptainCol
+                    ? (captain ? [captain] : [])
+                    : (playersByCategory[category] || []);
+                  const categorySpent = isCaptainCol
+                    ? captainAmount
+                    : categoryPlayers.reduce((sum, p) => sum + (p.finalBid || 0), 0);
                   const style = getCategoryStyle(category);
                   
                   return (
@@ -370,7 +375,7 @@ const TeamSquadViewer = ({ teams, players }) => {
                          category + 's'}
                       </div>
                       <div className="text-xs font-medium text-green-600">
-                        {category === 'captain' ? 'Assigned' : `₹${categorySpent}`}
+                        ₹{categorySpent}
                       </div>
                     </div>
                   );
@@ -434,16 +439,25 @@ const UnifiedDashboard = () => {
   const [auctionToggleLoading, setAuctionToggleLoading] = useState(false);
 
   // Memoized player lists for performance - MUST BE BEFORE ANY CONDITIONAL RETURNS
+  // Captains: derive from teams[].captain so admin-assigned captains (any
+  // category) are reflected, and fall back to legacy category==='captain'.
+  const captains = useMemo(() => {
+    const allPlayers = auctionData?.players || [];
+    const allTeams = auctionData?.teams || [];
+    const fromTeams = allTeams
+      .map(t => (t.captain ? allPlayers.find(p => p.id === t.captain) : null))
+      .filter(Boolean);
+    const legacy = allPlayers.filter(
+      p => p.category === 'captain' && !fromTeams.some(c => c.id === p.id)
+    );
+    return [...fromTeams, ...legacy];
+  }, [auctionData?.players, auctionData?.teams]);
   const soldPlayers = useMemo(() => 
     auctionData?.players?.filter(p => p.status === 'sold' && p.category !== 'captain') || [], 
     [auctionData?.players]
   );
   const retainedPlayers = useMemo(() => 
     auctionData?.players?.filter(p => p.status === 'retained') || [], 
-    [auctionData?.players]
-  );
-  const captains = useMemo(() => 
-    auctionData?.players?.filter(p => p.category === 'captain') || [], 
     [auctionData?.players]
   );
   const availablePlayers = useMemo(() => 
@@ -527,6 +541,25 @@ const UnifiedDashboard = () => {
           return prev.filter(t => !(t.type === 'retained' && t.playerName === data.player.name));
         });
         showWarning(`Retention removed: ${data.player.name} (₹${data.refundedAmount} refunded)`);
+      }
+    });
+
+    socketConnection.on('captainAssigned', (data) => {
+      if (data.player && data.team) {
+        addTransaction(data.player, 'captain-assigned', data.team, data.captainAmount);
+        showInfo(`👑 ${data.player.name} assigned as captain of ${cleanTeamName(data.team.name)}`);
+      }
+    });
+
+    socketConnection.on('captainUnassigned', (data) => {
+      if (data.team) {
+        // Remove any prior captain-assigned transaction for the same player on the same team
+        if (data.player) {
+          setTransactionHistory(prev => prev.filter(t =>
+            !(t.type === 'captain-assigned' && t.playerId === data.player.id)
+          ));
+        }
+        showWarning(`Captain unassigned from ${cleanTeamName(data.team.name)}`);
       }
     });
 
@@ -1602,6 +1635,8 @@ const UnifiedDashboard = () => {
                                 ? 'bg-green-50 border-green-400 border-l-green-600' 
                                 : transaction.type === 'retained'
                                 ? 'bg-purple-50 border-purple-400 border-l-purple-600'
+                                : transaction.type === 'captain-assigned'
+                                ? 'bg-yellow-50 border-yellow-400 border-l-yellow-600'
                                 : 'bg-red-50 border-red-400 border-l-red-600'
                             }`}
                           >
@@ -1638,6 +1673,15 @@ const UnifiedDashboard = () => {
                                   <div className="font-bold text-purple-600">₹{transaction.finalBid}</div>
                                   <div className="text-sm text-gray-700">
                                     Retained by <span className={`px-2 py-1 rounded-full text-xs font-bold ml-1 ${getTeamStyle(transaction.player?.team, auctionData.teams)}`}>
+                                      🏏 {cleanTeamName(team?.name) || 'Unknown Team'}
+                                    </span>
+                                  </div>
+                                </>
+                              ) : transaction.type === 'captain-assigned' ? (
+                                <>
+                                  <div className="font-bold text-yellow-700">👑 ₹{transaction.finalBid || 0}</div>
+                                  <div className="text-sm text-gray-700">
+                                    Captain of <span className={`px-2 py-1 rounded-full text-xs font-bold ml-1 ${getTeamStyle(transaction.team?.id, auctionData.teams)}`}>
                                       🏏 {cleanTeamName(team?.name) || 'Unknown Team'}
                                     </span>
                                   </div>
@@ -1898,24 +1942,28 @@ const UnifiedDashboard = () => {
                         return captains.length > 0 && (
                           <div className="bg-white bg-opacity-30 backdrop-blur-lg rounded-lg shadow-xl p-6 border-2 border-yellow-300 border-opacity-60">
                             <h4 className="text-lg font-medium text-gray-900 mb-4">
-                              Captains ({captains.length}) - Auto-assigned
+                              Captains ({captains.length})
                             </h4>
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                               {captains.map((player) => {
-                                const team = auctionData.teams?.find(t => t.id === player.team);
+                                const team = auctionData.teams?.find(t => t.id === player.team || t.captain === player.id);
+                                const capAmt = player.captainAmount || team?.captainAmount || player.finalBid || 0;
                                 return (
                                   <div key={player.id} className="border rounded-lg p-4 bg-purple-50">
                                     <div className="flex justify-between items-start mb-2">
-                                      <h5 className="font-medium text-gray-900">{player.name}</h5>
+                                      <h5 className="font-medium text-gray-900 flex items-center">
+                                        <span className="mr-1">👑</span>
+                                        {player.name}
+                                      </h5>
                                       <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                                         Captain
                                       </span>
                                     </div>
                                     <p className="text-sm text-gray-600 mb-2">{player.role}</p>
                                     <div className="text-sm">
-                                      <p className="font-medium text-purple-600 mb-2">Auto-assigned</p>
+                                      <p className="font-medium text-purple-600 mb-2">₹{capAmt}</p>
                                       <div className="mt-2">
-                                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${getTeamStyle(player.team, auctionData.teams)}`}>
+                                        <span className={`px-3 py-1 rounded-full text-xs font-bold ${getTeamStyle(player.team || team?.id, auctionData.teams)}`}>
                                           🏏 {cleanTeamName(team?.name) || 'No Team'}
                                         </span>
                                       </div>
@@ -2183,24 +2231,28 @@ const UnifiedDashboard = () => {
                           {captains.length > 0 && (
                             <div className="bg-white bg-opacity-20 backdrop-blur-xl rounded-xl shadow-2xl p-6 border-2 border-yellow-400 border-opacity-70 hover:bg-opacity-30 transition-all duration-300">
                               <h4 className="text-lg font-medium text-gray-900 mb-4">
-                                Captains ({captains.length}) - Auto-assigned
+                                Captains ({captains.length})
                               </h4>
                               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {captains.map((player) => {
-                                  const team = auctionData.teams?.find(t => t.id === player.team);
+                                  const team = auctionData.teams?.find(t => t.id === player.team || t.captain === player.id);
+                                  const capAmt = player.captainAmount || team?.captainAmount || player.finalBid || 0;
                                   return (
                                     <div key={player.id} className="border-2 border-purple-300 rounded-lg p-4 bg-purple-50">
                                       <div className="flex justify-between items-start mb-2">
-                                        <h5 className="font-medium text-gray-900">{player.name}</h5>
+                                        <h5 className="font-medium text-gray-900 flex items-center">
+                                          <span className="mr-1">👑</span>
+                                          {player.name}
+                                        </h5>
                                         <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
                                           Captain
                                         </span>
                                       </div>
                                       <p className="text-sm text-gray-600 mb-2">{player.role}</p>
                                       <div className="text-sm">
-                                        <p className="font-medium text-purple-600 mb-2">Auto-assigned</p>
+                                        <p className="font-medium text-purple-600 mb-2">₹{capAmt}</p>
                                         <div className="mt-2">
-                                          <span className={`px-3 py-1 rounded-full text-xs font-bold ${getTeamStyle(player.team, auctionData.teams)}`}>
+                                          <span className={`px-3 py-1 rounded-full text-xs font-bold ${getTeamStyle(player.team || team?.id, auctionData.teams)}`}>
                                             🏏 {cleanTeamName(team?.name) || 'No Team'}
                                           </span>
                                         </div>

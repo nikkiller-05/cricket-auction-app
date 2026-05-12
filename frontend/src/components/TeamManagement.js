@@ -37,15 +37,16 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
   // Includes: unsold players + players sold to that specific team
   // Memoized to cache results per team
   const getAvailablePlayersForTeamCaptain = useCallback((teamId) => {
+    const tId = Number(teamId);
     return allPlayers.filter(p => {
       // Include players that are available/unsold (no team assigned)
-      const isUnsold = (p.status === 'available' || !p.team) && 
+      const isUnsold = (p.status === 'available' || !p.team) &&
                        p.status !== 'retained' &&
                        p.status !== 'sold';
-      
-      // Include players that are sold to this specific team
-      const isSoldToThisTeam = p.status === 'sold' && p.team === teamId;
-      
+
+      // Include players that are sold to this specific team (coerce ids to handle string/number drift)
+      const isSoldToThisTeam = p.status === 'sold' && Number(p.team) === tId;
+
       return isUnsold || isSoldToThisTeam;
     });
   }, [allPlayers]);

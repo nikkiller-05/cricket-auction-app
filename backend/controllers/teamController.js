@@ -321,20 +321,42 @@ const teamController = {
         return res.status(404).json({ error: 'Captain player not found' });
       }
 
-      // Check if captain is already assigned to another team
-      if (captain.team && captain.team !== parseInt(teamId)) {
+      const tId = parseInt(teamId);
+      const wasAlreadySoldToThisTeam =
+        captain.status === 'sold' && parseInt(captain.team) === tId;
+
+      // A sold player can only become captain of the team that bought them.
+      if (captain.status === 'sold' && parseInt(captain.team) !== tId) {
+        return res.status(400).json({
+          error: 'This player was sold to another team and cannot be assigned captain here'
+        });
+      }
+
+      // Retained players cannot be captains
+      if (captain.status === 'retained') {
+        return res.status(400).json({ error: 'Retained players cannot be assigned as captain' });
+      }
+
+      // Check if captain is already assigned (as captain) to another team
+      if (!wasAlreadySoldToThisTeam && captain.team && captain.team !== tId) {
         return res.status(400).json({ error: 'Captain is already assigned to another team' });
       }
 
-      // Check if team has enough budget
-      if (team.budget < captainAmountNum) {
-        return res.status(400).json({ error: `Insufficient budget. Available: ₹${team.budget}, Required: ₹${captainAmountNum}` });
+      // For sold players promoted to captain we keep their existing finalBid
+      // and do NOT deduct from budget (already deducted at sale time).
+      const effectiveCaptainAmount = wasAlreadySoldToThisTeam
+        ? (parseInt(captain.finalBid) || 0)
+        : captainAmountNum;
+
+      if (!wasAlreadySoldToThisTeam) {
+        if (team.budget < captainAmountNum) {
+          return res.status(400).json({ error: `Insufficient budget. Available: ₹${team.budget}, Required: ₹${captainAmountNum}` });
+        }
       }
 
-      // Remove captain from previous team if any
+      // Remove captain from previous team if any (only relevant for non-sold reassignment)
       const previousTeam = teams.find(t => t.captain === captainId);
-      if (previousTeam && previousTeam.id !== parseInt(teamId)) {
-        // Refund previous captain amount to previous team
+      if (previousTeam && previousTeam.id !== tId) {
         if (captain.captainAmount) {
           previousTeam.budget += captain.captainAmount;
         }
@@ -344,15 +366,21 @@ const teamController = {
       }
 
       // Assign captain to new team
-      captain.team = parseInt(teamId);
-      captain.status = 'assigned';
-      captain.captainAmount = captainAmountNum;
-      captain.finalBid = captainAmountNum; // Set finalBid for consistency
-      
+      captain.team = tId;
+      if (!wasAlreadySoldToThisTeam) {
+        // Fresh captain assignment of an unsold player
+        captain.status = 'assigned';
+        captain.finalBid = captainAmountNum;
+      }
+      // For sold-to-this-team players: keep status='sold' and original finalBid
+      captain.captainAmount = effectiveCaptainAmount;
+
       team.captain = captainId;
-      team.captainAmount = captainAmountNum; // Store amount in team as well
-      team.budget -= captainAmountNum; // Deduct from team budget
-      
+      team.captainAmount = effectiveCaptainAmount;
+      if (!wasAlreadySoldToThisTeam) {
+        team.budget -= captainAmountNum;
+      }
+
       if (!team.players.includes(captainId)) {
         team.players.push(captainId);
       }
@@ -363,9 +391,15 @@ const teamController = {
       // Broadcast updates
       socketService.emit('teamsUpdated', teams);
       socketService.emit('playersUpdated', players);
+      socketService.emit('captainAssigned', {
+        player: captain,
+        team,
+        captainAmount: effectiveCaptainAmount,
+        wasAlreadySold: wasAlreadySoldToThisTeam
+      });
 
       res.json({ 
-        message: `${captain.name} assigned as captain to ${team.name} for ₹${captainAmountNum}`,
+        message: `${captain.name} assigned as captain to ${team.name} for ₹${effectiveCaptainAmount}`,
         teams,
         players,
         team,
@@ -400,21 +434,30 @@ const teamController = {
       }
 
       const captain = players.find(p => p.id === team.captain);
-      if (captain) {
-        // Refund captain amount to team budget
+      const captainId = team.captain;
+      // If the captain is a previously-sold player, just strip the captain role
+      // and leave the sale (team membership, budget deduction, finalBid) intact.
+      const isSoldPlayerCaptain = captain && captain.status === 'sold';
+
+      if (captain && !isSoldPlayerCaptain) {
+        // Refund captain amount to team budget (only for fresh-assigned captains)
         const captainAmount = captain.captainAmount || team.captainAmount || 0;
         team.budget += captainAmount;
-        
+
         captain.team = null;
         captain.status = 'available';
         captain.captainAmount = 0;
         captain.finalBid = 0;
+      } else if (captain && isSoldPlayerCaptain) {
+        // Strip captain marker only; player stays sold to this team
+        captain.captainAmount = 0;
       }
 
-      const captainId = team.captain;
       team.captain = null;
       team.captainAmount = 0;
-      team.players = team.players.filter(pid => pid !== captainId);
+      if (!isSoldPlayerCaptain) {
+        team.players = team.players.filter(pid => pid !== captainId);
+      }
 
       dataService.setTeams(teams);
       dataService.setPlayers(players);
@@ -422,6 +465,11 @@ const teamController = {
       // Broadcast updates
       socketService.emit('teamsUpdated', teams);
       socketService.emit('playersUpdated', players);
+      socketService.emit('captainUnassigned', {
+        player: captain || null,
+        team,
+        wasSoldPlayer: !!isSoldPlayerCaptain
+      });
 
       res.json({ 
         message: 'Captain unassigned successfully',
