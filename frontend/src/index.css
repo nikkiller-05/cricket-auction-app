@@ -22,7 +22,10 @@ body {
     radial-gradient(at 50% 50%, rgba(168, 85, 247, 0.08) 0px, transparent 60%),
     linear-gradient(180deg, #f8fafc 0%, #eef2ff 50%, #f5f3ff 100%);
   min-height: 100vh;
-  background-attachment: fixed;
+  /* NOTE: 'background-attachment: fixed' was removed intentionally — it forces
+     the browser to repaint the entire mesh whenever any element with
+     backdrop-blur is composited or the page scrolls, which murders FPS on
+     mobile and Safari. Scrolling with the background is fine here. */
   background-repeat: no-repeat;
 }
 

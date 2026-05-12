@@ -1,16 +1,57 @@
-import React, { useState, memo, useMemo, useCallback } from 'react';
+import React, { useState, memo, useMemo, useCallback, useEffect } from 'react';
 import axios from 'axios';
 import { useNotification } from './NotificationSystem';
 import PlayerAvatar from './PlayerAvatar';
 import PlayerImageUpload from './PlayerImageUpload';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
+// Module-scope helpers — stable references, never recreated per render.
+const TEAM_COLORS = [
+  'bg-blue-100 text-blue-800 border border-blue-300',
+  'bg-green-100 text-green-800 border border-green-300',
+  'bg-purple-100 text-purple-800 border border-purple-300',
+  'bg-orange-100 text-orange-800 border border-orange-300',
+  'bg-red-100 text-red-800 border border-red-300',
+  'bg-indigo-100 text-indigo-800 border border-indigo-300',
+  'bg-pink-100 text-pink-800 border border-pink-300',
+  'bg-teal-100 text-teal-800 border border-teal-300',
+  'bg-yellow-100 text-yellow-800 border border-yellow-300',
+  'bg-cyan-100 text-cyan-800 border border-cyan-300',
+];
+
+const cleanTeamName = (name) => (name ? name.replace(/\(\d+\)$/, '').trim() : '');
+
+const getTeamStyle = (teamId, teams) => {
+  if (!teamId || !teams) return 'bg-gray-100 text-gray-800 border border-gray-300';
+  const teamIndex = teams.findIndex((team) => team.id === teamId);
+  return teamIndex !== -1
+    ? TEAM_COLORS[teamIndex % TEAM_COLORS.length]
+    : 'bg-gray-100 text-gray-800 border border-gray-300';
+};
+
+const CATEGORY_STYLES = {
+  captain: 'bg-purple-100 text-purple-800 border-purple-300',
+  batter: 'bg-gray-200 text-gray-800 border-gray-400',
+  bowler: 'bg-red-100 text-red-800 border-red-300',
+  allrounder: 'bg-orange-100 text-orange-800 border-orange-300',
+  'wicket-keeper': 'bg-green-100 text-green-800 border-green-300',
+};
+const getCategoryStyle = (category) =>
+  CATEGORY_STYLES[category] || 'bg-gray-100 text-gray-800 border-gray-300';
+
 const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole, onDataRefresh }) => {
   const { showWarning, showError } = useNotification();
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+
+  // Debounce search so filtering doesn't run on every keystroke.
+  useEffect(() => {
+    const t = setTimeout(() => setDebouncedSearch(searchTerm.trim().toLowerCase()), 200);
+    return () => clearTimeout(t);
+  }, [searchTerm]);
 
   // FIXED: Include fast-track mode in bidding conditions
   const canStartBidding = (auctionStatus === 'running' || auctionStatus === 'fast-track');
@@ -34,56 +75,16 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
 
   // Filter players based on search and filters - MEMOIZED for performance
   const filteredPlayers = useMemo(() => {
-    return players?.filter(player => {
-      const matchesSearch = player.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                           player.role.toLowerCase().includes(searchTerm.toLowerCase());
-      
+    if (!players?.length) return [];
+    return players.filter((player) => {
+      const matchesSearch = !debouncedSearch
+        || player.name?.toLowerCase().includes(debouncedSearch)
+        || player.role?.toLowerCase().includes(debouncedSearch);
       const matchesCategory = categoryFilter === 'all' || player.category === categoryFilter;
-      
       const matchesStatus = statusFilter === 'all' || player.status === statusFilter;
-      
       return matchesSearch && matchesCategory && matchesStatus;
-    }) || [];
-  }, [players, searchTerm, categoryFilter, statusFilter]);
-
-  const cleanTeamName = (name) => name ? name.replace(/\(\d+\)$/, '').trim() : '';
-
-  const getTeamStyle = (teamId, teams) => {
-    if (!teamId || !teams) return 'bg-gray-100 text-gray-800 border border-gray-300';
-    
-    const teamColors = [
-      'bg-blue-100 text-blue-800 border border-blue-300',
-      'bg-green-100 text-green-800 border border-green-300', 
-      'bg-purple-100 text-purple-800 border border-purple-300',
-      'bg-orange-100 text-orange-800 border border-orange-300',
-      'bg-red-100 text-red-800 border border-red-300',
-      'bg-indigo-100 text-indigo-800 border border-indigo-300',
-      'bg-pink-100 text-pink-800 border border-pink-300',
-      'bg-teal-100 text-teal-800 border border-teal-300',
-      'bg-yellow-100 text-yellow-800 border border-yellow-300',
-      'bg-cyan-100 text-cyan-800 border border-cyan-300'
-    ];
-    
-    const teamIndex = teams.findIndex(team => team.id === teamId);
-    return teamIndex !== -1 ? teamColors[teamIndex % teamColors.length] : 'bg-gray-100 text-gray-800 border border-gray-300';
-  };
-
-  const getCategoryStyle = (category) => {
-    switch (category) {
-      case 'captain':
-        return 'bg-purple-100 text-purple-800 border-purple-300';
-      case 'batter':
-        return 'bg-gray-200 text-gray-800 border-gray-400';
-      case 'bowler':
-        return 'bg-red-100 text-red-800 border-red-300';
-      case 'allrounder':
-        return 'bg-orange-100 text-orange-800 border-orange-300';
-      case 'wicket-keeper':
-        return 'bg-green-100 text-green-800 border-green-300';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-300';
-    }
-  };
+    });
+  }, [players, debouncedSearch, categoryFilter, statusFilter]);
 
   const getStatusStyle = (status) => {
     switch (status) {

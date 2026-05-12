@@ -12,10 +12,10 @@ import React, { useState } from 'react';
  *   - className: extra classes to apply to the wrapper
  */
 const SIZES = {
-  sm: { box: 'w-8 h-8', text: 'text-xs' },
-  md: { box: 'w-12 h-12', text: 'text-sm' },
-  lg: { box: 'w-20 h-20', text: 'text-xl' },
-  xl: { box: 'w-32 h-32', text: 'text-3xl' },
+  sm: { box: 'w-8 h-8', text: 'text-xs', px: 32 },
+  md: { box: 'w-12 h-12', text: 'text-sm', px: 48 },
+  lg: { box: 'w-20 h-20', text: 'text-xl', px: 80 },
+  xl: { box: 'w-32 h-32', text: 'text-3xl', px: 128 },
 };
 
 const GRADIENTS = [
@@ -61,6 +61,9 @@ const PlayerAvatar = ({ player = {}, size = 'md', className = '' }) => {
           className="w-full h-full object-cover"
           onError={() => setImgError(true)}
           loading="lazy"
+          decoding="async"
+          width={dim.px}
+          height={dim.px}
         />
       ) : (
         <div
@@ -75,4 +78,10 @@ const PlayerAvatar = ({ player = {}, size = 'md', className = '' }) => {
   );
 };
 
-export default PlayerAvatar;
+export default React.memo(PlayerAvatar, (prev, next) =>
+  prev.size === next.size &&
+  prev.className === next.className &&
+  prev.player?.id === next.player?.id &&
+  prev.player?.imageUrl === next.player?.imageUrl &&
+  prev.player?.name === next.player?.name
+);

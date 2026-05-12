@@ -10,8 +10,6 @@ import PlayersList from './PlayersList';
 import StatsDisplay from './StatsDisplay';
 import SubAdminManagement from './SubAdminManagement';
 import Header from './Header';
-import PlayerAvatar from './PlayerAvatar';
-import PlayerStatsStrip from './PlayerStatsStrip';
 import LiveBiddingCard from './LiveBiddingCard';
 import { useNotification } from './NotificationSystem';
 
@@ -461,8 +459,12 @@ const UnifiedDashboard = () => {
     // Check if user is admin from location state or localStorage
     const adminFromState = location.state?.isAdmin;
     const token = localStorage.getItem('adminToken');
-    
-    if (adminFromState || token) {
+
+    // Honor explicit spectator entry (state.isAdmin === false) even if a stale
+    // admin token lingers in localStorage from a previous session.
+    const enteredAsSpectator = adminFromState === false;
+
+    if (!enteredAsSpectator && (adminFromState || token)) {
       setIsAdmin(true);
       
       if (token) {
@@ -2330,7 +2332,7 @@ const UnifiedDashboard = () => {
                   </p>
                   {isAdmin && canConfigure && (
                     <button
-                      onClick={() => setActiveTab('upload')}
+                      onClick={() => setShowUploadModal(true)}
                       className="mt-4 bg-indigo-600 text-white px-6 py-3 rounded-md hover:bg-indigo-700 border-2 border-indigo-500 shadow-md"
                     >
                       Upload Players

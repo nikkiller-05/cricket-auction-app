@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import PlayerAvatar from './PlayerAvatar';
 
 /**
@@ -16,7 +16,7 @@ import PlayerAvatar from './PlayerAvatar';
  *   - rightSlot: optional ReactNode rendered below the bid panel (e.g. team bid buttons)
  */
 const Stat = ({ label, value }) => (
-  <div className="group relative flex flex-col items-center justify-center text-center rounded-xl px-2.5 py-1.5 sm:py-2 min-w-[58px] bg-gradient-to-br from-white/20 to-white/5 border border-white/25 backdrop-blur-md shadow-md hover:shadow-lg hover:from-white/30 hover:-translate-y-0.5 transition-all duration-300">
+  <div className="group relative flex flex-col items-center justify-center text-center rounded-xl px-2.5 py-1.5 sm:py-2 min-w-[58px] bg-gradient-to-br from-white/20 to-white/5 border border-white/25 shadow-md hover:shadow-lg hover:from-white/30 hover:-translate-y-0.5 transition-all duration-300">
     <div className="absolute inset-x-2 top-0 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
     <div className="text-sm sm:text-base md:text-lg font-extrabold leading-tight text-white drop-shadow-sm">
       {value}
@@ -48,8 +48,41 @@ const LiveBiddingCard = ({
   rightSlot = null,
 }) => {
   if (!player) return null;
-  const stats = buildStats(player);
-  const meta = [player.role, player.battingHand, player.bowlingStyle].filter(Boolean).join(' · ');
+  return <LiveBiddingCardInner
+    player={player}
+    currentAmount={currentAmount}
+    leadingTeamName={leadingTeamName}
+    leadingTeamBudget={leadingTeamBudget}
+    isFastTrack={isFastTrack}
+    rightSlot={rightSlot}
+  />;
+};
+
+const LiveBiddingCardInner = ({
+  player,
+  currentAmount,
+  leadingTeamName,
+  leadingTeamBudget,
+  isFastTrack,
+  rightSlot,
+}) => {
+  // Intentional fine-grained deps so the memo only invalidates when a
+  // displayed stat actually changes, not on every new player object identity.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const stats = useMemo(() => buildStats(player), [
+    player.matches,
+    player.runs,
+    player.wickets,
+    player.battingAvg,
+    player.highestScore,
+    player.strikeRate,
+    player.economy,
+    player.bestBowling,
+  ]);
+  const meta = useMemo(
+    () => [player.role, player.battingHand, player.bowlingStyle].filter(Boolean).join(' · '),
+    [player.role, player.battingHand, player.bowlingStyle]
+  );
 
   return (
     <div className="relative overflow-hidden rounded-3xl shadow-2xl border border-white/15 mb-8 bg-gradient-to-br from-slate-900 via-indigo-950 to-purple-950 text-white">
@@ -200,4 +233,4 @@ const LiveBiddingCard = ({
   );
 };
 
-export default LiveBiddingCard;
+export default React.memo(LiveBiddingCard);

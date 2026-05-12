@@ -31,6 +31,8 @@ const HomePage = () => {
   };
 
   const handleViewerAccess = () => {
+    // Clear any stale admin credentials so spectator mode is truly read-only.
+    localStorage.removeItem('adminToken');
     navigate('/dashboard', { state: { isAdmin: false } });
   };
 
