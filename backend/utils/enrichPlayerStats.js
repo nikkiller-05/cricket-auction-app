@@ -94,6 +94,13 @@ async function fetchPlayerStats(cricHeroesLink, silent = false) {
       return null;
     }
 
+    // Diagnostic: log response shape so we can see why parsing might fail in prod
+    const bodyLen = typeof response.data === 'string' ? response.data.length : -1;
+    const hasNextData = typeof response.data === 'string' && response.data.includes('__NEXT_DATA__');
+    const hasCfChallenge = typeof response.data === 'string' && /cf-(challenge|chl_jschl|browser-verification)|Just a moment/i.test(response.data);
+    const server = response.headers?.server || '';
+    if (!silent) console.log(`   📥 HTTP ${response.status} len=${bodyLen} nextData=${hasNextData} cfChallenge=${hasCfChallenge} server="${server}"`);
+
     // Initialize stats object (kept keys identical to the previous scraper
     // so playerController doesn't need to change)
     const stats = {
@@ -200,10 +207,14 @@ async function fetchPlayerStatsBatch(players, concurrencyLimit = CONCURRENCY_LIM
     // Fetch all players in this batch in parallel
     const batchPromises = batch.map(async (player) => {
       if (!player.cricHeroesLink) {
+        console.log(`   ⚪ ${player.name || 'unknown'}: no CricHeroes link`);
         return { player, stats: null };
       }
-      
-      const stats = await fetchPlayerStats(player.cricHeroesLink, true);
+      console.log(`   ➡️  ${player.name || 'unknown'}: ${player.cricHeroesLink}`);
+      const stats = await fetchPlayerStats(player.cricHeroesLink, false);
+      if (!stats) {
+        console.log(`   ❌ ${player.name || 'unknown'}: stats returned null`);
+      }
       return { player, stats };
     });
     
