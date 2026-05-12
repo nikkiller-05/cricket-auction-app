@@ -2,6 +2,7 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const XLSX = require('xlsx');
 const path = require('path');
+const { getCachedStats, setCachedStats } = require('../services/cricHeroesCache');
 
 // CricHeroes rate-limits aggressively (~3 concurrent before HTTP 429).
 // Keep concurrency low and add a small inter-batch delay to avoid bans.
@@ -51,6 +52,119 @@ function extractFromStatement(statement, patterns) {
  *   playerInfo.data.playing_role / batting_hand / bowling_style
  *   playerInfo.data.player_statement         (HTML blurb with HS, avg, SR, economy, sixes, fours)
  */
+/**
+ * Parse the HTML body of a CricHeroes player-profile page into a stats object.
+ * Returns null if the body looks like a Cloudflare challenge / no useful data.
+ */
+function parseStatsHtml(html, silent = false) {
+  if (typeof html !== 'string' || html.length < 100) return null;
+
+  const stats = {
+    matches: '',
+    runs: '',
+    battingAvg: '',
+    highestScore: '',
+    wickets: '',
+    economy: '',
+    bestBowling: '',
+    imageUrl: '',
+    role: '',
+    battingHand: '',
+    bowlingStyle: '',
+    city: '',
+    strikeRate: '',
+  };
+
+  // 1. Try the structured JSON path first
+  let info = null;
+  const nextDataMatch = html.match(
+    /<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/
+  );
+  if (nextDataMatch) {
+    try {
+      const json = JSON.parse(nextDataMatch[1]);
+      info = json?.props?.pageProps?.playerInfo?.data || null;
+    } catch (e) {
+      if (!silent) console.log(`   ⚠️  __NEXT_DATA__ parse failed: ${e.message}`);
+    }
+  }
+
+  if (info) {
+    const num = (v) => (v == null ? '' : String(v));
+    stats.matches      = num(info.total_matches);
+    stats.runs         = num(info.total_runs);
+    stats.wickets      = num(info.total_wickets);
+    stats.imageUrl     = info.profile_photo || '';
+    stats.role         = info.playing_role || '';
+    stats.battingHand  = info.batting_hand || '';
+    stats.bowlingStyle = info.bowling_style || '';
+    stats.city         = info.city_name || '';
+
+    const stmt = info.player_statement || '';
+    stats.highestScore = extractFromStatement(stmt, [
+      /top score of\s*<b>([^<]+)<\/b>/i,
+      /highest(?:\s+score)?\s*(?:of)?\s*<b>([^<]+)<\/b>/i,
+    ]);
+    stats.battingAvg = extractFromStatement(stmt, [
+      /average of\s*<b>([\d.]+)<\/b>/i,
+      /batting average of\s*<b>([\d.]+)<\/b>/i,
+    ]);
+    stats.strikeRate = extractFromStatement(stmt, [
+      /strike rate of\s*<b>([\d.]+)<\/b>/i,
+    ]);
+    stats.economy = extractFromStatement(stmt, [
+      /economy(?:\s+rate)?\s+of\s*<b>([\d.]+)<\/b>/i,
+    ]);
+    return stats;
+  }
+
+  // 2. Legacy cheerio fallback
+  const $ = cheerio.load(html);
+  let touched = false;
+  $('.stat-card, .player-stat, [class*="stat"]').each((i, elem) => {
+    const label = $(elem).find('.label, .stat-label, dt').text().toLowerCase();
+    const value = $(elem).find('.value, .stat-value, dd').text().trim();
+    if (!label || !value) return;
+    if (label.includes('match'))                              { stats.matches = value; touched = true; }
+    if (label.includes('run') && !label.includes('economy'))  { stats.runs = value; touched = true; }
+    if (label.includes('average') || label.includes('avg'))   { stats.battingAvg = value; touched = true; }
+    if (label.includes('highest') || label.includes('hs'))    { stats.highestScore = value; touched = true; }
+    if (label.includes('wicket'))                             { stats.wickets = value; touched = true; }
+    if (label.includes('economy') || label.includes('econ'))  { stats.economy = value; touched = true; }
+    if (label.includes('best') && label.includes('bowl'))     { stats.bestBowling = value; touched = true; }
+  });
+  return touched ? stats : null;
+}
+
+/**
+ * Single HTTP fetch (direct or via ScraperAPI). Returns { status, data, headers }.
+ */
+async function httpFetchStats(targetUrl, useScraperApi = false) {
+  const scraperKey = process.env.SCRAPER_API_KEY;
+  let url = targetUrl;
+  let timeout = 15000;
+  if (useScraperApi) {
+    if (!scraperKey) throw new Error('SCRAPER_API_KEY not configured');
+    url =
+      'https://api.scraperapi.com/?api_key=' +
+      encodeURIComponent(scraperKey) +
+      '&url=' +
+      encodeURIComponent(targetUrl);
+    timeout = 60000; // ScraperAPI can take longer (residential rotation)
+  }
+  return axios.get(url, {
+    headers: {
+      'User-Agent':
+        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36',
+      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+      'Accept-Language': 'en-US,en;q=0.9',
+      Referer: 'https://cricheroes.com/',
+    },
+    timeout,
+    validateStatus: (s) => s < 500,
+  });
+}
+
 async function fetchPlayerStats(cricHeroesLink, silent = false) {
   try {
     const playerId = extractPlayerIdFromUrl(cricHeroesLink);
@@ -62,22 +176,13 @@ async function fetchPlayerStats(cricHeroesLink, silent = false) {
     const statsUrl = `https://cricheroes.com/player-profile/${playerId}/stats`;
     if (!silent) console.log(`   Fetching: ${statsUrl}`);
 
-    // Retry on transient 429 (CricHeroes rate-limits aggressively)
+    // --- Step 1: direct fetch with 429 retry ---
     let response;
     let attempt = 0;
     while (true) {
       attempt++;
       try {
-        response = await axios.get(statsUrl, {
-          headers: {
-            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36',
-            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-            'Accept-Language': 'en-US,en;q=0.9',
-            'Referer': 'https://cricheroes.com/'
-          },
-          timeout: 15000,
-          validateStatus: (s) => s < 500, // let us see 429 instead of throwing
-        });
+        response = await httpFetchStats(statsUrl, false);
         if (response.status !== 429) break;
         if (attempt > MAX_RETRIES_ON_429) break;
         const wait = RETRY_BACKOFF_MS * attempt;
@@ -89,100 +194,41 @@ async function fetchPlayerStats(cricHeroesLink, silent = false) {
       }
     }
 
-    if (response.status >= 400) {
-      if (!silent) console.log(`   ❌ HTTP ${response.status} after ${attempt} attempt(s)`);
-      return null;
-    }
-
-    // Diagnostic: log response shape so we can see why parsing might fail in prod
-    const bodyLen = typeof response.data === 'string' ? response.data.length : -1;
-    const hasNextData = typeof response.data === 'string' && response.data.includes('__NEXT_DATA__');
-    const hasCfChallenge = typeof response.data === 'string' && /cf-(challenge|chl_jschl|browser-verification)|Just a moment/i.test(response.data);
-    const server = response.headers?.server || '';
-    if (!silent) console.log(`   📥 HTTP ${response.status} len=${bodyLen} nextData=${hasNextData} cfChallenge=${hasCfChallenge} server="${server}"`);
-
-    // Initialize stats object (kept keys identical to the previous scraper
-    // so playerController doesn't need to change)
-    const stats = {
-      matches: '',
-      runs: '',
-      battingAvg: '',
-      highestScore: '',
-      wickets: '',
-      economy: '',
-      bestBowling: '',
-      // New fields (optional consumers — safe to ignore)
-      imageUrl: '',
-      role: '',
-      battingHand: '',
-      bowlingStyle: '',
-      city: '',
-      strikeRate: '',
-    };
-
-    // 1. Try the structured JSON path first
-    let info = null;
-    const nextDataMatch = response.data.match(
-      /<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/
-    );
-    if (nextDataMatch) {
-      try {
-        const json = JSON.parse(nextDataMatch[1]);
-        info = json?.props?.pageProps?.playerInfo?.data || null;
-      } catch (e) {
-        if (!silent) console.log(`   ⚠️  __NEXT_DATA__ parse failed: ${e.message}`);
-      }
-    }
-
-    if (info) {
-      const num = (v) => (v == null ? '' : String(v));
-      stats.matches      = num(info.total_matches);
-      stats.runs         = num(info.total_runs);
-      stats.wickets      = num(info.total_wickets);
-      stats.imageUrl     = info.profile_photo || '';
-      stats.role         = info.playing_role || '';
-      stats.battingHand  = info.batting_hand || '';
-      stats.bowlingStyle = info.bowling_style || '';
-      stats.city         = info.city_name || '';
-
-      // Derived stats live inside the player_statement HTML blurb.
-      // It looks like: "...top score of <b>168*</b>, with an average of <b>27.35</b>
-      // and a quick strike rate of <b>160.44</b>... economy rate of <b>8.54</b>..."
-      const stmt = info.player_statement || '';
-      stats.highestScore = extractFromStatement(stmt, [
-        /top score of\s*<b>([^<]+)<\/b>/i,
-        /highest(?:\s+score)?\s*(?:of)?\s*<b>([^<]+)<\/b>/i,
-      ]);
-      stats.battingAvg = extractFromStatement(stmt, [
-        /average of\s*<b>([\d.]+)<\/b>/i,
-        /batting average of\s*<b>([\d.]+)<\/b>/i,
-      ]);
-      stats.strikeRate = extractFromStatement(stmt, [
-        /strike rate of\s*<b>([\d.]+)<\/b>/i,
-      ]);
-      stats.economy = extractFromStatement(stmt, [
-        /economy(?:\s+rate)?\s+of\s*<b>([\d.]+)<\/b>/i,
-      ]);
+    let stats = null;
+    if (response.status < 400) {
+      const bodyLen = typeof response.data === 'string' ? response.data.length : -1;
+      const hasNextData = typeof response.data === 'string' && response.data.includes('__NEXT_DATA__');
+      if (!silent) console.log(`   📥 direct HTTP ${response.status} len=${bodyLen} nextData=${hasNextData}`);
+      stats = parseStatsHtml(response.data, silent);
     } else {
-      // 2. Fallback: legacy cheerio scrape (kept as defence in case the
-      //    Next.js payload ever disappears)
-      const $ = cheerio.load(response.data);
-      $('.stat-card, .player-stat, [class*="stat"]').each((i, elem) => {
-        const label = $(elem).find('.label, .stat-label, dt').text().toLowerCase();
-        const value = $(elem).find('.value, .stat-value, dd').text().trim();
-        if (label.includes('match')) stats.matches = value || stats.matches;
-        if (label.includes('run') && !label.includes('economy')) stats.runs = value || stats.runs;
-        if (label.includes('average') || label.includes('avg')) stats.battingAvg = value || stats.battingAvg;
-        if (label.includes('highest') || label.includes('hs')) stats.highestScore = value || stats.highestScore;
-        if (label.includes('wicket')) stats.wickets = value || stats.wickets;
-        if (label.includes('economy') || label.includes('econ')) stats.economy = value || stats.economy;
-        if (label.includes('best') && label.includes('bowl')) stats.bestBowling = value || stats.bestBowling;
-      });
+      if (!silent) console.log(`   ❌ direct HTTP ${response.status} (will try ScraperAPI fallback)`);
     }
 
-    if (!silent) console.log(`   ✅ Stats fetched:`, stats);
-    return stats;
+    // --- Step 2: ScraperAPI fallback if direct failed ---
+    if (!stats && process.env.SCRAPER_API_KEY) {
+      try {
+        if (!silent) console.log(`   🛰️  ScraperAPI fallback for ${playerId}...`);
+        const sresp = await httpFetchStats(statsUrl, true);
+        const slen = typeof sresp.data === 'string' ? sresp.data.length : -1;
+        const sNext = typeof sresp.data === 'string' && sresp.data.includes('__NEXT_DATA__');
+        if (!silent) console.log(`   📥 scraperapi HTTP ${sresp.status} len=${slen} nextData=${sNext}`);
+        if (sresp.status < 400) {
+          stats = parseStatsHtml(sresp.data, silent);
+        }
+      } catch (e) {
+        if (!silent) console.log(`   ⚠️  ScraperAPI error: ${e.message}`);
+      }
+    } else if (!stats && !process.env.SCRAPER_API_KEY) {
+      if (!silent) console.log(`   ℹ️  SCRAPER_API_KEY not set; skipping fallback`);
+    }
 
+    if (stats) {
+      if (!silent) console.log(`   ✅ Stats fetched for ${playerId}`);
+      return stats;
+    }
+
+    if (!silent) console.log(`   ❌ All fetch attempts failed for ${playerId}`);
+    return null;
   } catch (error) {
     if (error.response && error.response.status === 404) {
       if (!silent) console.log(`   ⚠️  Profile not found (404)`);
@@ -210,10 +256,25 @@ async function fetchPlayerStatsBatch(players, concurrencyLimit = CONCURRENCY_LIM
         console.log(`   ⚪ ${player.name || 'unknown'}: no CricHeroes link`);
         return { player, stats: null };
       }
+
+      const playerId = extractPlayerIdFromUrl(player.cricHeroesLink);
+
+      // 1. Cache lookup (best-effort)
+      if (playerId) {
+        const cached = await getCachedStats(playerId);
+        if (cached) {
+          console.log(`   💾 ${player.name || 'unknown'}: cache HIT (${playerId})`);
+          return { player, stats: cached };
+        }
+      }
+
       console.log(`   ➡️  ${player.name || 'unknown'}: ${player.cricHeroesLink}`);
       const stats = await fetchPlayerStats(player.cricHeroesLink, false);
       if (!stats) {
         console.log(`   ❌ ${player.name || 'unknown'}: stats returned null`);
+      } else if (playerId) {
+        // 2. Save successful fetch to cache (fire-and-forget; await for log ordering)
+        await setCachedStats(playerId, stats);
       }
       return { player, stats };
     });
