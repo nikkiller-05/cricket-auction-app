@@ -11,18 +11,21 @@ import React from 'react';
  *   - compact: boolean — smaller variant for table rows
  */
 const PlayerStatsStrip = ({ player = {}, variant = 'light', compact = false }) => {
-  const items = [
-    { label: 'Mat', value: player.matches },
-    { label: 'Runs', value: player.runs },
-    { label: 'Wkts', value: player.wickets },
-    { label: 'Avg', value: player.battingAvg },
-    { label: 'HS', value: player.highestScore },
-    { label: 'SR', value: player.strikeRate },
-    { label: 'Econ', value: player.economy },
-    { label: 'BB', value: player.bestBowling },
-  ].filter((s) => s.value !== undefined && s.value !== null && String(s.value).trim() !== '');
+  // Always render the full strip; show "—" for missing values so the layout
+  // is consistent across players regardless of which stats are populated.
+  const dash = (v) =>
+    v === undefined || v === null || String(v).trim() === '' ? '—' : v;
 
-  if (items.length === 0) return null;
+  const items = [
+    { label: 'Mat', value: dash(player.matches) },
+    { label: 'Runs', value: dash(player.runs) },
+    { label: 'Wkts', value: dash(player.wickets) },
+    { label: 'Avg', value: dash(player.battingAvg) },
+    { label: 'HS', value: dash(player.highestScore) },
+    { label: 'SR', value: dash(player.strikeRate) },
+    { label: 'Econ', value: dash(player.economy) },
+    { label: 'BB', value: dash(player.bestBowling) },
+  ];
 
   const pillBase =
     variant === 'dark'
@@ -32,6 +35,8 @@ const PlayerStatsStrip = ({ player = {}, variant = 'light', compact = false }) =
   const pad = compact ? 'px-2 py-0.5' : 'px-3 py-1';
   const num = compact ? 'text-xs' : 'text-sm';
   const lbl = compact ? 'text-[10px]' : 'text-[11px]';
+
+  const handStyle = [player.battingHand, player.bowlingStyle].filter(Boolean).join(' · ');
 
   return (
     <div className="flex flex-wrap items-center justify-center gap-1.5 mt-2">
@@ -45,12 +50,12 @@ const PlayerStatsStrip = ({ player = {}, variant = 'light', compact = false }) =
           <span className={`${lbl} uppercase tracking-wide opacity-75 leading-none`}>{s.label}</span>
         </div>
       ))}
-      {(player.battingHand || player.bowlingStyle) && (
+      {handStyle && (
         <div
           className={`${pillBase} ${pad} rounded-full border shadow-sm ${num} font-medium`}
-          title={[player.battingHand, player.bowlingStyle].filter(Boolean).join(' · ')}
+          title={handStyle}
         >
-          {[player.battingHand, player.bowlingStyle].filter(Boolean).join(' · ')}
+          {handStyle}
         </div>
       )}
     </div>

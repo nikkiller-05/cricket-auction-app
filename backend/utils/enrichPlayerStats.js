@@ -253,46 +253,51 @@ async function fetchPlayerStatsBatch(players, concurrencyLimit = CONCURRENCY_LIM
     
     // Fetch all players in this batch in parallel
     const batchPromises = batch.map(async (player) => {
-      if (!player.cricHeroesLink) {
-        console.log(`   ⚪ ${player.name || 'unknown'}: no CricHeroes link`);
+      // Determine cache key:
+      //   - real CricHeroes link  -> use the numeric player_id
+      //   - no link but manualId  -> use "manual:<manualId>" (cache-only, never fetched)
+      //   - neither               -> nothing to do, blank stats
+      let cacheKey = null;
+      let isManualOnly = false;
+      if (player.cricHeroesLink) {
+        cacheKey = extractPlayerIdFromUrl(player.cricHeroesLink);
+      }
+      if (!cacheKey && player.manualId) {
+        cacheKey = `manual:${String(player.manualId).trim()}`;
+        isManualOnly = true;
+      }
+
+      if (!cacheKey) {
+        console.log(`   ⚪ ${player.name || 'unknown'}: no CricHeroes link or Manual ID`);
         return { player, stats: null };
       }
 
-      // Skip if the upload already contains stats (user pre-enriched offline).
-      // We treat presence of `matches` (any non-empty value) as "already enriched".
-      const existing = player.originalRow || player;
-      const preMatches = existing.matches || existing.Matches || existing['Matches'];
-      if (preMatches && String(preMatches).trim() !== '') {
-        console.log(`   📄 ${player.name || 'unknown'}: pre-enriched in upload, skipping fetch`);
+      // 1. Cache lookup
+      const cached = await getCachedStats(cacheKey);
+      if (cached?.stats) {
+        const tag = cached.manualOverride ? '🔒 manual' : 'cache HIT';
+        console.log(`   💾 ${player.name || 'unknown'}: ${tag} (${cacheKey})`);
+        return { player, stats: cached.stats };
+      }
+      if (cached?.failed) {
+        console.log(`   🚫 ${player.name || 'unknown'}: cached FAILURE (${cacheKey}) - skipping`);
         return { player, stats: null };
       }
 
-      const playerId = extractPlayerIdFromUrl(player.cricHeroesLink);
-
-      // 1. Cache lookup (best-effort) - serves both successes and known failures
-      if (playerId) {
-        const cached = await getCachedStats(playerId);
-        if (cached?.stats) {
-          console.log(`   💾 ${player.name || 'unknown'}: cache HIT (${playerId})`);
-          return { player, stats: cached.stats };
-        }
-        if (cached?.failed) {
-          console.log(`   🚫 ${player.name || 'unknown'}: cached FAILURE (${playerId}) - skipping API call`);
-          return { player, stats: null };
-        }
+      // 2. Manual-only players never trigger a network fetch
+      if (isManualOnly) {
+        console.log(`   📝 ${player.name || 'unknown'}: manual-only (${cacheKey}), no cache row yet - blank stats`);
+        return { player, stats: null };
       }
 
+      // 3. Live fetch (CricHeroes-linked players only)
       console.log(`   ➡️  ${player.name || 'unknown'}: ${player.cricHeroesLink}`);
       const stats = await fetchPlayerStats(player.cricHeroesLink, false);
       if (!stats) {
         console.log(`   ❌ ${player.name || 'unknown'}: stats returned null`);
-        if (playerId) {
-          // Negative-cache the failure so we don't burn credits next upload
-          await setCachedFailure(playerId);
-        }
-      } else if (playerId) {
-        // Save successful fetch to cache
-        await setCachedStats(playerId, stats);
+        await setCachedFailure(cacheKey);
+      } else {
+        await setCachedStats(cacheKey, stats);
       }
       return { player, stats };
     });

@@ -24,16 +24,19 @@ const NEGATIVE_TTL_MS = NEGATIVE_TTL_DAYS * 24 * 60 * 60 * 1000;
 
 /**
  * Returns cached entry for a player ID:
- *   { stats: {...} }  - successful fetch, fresh
- *   { failed: true }  - known recent failure, skip API call
- *   null              - no usable cache entry, caller should fetch
+ *   { stats: {...}, manualOverride: bool }  - stats present
+ *   { failed: true, manualOverride: bool }  - known recent failure, skip API call
+ *   null                                    - no usable cache entry, caller should fetch
+ *
+ * If manual_override=true on the row, age/TTL is IGNORED — the manual entry
+ * is treated as fresh forever. This lets you pin a manually-curated row.
  */
 async function getCachedStats(playerId) {
   if (!supabase || !playerId) return null;
   try {
     const { data, error } = await supabase
       .from(TABLE)
-      .select('stats, fetched_at')
+      .select('stats, fetched_at, manual_override')
       .eq('player_id', String(playerId))
       .maybeSingle();
 
@@ -43,16 +46,20 @@ async function getCachedStats(playerId) {
     }
     if (!data) return null;
 
-    const age = Date.now() - new Date(data.fetched_at).getTime();
+    const manualOverride = data.manual_override === true;
     const isFailureMarker = data.stats && data.stats.__failed === true;
-    const ttl = isFailureMarker ? NEGATIVE_TTL_MS : TTL_MS;
 
-    if (age > ttl) {
-      console.log(`   🕒 cache stale for ${playerId} (${Math.round(age / 86400000)}d, ${isFailureMarker ? 'fail' : 'ok'})`);
-      return null;
+    if (!manualOverride) {
+      const age = Date.now() - new Date(data.fetched_at).getTime();
+      const ttl = isFailureMarker ? NEGATIVE_TTL_MS : TTL_MS;
+      if (age > ttl) {
+        console.log(`   🕒 cache stale for ${playerId} (${Math.round(age / 86400000)}d, ${isFailureMarker ? 'fail' : 'ok'})`);
+        return null;
+      }
     }
-    if (isFailureMarker) return { failed: true };
-    return { stats: data.stats };
+
+    if (isFailureMarker) return { failed: true, manualOverride };
+    return { stats: data.stats, manualOverride };
   } catch (e) {
     console.log(`   ⚠️  cache read exception for ${playerId}: ${e.message}`);
     return null;
@@ -60,10 +67,32 @@ async function getCachedStats(playerId) {
 }
 
 /**
+ * Internal: check whether a row is locked by manual_override.
+ */
+async function isManualOverride(playerId) {
+  if (!supabase || !playerId) return false;
+  try {
+    const { data } = await supabase
+      .from(TABLE)
+      .select('manual_override')
+      .eq('player_id', String(playerId))
+      .maybeSingle();
+    return data?.manual_override === true;
+  } catch {
+    return false;
+  }
+}
+
+/**
  * Upsert successful stats for a player ID.
+ * Skips the upsert if the existing row has manual_override=true.
  */
 async function setCachedStats(playerId, stats) {
   if (!supabase || !playerId || !stats) return;
+  if (await isManualOverride(playerId)) {
+    console.log(`   🔒 ${playerId}: manual_override=true, NOT overwriting`);
+    return;
+  }
   try {
     const { error } = await supabase
       .from(TABLE)
@@ -84,11 +113,14 @@ async function setCachedStats(playerId, stats) {
 }
 
 /**
- * Mark a player as failed (negative cache) so we don't waste API credits
- * re-trying a known-broken profile every upload.
+ * Mark a player as failed (negative cache). Skipped if manual_override=true.
  */
 async function setCachedFailure(playerId) {
   if (!supabase || !playerId) return;
+  if (await isManualOverride(playerId)) {
+    console.log(`   🔒 ${playerId}: manual_override=true, NOT writing failure marker`);
+    return;
+  }
   try {
     const { error } = await supabase
       .from(TABLE)

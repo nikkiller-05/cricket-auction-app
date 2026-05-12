@@ -27,17 +27,22 @@ const Stat = ({ label, value }) => (
   </div>
 );
 
-const buildStats = (p = {}) =>
-  [
-    { label: 'Matches', value: p.matches },
-    { label: 'Runs', value: p.runs },
-    { label: 'Wickets', value: p.wickets },
-    { label: 'Avg', value: p.battingAvg },
-    { label: 'HS', value: p.highestScore },
-    { label: 'SR', value: p.strikeRate },
-    { label: 'Econ', value: p.economy },
-    { label: 'BB', value: p.bestBowling },
-  ].filter((s) => s.value !== undefined && s.value !== null && String(s.value).trim() !== '');
+const buildStats = (p = {}) => {
+  // Always render every stat slot; "—" means missing so the card layout
+  // stays stable across players regardless of which stats are populated.
+  const dash = (v) =>
+    v === undefined || v === null || String(v).trim() === '' ? '—' : v;
+  return [
+    { label: 'Matches', value: dash(p.matches) },
+    { label: 'Runs', value: dash(p.runs) },
+    { label: 'Wickets', value: dash(p.wickets) },
+    { label: 'Avg', value: dash(p.battingAvg) },
+    { label: 'HS', value: dash(p.highestScore) },
+    { label: 'SR', value: dash(p.strikeRate) },
+    { label: 'Econ', value: dash(p.economy) },
+    { label: 'BB', value: dash(p.bestBowling) },
+  ];
+};
 
 const LiveBiddingCard = ({
   player,

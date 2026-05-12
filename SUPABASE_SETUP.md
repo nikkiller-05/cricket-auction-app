@@ -254,13 +254,50 @@ CREATE TABLE IF NOT EXISTS cricheroes_stats (
   fetched_at   timestamptz NOT NULL DEFAULT now()
 );
 
+-- Add manual_override column (run this even if table already exists)
+ALTER TABLE cricheroes_stats
+  ADD COLUMN IF NOT EXISTS manual_override boolean NOT NULL DEFAULT false;
+
 ALTER TABLE cricheroes_stats ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "service_role full access" ON cricheroes_stats;
 CREATE POLICY "service_role full access"
   ON cricheroes_stats FOR ALL
   TO service_role
   USING (true) WITH CHECK (true);
 ```
+
+### Manual overrides
+
+To pin a manually-edited row so it never gets overwritten by auto-fetches:
+
+1. In Supabase Table Editor, edit the `stats` JSON for the player.
+2. Toggle `manual_override` to `true`.
+3. Done. The row is now treated as fresh forever and never re-fetched.
+
+### Players without a CricHeroes link (manual entries)
+
+Add an optional **"Manual ID"** column in your upload CSV/Excel. Example:
+
+| Name    | Role/Category | CricHeroes Link | Manual ID    |
+|---------|---------------|-----------------|--------------|
+| Suresh  | Batsman       | (blank)         | suresh-r-001 |
+
+The backend creates a cache key `manual:suresh-r-001` for that player.
+You can then INSERT a row in Supabase keyed by `player_id = 'manual:suresh-r-001'`,
+fill the `stats` JSON, set `manual_override = true`, and the player will display
+those stats on every upload — no API call, never overwritten.
+
+When that player later gets a CricHeroes link, just edit the row in Supabase and
+change `player_id` from `manual:suresh-r-001` to the real numeric CricHeroes
+player_id (e.g. `3860592`). The next upload that includes the real link will hit
+the same row.
+
+### When does auto-fetch happen?
+
+The backend fetches CricHeroes only when **any** of `Matches`, `Runs`, or
+`Wickets` is missing in the upload. If all three are present, the row is used
+as-is (zero credits).
 
 ### Required environment variables (Render + local .env)
 

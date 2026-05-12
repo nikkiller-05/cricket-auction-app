@@ -112,6 +112,7 @@ const playerController = {
         const role = row['Role/Category'] || row['Role'] || row['Category'] || '';
         const slNo = row['Sl.No'] || row['SlNo'] || row['Serial'] || (index + 1);
         const cricHeroesLink = row['CricHeroes Link'] || row['Profile URL'] || row['Link'] || row['CricHeroes'] || row['Profile'] || '';
+        const manualId = row['Manual ID'] || row['ManualId'] || row['Manual Id'] || row['ManualID'] || '';
         const imageUrl = row['Image URL'] || row['Photo URL'] || row['Picture URL'] || row['Image'] || row['Photo'] || row['Picture'] || row['Image Link'] || '';
         
         // Parse player stats (if available from enriched Excel)
@@ -134,6 +135,7 @@ const playerController = {
           role: role.trim(),
           category: determineCategory(role),
           cricHeroesLink: cricHeroesLink.trim(),
+          manualId: manualId.toString().trim(),
           imageUrl: imageUrl.trim(),
           matches: matches.toString().trim(),
           runs: runs.toString().trim(),
@@ -154,37 +156,50 @@ const playerController = {
         return res.status(400).json({ error: 'No valid players found in file' });
       }
 
-      // Auto-fetch stats for players with CricHeroes links (parallel batches for speed)
-      const playersNeedingStats = players.filter(p => p.cricHeroesLink && !p.matches);
-      
+      // Stats enrichment: fetch only when Matches OR Runs OR Wickets is missing.
+      // Includes manual-only players (no link, has Manual ID) for cache-only lookup.
+      const needsStats = (p) => {
+        const m = (p.matches || '').toString().trim();
+        const r = (p.runs || '').toString().trim();
+        const w = (p.wickets || '').toString().trim();
+        return !m || !r || !w;
+      };
+      const playersNeedingStats = players.filter(
+        (p) => (p.cricHeroesLink || p.manualId) && needsStats(p)
+      );
+
       if (playersNeedingStats.length > 0) {
         console.log(`\n🏏 Auto-fetching stats for ${playersNeedingStats.length} players (parallel batches)...`);
         const startTime = Date.now();
-        
+
         const results = await fetchPlayerStatsBatch(playersNeedingStats);
-        
-        // Update players with fetched stats
+
+        // Update players with fetched stats - match by id (unique) so manual-only
+        // and link-based players don't collide.
         let fetchedCount = 0;
         results.forEach(({ player: playerInfo, stats }) => {
-          const player = players.find(p => p.cricHeroesLink === playerInfo.cricHeroesLink);
+          const player = players.find((p) => p.id === playerInfo.id);
           if (player && stats) {
-            player.matches = stats.matches || '';
-            player.runs = stats.runs || '';
-            player.battingAvg = stats.battingAvg || '';
-            player.highestScore = stats.highestScore || '';
-            player.wickets = stats.wickets || '';
-            player.economy = stats.economy || '';
-            player.bestBowling = stats.bestBowling || '';
-            // Only fill imageUrl if the Excel didn't already provide one
-            if (!player.imageUrl && stats.imageUrl) {
-              player.imageUrl = stats.imageUrl;
-            }
-            // Optional enrichment fields (kept lightweight; safe if undefined)
-            if (stats.strikeRate) player.strikeRate = stats.strikeRate;
+            // Field-level merge: only overwrite blanks. This preserves any
+            // values the user typed into the Excel.
+            const fillIfBlank = (key, val) => {
+              if (val == null || val === '') return;
+              const cur = (player[key] || '').toString().trim();
+              if (!cur) player[key] = val;
+            };
+            fillIfBlank('matches', stats.matches);
+            fillIfBlank('runs', stats.runs);
+            fillIfBlank('battingAvg', stats.battingAvg);
+            fillIfBlank('highestScore', stats.highestScore);
+            fillIfBlank('wickets', stats.wickets);
+            fillIfBlank('economy', stats.economy);
+            fillIfBlank('bestBowling', stats.bestBowling);
+            fillIfBlank('imageUrl', stats.imageUrl);
+            if (stats.strikeRate && !player.strikeRate) player.strikeRate = stats.strikeRate;
             fetchedCount++;
           }
         });
-        
+
         const duration = ((Date.now() - startTime) / 1000).toFixed(1);
         console.log(`✅ Stats fetching complete: ${fetchedCount}/${playersNeedingStats.length} in ${duration}s\n`);
       }
