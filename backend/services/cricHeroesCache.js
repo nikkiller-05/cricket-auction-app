@@ -18,10 +18,15 @@ const supabase = require('../config/supabase');
 const TABLE = 'cricheroes_stats';
 const TTL_DAYS = 30;
 const TTL_MS = TTL_DAYS * 24 * 60 * 60 * 1000;
+// Negative cache (failed fetches) - shorter TTL so transient failures get retried
+const NEGATIVE_TTL_DAYS = 1;
+const NEGATIVE_TTL_MS = NEGATIVE_TTL_DAYS * 24 * 60 * 60 * 1000;
 
 /**
- * Returns cached stats for a player ID if they exist and are fresh,
- * otherwise null.
+ * Returns cached entry for a player ID:
+ *   { stats: {...} }  - successful fetch, fresh
+ *   { failed: true }  - known recent failure, skip API call
+ *   null              - no usable cache entry, caller should fetch
  */
 async function getCachedStats(playerId) {
   if (!supabase || !playerId) return null;
@@ -39,11 +44,15 @@ async function getCachedStats(playerId) {
     if (!data) return null;
 
     const age = Date.now() - new Date(data.fetched_at).getTime();
-    if (age > TTL_MS) {
-      console.log(`   🕒 cache stale for ${playerId} (${Math.round(age / 86400000)}d)`);
+    const isFailureMarker = data.stats && data.stats.__failed === true;
+    const ttl = isFailureMarker ? NEGATIVE_TTL_MS : TTL_MS;
+
+    if (age > ttl) {
+      console.log(`   🕒 cache stale for ${playerId} (${Math.round(age / 86400000)}d, ${isFailureMarker ? 'fail' : 'ok'})`);
       return null;
     }
-    return data.stats;
+    if (isFailureMarker) return { failed: true };
+    return { stats: data.stats };
   } catch (e) {
     console.log(`   ⚠️  cache read exception for ${playerId}: ${e.message}`);
     return null;
@@ -51,7 +60,7 @@ async function getCachedStats(playerId) {
 }
 
 /**
- * Upsert stats for a player ID. Best-effort - errors are logged but not thrown.
+ * Upsert successful stats for a player ID.
  */
 async function setCachedStats(playerId, stats) {
   if (!supabase || !playerId || !stats) return;
@@ -74,8 +83,35 @@ async function setCachedStats(playerId, stats) {
   }
 }
 
+/**
+ * Mark a player as failed (negative cache) so we don't waste API credits
+ * re-trying a known-broken profile every upload.
+ */
+async function setCachedFailure(playerId) {
+  if (!supabase || !playerId) return;
+  try {
+    const { error } = await supabase
+      .from(TABLE)
+      .upsert(
+        {
+          player_id: String(playerId),
+          stats: { __failed: true },
+          fetched_at: new Date().toISOString(),
+        },
+        { onConflict: 'player_id' }
+      );
+    if (error) {
+      console.log(`   ⚠️  cache (negative) write error for ${playerId}: ${error.message}`);
+    }
+  } catch (e) {
+    console.log(`   ⚠️  cache (negative) write exception for ${playerId}: ${e.message}`);
+  }
+}
+
 module.exports = {
   getCachedStats,
   setCachedStats,
+  setCachedFailure,
   TTL_DAYS,
+  NEGATIVE_TTL_DAYS,
 };

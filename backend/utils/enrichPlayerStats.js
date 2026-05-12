@@ -2,7 +2,7 @@ const axios = require('axios');
 const cheerio = require('cheerio');
 const XLSX = require('xlsx');
 const path = require('path');
-const { getCachedStats, setCachedStats } = require('../services/cricHeroesCache');
+const { getCachedStats, setCachedStats, setCachedFailure } = require('../services/cricHeroesCache');
 
 // CricHeroes rate-limits aggressively (~3 concurrent before HTTP 429).
 // Keep concurrency low and add a small inter-batch delay to avoid bans.
@@ -137,21 +137,35 @@ function parseStatsHtml(html, silent = false) {
 }
 
 /**
- * Single HTTP fetch (direct or via ScraperAPI). Returns { status, data, headers }.
+ * Single HTTP fetch. Mode controls path + cost:
+ *   'direct'          - direct to cricheroes.com (free, blocked on Render)
+ *   'scraper-cheap'   - ScraperAPI cheap tier (~1 credit, may 403 on Cloudflare)
+ *   'scraper-premium' - ScraperAPI premium tier (~10 credits, residential proxy)
  */
-async function httpFetchStats(targetUrl, useScraperApi = false) {
+async function httpFetchStats(targetUrl, mode = 'direct') {
   const scraperKey = process.env.SCRAPER_API_KEY;
   let url = targetUrl;
   let timeout = 15000;
-  if (useScraperApi) {
+
+  if (mode === 'scraper-cheap' || mode === 'scraper-premium') {
     if (!scraperKey) throw new Error('SCRAPER_API_KEY not configured');
-    url =
-      'https://api.scraperapi.com/?api_key=' +
-      encodeURIComponent(scraperKey) +
-      '&url=' +
-      encodeURIComponent(targetUrl);
-    timeout = 60000; // ScraperAPI can take longer (residential rotation)
+    const params = new URLSearchParams({
+      api_key: scraperKey,
+      url: targetUrl,
+    });
+    if (mode === 'scraper-cheap') {
+      // Force cheap tier: 1 credit per request
+      params.set('premium', 'false');
+      params.set('render', 'false');
+      timeout = 30000;
+    } else {
+      // Premium tier: ~10 credits, residential proxies bypass Cloudflare
+      params.set('premium', 'true');
+      timeout = 70000;
+    }
+    url = 'https://api.scraperapi.com/?' + params.toString();
   }
+
   return axios.get(url, {
     headers: {
       'User-Agent':
@@ -176,50 +190,37 @@ async function fetchPlayerStats(cricHeroesLink, silent = false) {
     const statsUrl = `https://cricheroes.com/player-profile/${playerId}/stats`;
     if (!silent) console.log(`   Fetching: ${statsUrl}`);
 
-    // --- Step 1: direct fetch with 429 retry ---
-    let response;
-    let attempt = 0;
-    while (true) {
-      attempt++;
+    const tryTier = async (mode, label) => {
       try {
-        response = await httpFetchStats(statsUrl, false);
-        if (response.status !== 429) break;
-        if (attempt > MAX_RETRIES_ON_429) break;
-        const wait = RETRY_BACKOFF_MS * attempt;
-        if (!silent) console.log(`   ⏳ 429 from CricHeroes, retry ${attempt}/${MAX_RETRIES_ON_429} in ${wait}ms`);
-        await delay(wait);
+        const resp = await httpFetchStats(statsUrl, mode);
+        const len = typeof resp.data === 'string' ? resp.data.length : -1;
+        const hasNext = typeof resp.data === 'string' && resp.data.includes('__NEXT_DATA__');
+        if (!silent) console.log(`   📥 ${label} HTTP ${resp.status} len=${len} nextData=${hasNext}`);
+        if (resp.status >= 400) return null;
+        return parseStatsHtml(resp.data, silent);
       } catch (e) {
-        if (attempt > MAX_RETRIES_ON_429) throw e;
-        await delay(RETRY_BACKOFF_MS * attempt);
+        if (!silent) console.log(`   ⚠️  ${label} error: ${e.message}`);
+        return null;
       }
-    }
+    };
 
-    let stats = null;
-    if (response.status < 400) {
-      const bodyLen = typeof response.data === 'string' ? response.data.length : -1;
-      const hasNextData = typeof response.data === 'string' && response.data.includes('__NEXT_DATA__');
-      if (!silent) console.log(`   📥 direct HTTP ${response.status} len=${bodyLen} nextData=${hasNextData}`);
-      stats = parseStatsHtml(response.data, silent);
-    } else {
-      if (!silent) console.log(`   ❌ direct HTTP ${response.status} (will try ScraperAPI fallback)`);
-    }
+    // --- Tier 1: direct (free, residential IPs only) ---
+    let stats = await tryTier('direct', 'direct');
 
-    // --- Step 2: ScraperAPI fallback if direct failed ---
+    // --- Tier 2: ScraperAPI cheap (~1 credit) ---
     if (!stats && process.env.SCRAPER_API_KEY) {
-      try {
-        if (!silent) console.log(`   🛰️  ScraperAPI fallback for ${playerId}...`);
-        const sresp = await httpFetchStats(statsUrl, true);
-        const slen = typeof sresp.data === 'string' ? sresp.data.length : -1;
-        const sNext = typeof sresp.data === 'string' && sresp.data.includes('__NEXT_DATA__');
-        if (!silent) console.log(`   📥 scraperapi HTTP ${sresp.status} len=${slen} nextData=${sNext}`);
-        if (sresp.status < 400) {
-          stats = parseStatsHtml(sresp.data, silent);
-        }
-      } catch (e) {
-        if (!silent) console.log(`   ⚠️  ScraperAPI error: ${e.message}`);
-      }
-    } else if (!stats && !process.env.SCRAPER_API_KEY) {
-      if (!silent) console.log(`   ℹ️  SCRAPER_API_KEY not set; skipping fallback`);
+      if (!silent) console.log(`   🛰️  ScraperAPI cheap tier for ${playerId}...`);
+      stats = await tryTier('scraper-cheap', 'scraper-cheap');
+    }
+
+    // --- Tier 3: ScraperAPI premium (~10 credits) ---
+    if (!stats && process.env.SCRAPER_API_KEY) {
+      if (!silent) console.log(`   🛰️  ScraperAPI premium tier for ${playerId}...`);
+      stats = await tryTier('scraper-premium', 'scraper-premium');
+    }
+
+    if (!stats && !process.env.SCRAPER_API_KEY) {
+      if (!silent) console.log(`   ℹ️  SCRAPER_API_KEY not set; skipping ScraperAPI fallback`);
     }
 
     if (stats) {
@@ -257,14 +258,27 @@ async function fetchPlayerStatsBatch(players, concurrencyLimit = CONCURRENCY_LIM
         return { player, stats: null };
       }
 
+      // Skip if the upload already contains stats (user pre-enriched offline).
+      // We treat presence of `matches` (any non-empty value) as "already enriched".
+      const existing = player.originalRow || player;
+      const preMatches = existing.matches || existing.Matches || existing['Matches'];
+      if (preMatches && String(preMatches).trim() !== '') {
+        console.log(`   📄 ${player.name || 'unknown'}: pre-enriched in upload, skipping fetch`);
+        return { player, stats: null };
+      }
+
       const playerId = extractPlayerIdFromUrl(player.cricHeroesLink);
 
-      // 1. Cache lookup (best-effort)
+      // 1. Cache lookup (best-effort) - serves both successes and known failures
       if (playerId) {
         const cached = await getCachedStats(playerId);
-        if (cached) {
+        if (cached?.stats) {
           console.log(`   💾 ${player.name || 'unknown'}: cache HIT (${playerId})`);
-          return { player, stats: cached };
+          return { player, stats: cached.stats };
+        }
+        if (cached?.failed) {
+          console.log(`   🚫 ${player.name || 'unknown'}: cached FAILURE (${playerId}) - skipping API call`);
+          return { player, stats: null };
         }
       }
 
@@ -272,8 +286,12 @@ async function fetchPlayerStatsBatch(players, concurrencyLimit = CONCURRENCY_LIM
       const stats = await fetchPlayerStats(player.cricHeroesLink, false);
       if (!stats) {
         console.log(`   ❌ ${player.name || 'unknown'}: stats returned null`);
+        if (playerId) {
+          // Negative-cache the failure so we don't burn credits next upload
+          await setCachedFailure(playerId);
+        }
       } else if (playerId) {
-        // 2. Save successful fetch to cache (fire-and-forget; await for log ordering)
+        // Save successful fetch to cache
         await setCachedStats(playerId, stats);
       }
       return { player, stats };
