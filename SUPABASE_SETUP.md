@@ -305,16 +305,24 @@ as-is (zero credits).
 |---|---|
 | `SUPABASE_URL` | Your Supabase project URL |
 | `SUPABASE_SERVICE_ROLE_KEY` | Service role key (bypasses RLS) - required for cache writes |
-| `SCRAPER_API_KEY` | ScraperAPI free-tier key (https://www.scraperapi.com/) for Cloudflare bypass |
 
 ### How it works
 
 For each player upload, the backend:
 
-1. **Cache lookup** in `cricheroes_stats` keyed by CricHeroes player ID. If found and < 30 days old, use it (zero API calls).
-2. **Direct fetch** from cricheroes.com. Works locally; usually 403 on Render.
-3. **ScraperAPI fallback** if direct returned 403 or empty. Uses 1 of your monthly quota.
-4. **Write to cache** on any successful fetch so re-uploads skip the network entirely.
+1. **Cache lookup** in `cricheroes_stats` keyed by CricHeroes player ID. If found and < 30 days old, use it (zero network calls).
+2. **Direct fetch** from cricheroes.com. Works locally; blocked (403) on Render since Cloudflare blocks datacenter IPs.
+3. **Write to cache** on any successful fetch so re-uploads skip the network entirely.
 
-If `SCRAPER_API_KEY` is unset, step 3 is skipped (development-friendly).
-If Supabase is unreachable, cache silently no-ops and live fetches still run.
+CricHeroes stats are no longer auto-fetched via a paid scraping service. Instead, run
+the enrichment script locally (from a home/residential network) before uploading:
+
+```bash
+cd backend
+node utils/enrichPlayerStats.js /path/to/players.xlsx
+```
+
+This writes real stats straight into the shared Supabase cache (make sure your local
+`.env` points at the same Supabase project), and produces a `*_enriched.xlsx` file
+you can feed into the upload flow. If Supabase is unreachable, cache silently no-ops
+and live fetches still run (and will fail on Render, as expected).

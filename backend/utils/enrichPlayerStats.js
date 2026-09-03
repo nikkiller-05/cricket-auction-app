@@ -1,3 +1,7 @@
+// Load .env before requiring config/supabase.js, which reads process.env at import time -
+// needed since this file is also run standalone via `node utils/enrichPlayerStats.js`.
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
+
 const axios = require('axios');
 const cheerio = require('cheerio');
 const XLSX = require('xlsx');
@@ -53,6 +57,49 @@ function extractFromStatement(statement, patterns) {
  *   playerInfo.data.player_statement         (HTML blurb with HS, avg, SR, economy, sixes, fours)
  */
 /**
+ * CricHeroes migrated to Next.js App Router - the old <script id="__NEXT_DATA__">
+ * blob is gone. Player data now ships inside React Server Component streaming
+ * chunks: <script>self.__next_f.push([1,"...escaped JSON..."])</script>
+ * This pulls the `playerInfo.data` object out of that stream via brace-matching
+ * (string-aware, so escaped quotes inside values don't break the count).
+ *
+ * NOTE: This object is only present when the request is authenticated (a valid
+ * CricHeroes session cookie) - anonymous requests get a client-render-only shell.
+ */
+function extractPlayerInfoFromFlight(html) {
+  const anchorRe = /\\?"playerInfo\\?":\{\\?"status\\?":true,\\?"data\\?":/;
+  const m = html.match(anchorRe);
+  if (!m) return null;
+
+  const braceStart = m.index + m[0].length;
+  if (html[braceStart] !== '{') return null;
+
+  let depth = 0;
+  let inString = false;
+  let i = braceStart;
+  for (; i < html.length; i++) {
+    const ch = html[i];
+    if (inString) {
+      if (ch === '\\') { i++; continue; } // skip escaped char (e.g. \" )
+      if (ch === '"') inString = false;
+      continue;
+    }
+    if (ch === '"') { inString = true; continue; }
+    if (ch === '{') depth++;
+    else if (ch === '}') { depth--; if (depth === 0) { i++; break; } }
+  }
+
+  // The extracted text is double-escaped (it's JSON embedded in a JS string
+  // literal), so unescape the outer \" before JSON.parse handles \uXXXX etc.
+  const raw = html.slice(braceStart, i).replace(/\\"/g, '"');
+  try {
+    return JSON.parse(raw);
+  } catch (e) {
+    return null;
+  }
+}
+
+/**
  * Parse the HTML body of a CricHeroes player-profile page into a stats object.
  * Returns null if the body looks like a Cloudflare challenge / no useful data.
  */
@@ -75,17 +122,21 @@ function parseStatsHtml(html, silent = false) {
     strikeRate: '',
   };
 
-  // 1. Try the structured JSON path first
-  let info = null;
-  const nextDataMatch = html.match(
-    /<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/
-  );
-  if (nextDataMatch) {
-    try {
-      const json = JSON.parse(nextDataMatch[1]);
-      info = json?.props?.pageProps?.playerInfo?.data || null;
-    } catch (e) {
-      if (!silent) console.log(`   ⚠️  __NEXT_DATA__ parse failed: ${e.message}`);
+  // 1. Current format: playerInfo.data inside a Next.js RSC flight chunk
+  let info = extractPlayerInfoFromFlight(html);
+
+  // 2. Legacy format fallback, in case an older cached page ever comes through
+  if (!info) {
+    const nextDataMatch = html.match(
+      /<script id="__NEXT_DATA__" type="application\/json">([\s\S]*?)<\/script>/
+    );
+    if (nextDataMatch) {
+      try {
+        const json = JSON.parse(nextDataMatch[1]);
+        info = json?.props?.pageProps?.playerInfo?.data || null;
+      } catch (e) {
+        if (!silent) console.log(`   ⚠️  __NEXT_DATA__ parse failed: ${e.message}`);
+      }
     }
   }
 
@@ -137,44 +188,30 @@ function parseStatsHtml(html, silent = false) {
 }
 
 /**
- * Single HTTP fetch. Mode controls path + cost:
- *   'direct'          - direct to cricheroes.com (free, blocked on Render)
- *   'scraper-cheap'   - ScraperAPI cheap tier (~1 credit, may 403 on Cloudflare)
- *   'scraper-premium' - ScraperAPI premium tier (~10 credits, residential proxy)
+ * Direct HTTP fetch to cricheroes.com. Only succeeds from non-datacenter IPs
+ * (i.e. run this locally, not on Render) - Cloudflare blocks cloud IPs.
+ *
+ * Also requires an authenticated session: the actual stats JSON is only
+ * server-rendered for logged-in requests. Set CRICHEROES_COOKIE in .env to
+ * the full `Cookie` header value copied from a logged-in browser session
+ * (DevTools -> Network -> any cricheroes.com request -> Request Headers).
+ * That cookie (in particular cf_clearance/__cf_bm) expires periodically and
+ * will need re-copying from the browser when fetches start failing again.
  */
-async function httpFetchStats(targetUrl, mode = 'direct') {
-  const scraperKey = process.env.SCRAPER_API_KEY;
-  let url = targetUrl;
-  let timeout = 15000;
-
-  if (mode === 'scraper-cheap' || mode === 'scraper-premium') {
-    if (!scraperKey) throw new Error('SCRAPER_API_KEY not configured');
-    const params = new URLSearchParams({
-      api_key: scraperKey,
-      url: targetUrl,
-    });
-    if (mode === 'scraper-cheap') {
-      // Force cheap tier: 1 credit per request
-      params.set('premium', 'false');
-      params.set('render', 'false');
-      timeout = 30000;
-    } else {
-      // Premium tier: ~10 credits, residential proxies bypass Cloudflare
-      params.set('premium', 'true');
-      timeout = 70000;
-    }
-    url = 'https://api.scraperapi.com/?' + params.toString();
+async function httpFetchStats(targetUrl) {
+  const headers = {
+    'User-Agent':
+      'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36',
+    Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
+    'Accept-Language': 'en-US,en;q=0.9',
+    Referer: 'https://cricheroes.com/',
+  };
+  if (process.env.CRICHEROES_COOKIE) {
+    headers.Cookie = process.env.CRICHEROES_COOKIE;
   }
-
-  return axios.get(url, {
-    headers: {
-      'User-Agent':
-        'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/145.0.0.0 Safari/537.36',
-      Accept: 'text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8',
-      'Accept-Language': 'en-US,en;q=0.9',
-      Referer: 'https://cricheroes.com/',
-    },
-    timeout,
+  return axios.get(targetUrl, {
+    headers,
+    timeout: 15000,
     validateStatus: (s) => s < 500,
   });
 }
@@ -190,45 +227,19 @@ async function fetchPlayerStats(cricHeroesLink, silent = false) {
     const statsUrl = `https://cricheroes.com/player-profile/${playerId}/stats`;
     if (!silent) console.log(`   Fetching: ${statsUrl}`);
 
-    const tryTier = async (mode, label) => {
-      try {
-        const resp = await httpFetchStats(statsUrl, mode);
-        const len = typeof resp.data === 'string' ? resp.data.length : -1;
-        const hasNext = typeof resp.data === 'string' && resp.data.includes('__NEXT_DATA__');
-        if (!silent) console.log(`   📥 ${label} HTTP ${resp.status} len=${len} nextData=${hasNext}`);
-        if (resp.status >= 400) return null;
-        return parseStatsHtml(resp.data, silent);
-      } catch (e) {
-        if (!silent) console.log(`   ⚠️  ${label} error: ${e.message}`);
-        return null;
-      }
-    };
+    const resp = await httpFetchStats(statsUrl);
+    const len = typeof resp.data === 'string' ? resp.data.length : -1;
+    const hasPlayerInfo = typeof resp.data === 'string' && resp.data.includes('"playerInfo"');
+    if (!silent) console.log(`   📥 direct HTTP ${resp.status} len=${len} playerInfo=${hasPlayerInfo}`);
 
-    // --- Tier 1: direct (free, residential IPs only) ---
-    let stats = await tryTier('direct', 'direct');
-
-    // --- Tier 2: ScraperAPI cheap (~1 credit) ---
-    if (!stats && process.env.SCRAPER_API_KEY) {
-      if (!silent) console.log(`   🛰️  ScraperAPI cheap tier for ${playerId}...`);
-      stats = await tryTier('scraper-cheap', 'scraper-cheap');
-    }
-
-    // --- Tier 3: ScraperAPI premium (~10 credits) ---
-    if (!stats && process.env.SCRAPER_API_KEY) {
-      if (!silent) console.log(`   🛰️  ScraperAPI premium tier for ${playerId}...`);
-      stats = await tryTier('scraper-premium', 'scraper-premium');
-    }
-
-    if (!stats && !process.env.SCRAPER_API_KEY) {
-      if (!silent) console.log(`   ℹ️  SCRAPER_API_KEY not set; skipping ScraperAPI fallback`);
-    }
+    const stats = resp.status < 400 ? parseStatsHtml(resp.data, silent) : null;
 
     if (stats) {
       if (!silent) console.log(`   ✅ Stats fetched for ${playerId}`);
       return stats;
     }
 
-    if (!silent) console.log(`   ❌ All fetch attempts failed for ${playerId}`);
+    if (!silent) console.log(`   ❌ Fetch failed for ${playerId} - check CRICHEROES_COOKIE is set and not expired`);
     return null;
   } catch (error) {
     if (error.response && error.response.status === 404) {
