@@ -17,6 +17,7 @@ const SIZES = {
   lg: { box: 'w-20 h-20', text: 'text-xl', px: 80 },
   xl: { box: 'w-32 h-32', text: 'text-3xl', px: 128 },
   '2xl': { box: 'w-40 h-40 sm:w-48 sm:h-48 lg:w-56 lg:h-56', text: 'text-5xl', px: 224 },
+  '3xl': { box: 'w-48 h-48 sm:w-60 sm:h-60 lg:w-72 lg:h-72', text: 'text-6xl', px: 288 },
 };
 
 const GRADIENTS = [

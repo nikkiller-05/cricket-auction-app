@@ -14,6 +14,7 @@ import SubAdminManagement from './SubAdminManagement';
 import Header from './Header';
 import LiveBiddingCard from './LiveBiddingCard';
 import PlayerNameLink from './PlayerNameLink';
+import PlayerAvatar from './PlayerAvatar';
 import { useNotification } from './NotificationSystem';
 
 // Use environment variable for backend URL, fallback to localhost for dev
@@ -124,6 +125,28 @@ const getCategoryStyle = (category) => {
       };
   }
 };
+
+// Readable category label (e.g. "wicket-keeper" -> "Keeper")
+const CATEGORY_LABELS = {
+  batter: 'Batter',
+  bowler: 'Bowler',
+  allrounder: 'All-rounder',
+  'wicket-keeper': 'Keeper',
+  captain: 'Captain',
+  other: 'Other',
+};
+const formatCategoryLabel = (c) =>
+  CATEGORY_LABELS[c] || (c ? c.charAt(0).toUpperCase() + c.slice(1) : 'Other');
+
+// Indian-style number formatting for currency
+const formatCurrency = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
+
+// Reusable colored category pill
+const CategoryTag = ({ category, className = '' }) => (
+  <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getCategoryStyle(category).badge} ${className}`}>
+    {formatCategoryLabel(category)}
+  </span>
+);
 
 // Enhanced TeamSquadViewer Component
 const TeamSquadViewer = ({ teams, players }) => {
@@ -1318,6 +1341,7 @@ const UnifiedDashboard = () => {
             leadingTeamName={biddingTeam ? cleanTeamName(biddingTeam.name) : null}
             leadingTeamBudget={biddingTeam ? biddingTeam.budget : null}
             isFastTrack={auctionData.auctionStatus === 'fast-track'}
+            spectator={!isAdmin}
             rightSlot={isAdmin ? (
               <div>
                 {/* Section label */}
@@ -1662,15 +1686,7 @@ const UnifiedDashboard = () => {
                             <div className="flex-1">
                               <div className="flex items-center space-x-2">
                                 <span className="font-medium text-gray-900">{transaction.playerName}</span>
-                                <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                  transaction.playerCategory === 'batter' ? 'bg-blue-100 text-blue-800' :
-                                  transaction.playerCategory === 'bowler' ? 'bg-red-100 text-red-800' :
-                                  transaction.playerCategory === 'allrounder' ? 'bg-orange-100 text-orange-800' :
-                                  transaction.playerCategory === 'wicket-keeper' ? 'bg-green-100 text-green-800' :
-                                  'bg-gray-100 text-gray-800'
-                                }`}>
-                                  {transaction.playerCategory === 'wicket-keeper' ? 'keeper' : transaction.playerCategory}
-                                </span>
+                                <CategoryTag category={transaction.playerCategory} />
                               </div>
                               <div className="text-sm text-gray-600 mt-1">
                                 {transaction.playerRole}
@@ -1680,7 +1696,7 @@ const UnifiedDashboard = () => {
                             <div className="text-right">
                               {transaction.type === 'sold' ? (
                                 <>
-                                  <div className="font-bold text-green-600">₹{transaction.finalBid}</div>
+                                  <div className="font-bold text-green-600">{formatCurrency(transaction.finalBid)}</div>
                                   <div className="text-sm text-gray-700">
                                     Sold to <span className={`px-2 py-1 rounded-full text-xs font-bold ml-1 ${getTeamStyle(transaction.player?.team, auctionData.teams)}`}>
                                       🏏 {cleanTeamName(team?.name) || 'Unknown Team'}
@@ -1689,7 +1705,7 @@ const UnifiedDashboard = () => {
                                 </>
                               ) : transaction.type === 'retained' ? (
                                 <>
-                                  <div className="font-bold text-purple-600">₹{transaction.finalBid}</div>
+                                  <div className="font-bold text-purple-600">{formatCurrency(transaction.finalBid)}</div>
                                   <div className="text-sm text-gray-700">
                                     Retained by <span className={`px-2 py-1 rounded-full text-xs font-bold ml-1 ${getTeamStyle(transaction.player?.team, auctionData.teams)}`}>
                                       🏏 {cleanTeamName(team?.name) || 'Unknown Team'}
@@ -1698,7 +1714,7 @@ const UnifiedDashboard = () => {
                                 </>
                               ) : transaction.type === 'captain-assigned' ? (
                                 <>
-                                  <div className="font-bold text-yellow-700">👑 ₹{transaction.finalBid || 0}</div>
+                                  <div className="font-bold text-yellow-700">👑 {formatCurrency(transaction.finalBid || 0)}</div>
                                   <div className="text-sm text-gray-700">
                                     Captain of <span className={`px-2 py-1 rounded-full text-xs font-bold ml-1 ${getTeamStyle(transaction.team?.id, auctionData.teams)}`}>
                                       🏏 {cleanTeamName(team?.name) || 'Unknown Team'}
@@ -1969,18 +1985,21 @@ const UnifiedDashboard = () => {
                                 const capAmt = player.captainAmount || team?.captainAmount || player.finalBid || 0;
                                 return (
                                   <div key={player.id} className="border rounded-lg p-4 bg-purple-50">
-                                    <div className="flex justify-between items-start mb-2">
-                                      <h5 className="font-medium text-gray-900 flex items-center">
-                                        <span className="mr-1">👑</span>
-                                        <PlayerNameLink player={player} />
-                                      </h5>
-                                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                    <div className="flex justify-between items-start mb-2 gap-3">
+                                      <div className="flex items-center gap-3 min-w-0">
+                                        <PlayerAvatar player={player} size="md" />
+                                        <h5 className="font-medium text-gray-900 flex items-center min-w-0">
+                                          <span className="mr-1">👑</span>
+                                          <PlayerNameLink player={player} />
+                                        </h5>
+                                      </div>
+                                      <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 shrink-0">
                                         Captain
                                       </span>
                                     </div>
                                     <p className="text-sm text-gray-600 mb-2">{player.role}</p>
                                     <div className="text-sm">
-                                      <p className="font-medium text-purple-600 mb-2">₹{capAmt}</p>
+                                      <p className="font-medium text-purple-600 mb-2">{formatCurrency(capAmt)}</p>
                                       <div className="mt-2">
                                         <span className={`px-3 py-1 rounded-full text-xs font-bold ${getTeamStyle(player.team || team?.id, auctionData.teams)}`}>
                                           🏏 {cleanTeamName(team?.name) || 'No Team'}
@@ -2006,21 +2025,16 @@ const UnifiedDashboard = () => {
                                 const team = auctionData.teams?.find(t => t.id === player.team);
                                 return (
                                   <div key={player.id} className="bg-green-50 border-2 border-green-300 border-opacity-60 rounded-lg p-4 hover:shadow-lg hover:border-green-400 hover:border-opacity-80 transition-colors duration-150">
-                                    <div className="flex justify-between items-start mb-2">
-                                      <h5 className="text-lg font-bold text-gray-900"><PlayerNameLink player={player} /></h5>
-                                      <span className={`px-2 py-1 rounded-full text-xs font-semibold ${
-                                        player.category === 'batter' ? 'bg-blue-100 text-blue-800' :
-                                        player.category === 'bowler' ? 'bg-red-100 text-red-800' :
-                                        player.category === 'allrounder' ? 'bg-orange-100 text-orange-800' :
-                                        player.category === 'wicket-keeper' ? 'bg-green-100 text-green-800' :
-                                        'bg-gray-100 text-gray-800'
-                                      }`}>
-                                        {player.category === 'wicket-keeper' ? 'keeper' : player.category}
-                                      </span>
+                                    <div className="flex justify-between items-start mb-2 gap-3">
+                                      <div className="flex items-center gap-3 min-w-0">
+                                        <PlayerAvatar player={player} size="md" />
+                                        <h5 className="text-lg font-bold text-gray-900 min-w-0"><PlayerNameLink player={player} /></h5>
+                                      </div>
+                                      <CategoryTag category={player.category} className="shrink-0" />
                                     </div>
                                     <p className="text-sm text-gray-600 mb-3">{player.role}</p>
                                     <div className="text-sm space-y-3">
-                                      <p className="text-lg font-bold text-green-600">₹{player.finalBid}</p>
+                                      <p className="text-lg font-bold text-green-600">{formatCurrency(player.finalBid)}</p>
                                       <div className="text-sm text-gray-700">
                                         Sold to <span className={`px-3 py-1 rounded-full text-xs font-bold ml-1 ${getTeamStyle(player.team, auctionData.teams)}`}>
                                           🏏 {cleanTeamName(team?.name)}
@@ -2045,17 +2059,12 @@ const UnifiedDashboard = () => {
                               {availablePlayers.map((player) => {
                                 return (
                                   <div key={player.id} className="border rounded-lg p-4 bg-yellow-50">
-                                    <div className="flex justify-between items-start mb-2">
-                                      <h5 className="font-medium text-gray-900"><PlayerNameLink player={player} /></h5>
-                                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                        player.category === 'batter' ? 'bg-blue-100 text-blue-800' :
-                                        player.category === 'bowler' ? 'bg-red-100 text-red-800' :
-                                        player.category === 'allrounder' ? 'bg-orange-100 text-orange-800' :
-                                        player.category === 'wicket-keeper' ? 'bg-green-100 text-green-800' :
-                                        'bg-gray-100 text-gray-800'
-                                      }`}>
-                                        {player.category === 'wicket-keeper' ? 'keeper' : player.category}
-                                      </span>
+                                    <div className="flex justify-between items-start mb-2 gap-3">
+                                      <div className="flex items-center gap-3 min-w-0">
+                                        <PlayerAvatar player={player} size="md" />
+                                        <h5 className="font-medium text-gray-900 min-w-0"><PlayerNameLink player={player} /></h5>
+                                      </div>
+                                      <CategoryTag category={player.category} className="shrink-0" />
                                     </div>
                                     <p className="text-sm text-gray-600 mb-2">{player.role}</p>
                                     <div className="text-sm">
@@ -2081,17 +2090,12 @@ const UnifiedDashboard = () => {
                               {unsoldPlayers.map((player) => {
                                 return (
                                   <div key={player.id} className="border border-red-200 rounded-lg p-4 bg-red-50">
-                                    <div className="flex justify-between items-start mb-2">
-                                      <h5 className="font-medium text-gray-900"><PlayerNameLink player={player} /></h5>
-                                      <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                        player.category === 'batter' ? 'bg-blue-100 text-blue-800' :
-                                        player.category === 'bowler' ? 'bg-red-100 text-red-800' :
-                                        player.category === 'allrounder' ? 'bg-orange-100 text-orange-800' :
-                                        player.category === 'wicket-keeper' ? 'bg-green-100 text-green-800' :
-                                        'bg-gray-100 text-gray-800'
-                                      }`}>
-                                        {player.category === 'wicket-keeper' ? 'keeper' : player.category}
-                                      </span>
+                                    <div className="flex justify-between items-start mb-2 gap-3">
+                                      <div className="flex items-center gap-3 min-w-0">
+                                        <PlayerAvatar player={player} size="md" />
+                                        <h5 className="font-medium text-gray-900 min-w-0"><PlayerNameLink player={player} /></h5>
+                                      </div>
+                                      <CategoryTag category={player.category} className="shrink-0" />
                                     </div>
                                     <p className="text-sm text-gray-600 mb-2">{player.role}</p>
                                     <div className="flex items-center text-red-600">
@@ -2138,7 +2142,7 @@ const UnifiedDashboard = () => {
                                         </div>
                                         <div className="text-right">
                                           <div className="text-sm text-gray-600 font-medium">Total Retention Cost</div>
-                                          <div className="text-lg font-bold text-cyan-700">₹{totalRetentionAmount}</div>
+                                          <div className="text-lg font-bold text-cyan-700">{formatCurrency(totalRetentionAmount)}</div>
                                         </div>
                                       </div>
                                     </div>
@@ -2197,7 +2201,7 @@ const UnifiedDashboard = () => {
                                               </td>
                                               <td className="py-4 px-6 text-sm text-right">
                                                 <span className="font-bold text-cyan-700 text-lg">
-                                                  ₹{player.retentionAmount || player.finalBid || 0}
+                                                  {formatCurrency(player.retentionAmount || player.finalBid || 0)}
                                                 </span>
                                               </td>
                                             </tr>
@@ -2227,7 +2231,7 @@ const UnifiedDashboard = () => {
                                 </div>
                                 <div className="bg-purple-50 bg-opacity-60 rounded-lg p-4 text-center border-2 border-purple-300 border-opacity-70 shadow-lg">
                                   <div className="text-2xl font-bold text-purple-600">
-                                    ₹{retainedPlayers.reduce((sum, player) => sum + (player.retentionAmount || player.finalBid || 0), 0)}
+                                    {formatCurrency(retainedPlayers.reduce((sum, player) => sum + (player.retentionAmount || player.finalBid || 0), 0))}
                                   </div>
                                   <div className="text-sm text-gray-600 font-medium">Total Retention Value</div>
                                 </div>
@@ -2258,18 +2262,21 @@ const UnifiedDashboard = () => {
                                   const capAmt = player.captainAmount || team?.captainAmount || player.finalBid || 0;
                                   return (
                                     <div key={player.id} className="border-2 border-purple-300 rounded-lg p-4 bg-purple-50">
-                                      <div className="flex justify-between items-start mb-2">
-                                        <h5 className="font-medium text-gray-900 flex items-center">
-                                          <span className="mr-1">👑</span>
-                                          <PlayerNameLink player={player} />
-                                        </h5>
-                                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800">
+                                      <div className="flex justify-between items-start mb-2 gap-3">
+                                        <div className="flex items-center gap-3 min-w-0">
+                                          <PlayerAvatar player={player} size="md" />
+                                          <h5 className="font-medium text-gray-900 flex items-center min-w-0">
+                                            <span className="mr-1">👑</span>
+                                            <PlayerNameLink player={player} />
+                                          </h5>
+                                        </div>
+                                        <span className="px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-800 shrink-0">
                                           Captain
                                         </span>
                                       </div>
                                       <p className="text-sm text-gray-600 mb-2">{player.role}</p>
                                       <div className="text-sm">
-                                        <p className="font-medium text-purple-600 mb-2">₹{capAmt}</p>
+                                        <p className="font-medium text-purple-600 mb-2">{formatCurrency(capAmt)}</p>
                                         <div className="mt-2">
                                           <span className={`px-3 py-1 rounded-full text-xs font-bold ${getTeamStyle(player.team || team?.id, auctionData.teams)}`}>
                                             🏏 {cleanTeamName(team?.name) || 'No Team'}
@@ -2302,22 +2309,17 @@ const UnifiedDashboard = () => {
                                     const team = auctionData.teams?.find(t => t.id === player.team);
                                     return (
                                       <div key={player.id} className="border-2 border-gray-300 rounded-lg p-4 bg-white bg-opacity-40">
-                                        <div className="flex justify-between items-start mb-2">
-                                          <h5 className="font-medium text-gray-900"><PlayerNameLink player={player} /></h5>
-                                          <span className={`px-2 py-1 rounded-full text-xs font-medium ${
-                                            player.category === 'batter' ? 'bg-blue-100 text-blue-800' :
-                                            player.category === 'bowler' ? 'bg-red-100 text-red-800' :
-                                            player.category === 'allrounder' ? 'bg-orange-100 text-orange-800' :
-                                            player.category === 'wicket-keeper' ? 'bg-green-100 text-green-800' :
-                                            'bg-gray-100 text-gray-800'
-                                          }`}>
-                                            {player.category === 'wicket-keeper' ? 'keeper' : player.category}
-                                          </span>
+                                        <div className="flex justify-between items-start mb-2 gap-3">
+                                          <div className="flex items-center gap-3 min-w-0">
+                                            <PlayerAvatar player={player} size="md" />
+                                            <h5 className="font-medium text-gray-900 min-w-0"><PlayerNameLink player={player} /></h5>
+                                          </div>
+                                          <CategoryTag category={player.category} className="shrink-0" />
                                         </div>
                                         <p className="text-sm text-gray-600 mb-2">{player.role}</p>
                                         {status === 'retained' && (
                                           <div className="text-sm space-y-2">
-                                            <p className="font-medium text-purple-600 mb-2">₹{player.retentionAmount || player.finalBid || 0}</p>
+                                            <p className="font-medium text-purple-600 mb-2">{formatCurrency(player.retentionAmount || player.finalBid || 0)}</p>
                                             <div className="mt-2">
                                               <span className={`px-3 py-1 rounded-full text-xs font-bold ${getTeamStyle(player.team, auctionData.teams)}`}>
                                                 🏏 {cleanTeamName(team?.name)}
@@ -2327,7 +2329,7 @@ const UnifiedDashboard = () => {
                                         )}
                                         {status === 'sold' && (
                                           <div className="text-sm space-y-2">
-                                            <p className="font-medium text-green-600 mb-2">₹{player.finalBid}</p>
+                                            <p className="font-medium text-green-600 mb-2">{formatCurrency(player.finalBid)}</p>
                                             <div className="mt-2">
                                               <span className={`px-3 py-1 rounded-full text-xs font-bold ${getTeamStyle(player.team, auctionData.teams)}`}>
                                                 🏏 {cleanTeamName(team?.name)}

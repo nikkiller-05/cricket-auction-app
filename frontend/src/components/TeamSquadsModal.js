@@ -195,7 +195,7 @@ const TeamSquadsModal = ({ isOpen, onClose, teams = [], players = [] }) => {
       <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose} />
       <div className="relative flex w-full max-w-4xl max-h-[92vh] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 shadow-2xl">
         <div className="flex flex-shrink-0 flex-wrap items-center justify-between gap-2 px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200 bg-white">
-          <h3 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">🖼️ Team Squads</h3>
+          <h3 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">👥 Team Squads</h3>
           <div className="flex items-center gap-2 sm:gap-3">
             <Button variant="primary" size="sm" onClick={downloadAllPdf} className="whitespace-nowrap">
               <span className="text-base leading-none">⬇️</span>
@@ -223,7 +223,7 @@ const TeamSquadsModal = ({ isOpen, onClose, teams = [], players = [] }) => {
                   accent={TEAM_ACCENTS[idx % TEAM_ACCENTS.length]}
                 />
               </div>
-              <Button variant="secondary" size="sm" onClick={() => downloadPng(team)}>
+              <Button variant="primary" size="sm" onClick={() => downloadPng(team)}>
                 <span className="text-base leading-none">🖼️</span>
                 Download this squad (PNG)
               </Button>
