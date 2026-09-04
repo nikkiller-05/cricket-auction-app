@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNotification } from './NotificationSystem';
 import PlayerAvatar from './PlayerAvatar';
 import PlayerImageUpload from './PlayerImageUpload';
+import PlayerFormModal from './PlayerFormModal';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 // Module-scope helpers — stable references, never recreated per render.
@@ -40,12 +41,48 @@ const getCategoryStyle = (category) =>
   CATEGORY_STYLES[category] || 'bg-gray-100 text-gray-800 border-gray-300';
 
 const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole, onDataRefresh }) => {
-  const { showWarning, showError } = useNotification();
+  const { showWarning, showError, showConfirm, showSuccess } = useNotification();
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
   const [statusFilter, setStatusFilter] = useState('all');
+
+  // Manual add/edit player modal state
+  const [showPlayerForm, setShowPlayerForm] = useState(false);
+  const [playerFormMode, setPlayerFormMode] = useState('add');
+  const [editingPlayer, setEditingPlayer] = useState(null);
+
+  // Only admins/super-admins can add/edit/delete players (matches backend).
+  const canConfigure = ['super-admin', 'admin'].includes(userRole);
+
+  const openAddPlayer = useCallback(() => {
+    setPlayerFormMode('add');
+    setEditingPlayer(null);
+    setShowPlayerForm(true);
+  }, []);
+
+  const openEditPlayer = useCallback((player) => {
+    setPlayerFormMode('edit');
+    setEditingPlayer(player);
+    setShowPlayerForm(true);
+  }, []);
+
+  const handleDeletePlayer = useCallback((player) => {
+    showConfirm(
+      `Delete "${player.name}"? This cannot be undone.`,
+      'Delete Player',
+      async () => {
+        try {
+          await axios.delete(`${API_BASE_URL}/api/players/${player.id}`);
+          showSuccess(`${player.name} deleted`, 'Player Deleted');
+          if (onDataRefresh) onDataRefresh();
+        } catch (err) {
+          showError(err.response?.data?.error || 'Could not delete player', 'Delete Failed');
+        }
+      }
+    );
+  }, [showConfirm, showSuccess, showError, onDataRefresh]);
 
   // Debounce search so filtering doesn't run on every keystroke.
   useEffect(() => {
@@ -114,6 +151,14 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
             </span>
           )}
         </h3>
+        {canConfigure && (
+          <button
+            onClick={openAddPlayer}
+            className="inline-flex items-center gap-1.5 bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-semibold px-4 py-2 rounded-lg text-sm shadow-md shadow-emerald-500/30 transition-[background-color,transform] duration-150 hover:-translate-y-0.5 active:translate-y-0"
+          >
+            ➕ Add Player
+          </button>
+        )}
       </div>
 
       {/* Search and Filter Controls */}
@@ -304,6 +349,22 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
                               🔥 Bidding
                             </span>
                           )}
+                          {canConfigure && (
+                            <>
+                              <button
+                                onClick={() => openEditPlayer(player)}
+                                className="inline-flex items-center gap-1 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 transition-colors"
+                              >
+                                ✏️ Edit
+                              </button>
+                              <button
+                                onClick={() => handleDeletePlayer(player)}
+                                className="inline-flex items-center gap-1 bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-1.5 rounded-lg text-xs font-semibold border border-rose-200 transition-colors"
+                              >
+                                🗑️ Delete
+                              </button>
+                            </>
+                          )}
                         </div>
                       </td>
                     )}
@@ -342,6 +403,13 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
           </p>
         </div>
       )}
+
+      <PlayerFormModal
+        isOpen={showPlayerForm}
+        mode={playerFormMode}
+        player={editingPlayer}
+        onClose={() => setShowPlayerForm(false)}
+      />
     </div>
   );
 });

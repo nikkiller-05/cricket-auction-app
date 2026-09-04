@@ -7,6 +7,7 @@ import PlayerUploadModal from './PlayerUploadModal';
 import TeamManagement from './TeamManagement';
 import ResetControls from './ResetControls';
 import PlayersList from './PlayersList';
+import PlayerFormModal from './PlayerFormModal';
 import StatsDisplay from './StatsDisplay';
 import SubAdminManagement from './SubAdminManagement';
 import Header from './Header';
@@ -413,8 +414,9 @@ const UnifiedDashboard = () => {
   const [showDownloadDropdown, setShowDownloadDropdown] = useState(false);
   
   // Upload Players modal state
-  const [showUploadModal, setShowUploadModal] = useState(false);
-  
+  const [showUploadModal, setShowUploadModal] = useState(false);  
+  // Add Player (manual, from empty state) modal
+  const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
   // Edit Settings modal state
   const [showEditSettingsModal, setShowEditSettingsModal] = useState(false);
   const [settingsConfig, setSettingsConfig] = useState({
@@ -2383,6 +2385,14 @@ const UnifiedDashboard = () => {
                       Upload Players
                     </button>
                   )}
+                  {isAdmin && canConfigure && (
+                    <button
+                      onClick={() => setShowAddPlayerModal(true)}
+                      className="mt-4 ml-3 bg-emerald-600 text-white px-6 py-3 rounded-xl hover:bg-emerald-700 border border-emerald-500/40 shadow-md"
+                    >
+                      ➕ Add Player Manually
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -2518,6 +2528,13 @@ const UnifiedDashboard = () => {
         onClose={() => setShowUploadModal(false)}
         onUploadSuccess={handleUploadSuccess}
         onDataRefresh={fetchAuctionData}
+      />
+
+      {/* Add Player Manually Modal (from empty state) */}
+      <PlayerFormModal
+        isOpen={showAddPlayerModal}
+        mode="add"
+        onClose={() => setShowAddPlayerModal(false)}
       />
 
       {/* Edit Settings Modal */}

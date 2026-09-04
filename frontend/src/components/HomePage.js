@@ -71,7 +71,9 @@ const HomePage = () => {
     setResumeLoading(true);
     setLoginError('');
     try {
-      await axios.post(`${API_BASE_URL}/api/auction/reset`);
+      // Full wipe (players, teams, fileUploaded=false) - not the soft
+      // auction/reset which keeps players around.
+      await axios.delete(`${API_BASE_URL}/api/players/clear`);
       setResumeStep(null);
       setSavedSession(null);
       navigate('/setup');
@@ -116,8 +118,11 @@ const HomePage = () => {
         {/* Header */}
         <header className="pt-12 pb-4">
           <div className="max-w-6xl mx-auto px-4 text-center">
-            <h1 className="text-5xl md:text-7xl font-extrabold mb-4 tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-100 to-fuchsia-200 drop-shadow-[0_4px_30px_rgba(139,92,246,0.4)]">
-              🏏 Cricket Auction
+            <h1 className="text-5xl md:text-7xl font-extrabold mb-4 tracking-tight drop-shadow-[0_4px_30px_rgba(139,92,246,0.4)]">
+              <span aria-hidden="true">🏏</span>{' '}
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-100 to-fuchsia-200">
+                Cricket Auction
+              </span>
             </h1>
             <p className="text-lg md:text-xl text-indigo-200/90 font-light">
               Experience the thrill of live player auctions

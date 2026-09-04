@@ -406,6 +406,159 @@ const playerController = {
         error: error.message || 'Error uploading player image' 
       });
     }
+  },
+
+  // Add a single player manually (e.g. a late registration)
+  async addPlayer(req, res) {
+    try {
+      const body = req.body || {};
+      const name = (body.name || '').toString().trim();
+      if (!name) {
+        return res.status(400).json({ error: 'Player name is required' });
+      }
+
+      const role = (body.role || '').toString().trim();
+      const players = dataService.getPlayers();
+      const nextSlNo =
+        players.reduce((max, p) => Math.max(max, parseInt(p.slNo, 10) || 0), 0) + 1;
+
+      const player = {
+        id: uuidv4(),
+        slNo: nextSlNo,
+        name,
+        role,
+        category: determineCategory(role),
+        cricHeroesLink: (body.cricHeroesLink || '').toString().trim(),
+        manualId: (body.manualId || '').toString().trim(),
+        imageUrl: (body.imageUrl || '').toString().trim(),
+        matches: (body.matches || '').toString().trim(),
+        runs: (body.runs || '').toString().trim(),
+        battingAvg: (body.battingAvg || '').toString().trim(),
+        highestScore: (body.highestScore || '').toString().trim(),
+        wickets: (body.wickets || '').toString().trim(),
+        economy: (body.economy || '').toString().trim(),
+        bestBowling: (body.bestBowling || '').toString().trim(),
+        status: 'available',
+        currentBid: 0,
+        finalBid: 0,
+        team: null,
+        biddingTeam: null,
+      };
+
+      players.push(player);
+      dataService.setPlayers(players);
+
+      const stats = calculateStats(dataService.getPlayers());
+      dataService.updateStats(stats);
+
+      socketService.emit('playersUpdated', dataService.getPlayers());
+      socketService.emit('statsUpdated', stats);
+
+      console.log(`➕ Player added manually: ${name} (${player.category})`);
+      res.json({ message: 'Player added successfully', player });
+    } catch (error) {
+      console.error('Error adding player:', error);
+      res.status(500).json({ error: error.message || 'Error adding player' });
+    }
+  },
+
+  // Edit a player's profile fields (auction fields stay protected)
+  async updatePlayer(req, res) {
+    try {
+      const { id } = req.params;
+      const players = dataService.getPlayers();
+      const player = players.find((p) => p.id === id);
+      if (!player) {
+        return res.status(404).json({ error: 'Player not found' });
+      }
+
+      const body = req.body || {};
+      // Only profile fields are editable here; never status/team/bid amounts.
+      const editableStrings = [
+        'name', 'role', 'cricHeroesLink', 'manualId', 'imageUrl',
+        'matches', 'runs', 'battingAvg', 'highestScore', 'wickets',
+        'economy', 'bestBowling',
+      ];
+      editableStrings.forEach((key) => {
+        if (body[key] !== undefined) {
+          player[key] = body[key].toString().trim();
+        }
+      });
+
+      if (!player.name) {
+        return res.status(400).json({ error: 'Player name cannot be empty' });
+      }
+
+      // Role drives category, so keep them in sync when role changes.
+      if (body.role !== undefined) {
+        player.category = determineCategory(player.role);
+      }
+
+      dataService.setPlayers(players);
+
+      const stats = calculateStats(dataService.getPlayers());
+      dataService.updateStats(stats);
+
+      socketService.emit('playersUpdated', dataService.getPlayers());
+      socketService.emit('statsUpdated', stats);
+
+      console.log(`✏️  Player updated: ${player.name}`);
+      res.json({ message: 'Player updated successfully', player });
+    } catch (error) {
+      console.error('Error updating player:', error);
+      res.status(500).json({ error: error.message || 'Error updating player' });
+    }
+  },
+
+  // Delete a player (guarded so sold / actively-bid players can't desync data)
+  async deletePlayer(req, res) {
+    try {
+      const { id } = req.params;
+      const players = dataService.getPlayers();
+      const player = players.find((p) => p.id === id);
+      if (!player) {
+        return res.status(404).json({ error: 'Player not found' });
+      }
+
+      if (player.status === 'sold') {
+        return res.status(400).json({
+          error: 'Cannot delete a sold player. Undo the sale first, then delete.',
+        });
+      }
+
+      const currentBid = dataService.getCurrentBid();
+      if (currentBid && currentBid.playerId === id) {
+        return res.status(400).json({
+          error: 'Cannot delete a player who is currently being auctioned. Cancel bidding first.',
+        });
+      }
+
+      // Safety: drop this id from any team roster (should be none if not sold).
+      const teams = dataService.getTeams();
+      let teamsChanged = false;
+      teams.forEach((team) => {
+        if (Array.isArray(team.players) && team.players.includes(id)) {
+          team.players = team.players.filter((pid) => pid !== id);
+          teamsChanged = true;
+        }
+      });
+      if (teamsChanged) dataService.setTeams(teams);
+
+      dataService.setPlayers(players.filter((p) => p.id !== id));
+
+      const stats = calculateStats(dataService.getPlayers());
+      dataService.updateStats(stats);
+
+      socketService.emit('playersUpdated', dataService.getPlayers());
+      if (teamsChanged) socketService.emit('teamsUpdated', dataService.getTeams());
+      socketService.emit('statsUpdated', stats);
+
+      console.log(`🗑️  Player deleted: ${player.name}`);
+      res.json({ message: 'Player deleted successfully', playerId: id });
+    } catch (error) {
+      console.error('Error deleting player:', error);
+      res.status(500).json({ error: error.message || 'Error deleting player' });
+    }
   }
 };
 
