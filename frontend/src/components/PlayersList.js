@@ -4,6 +4,7 @@ import { useNotification } from './NotificationSystem';
 import PlayerAvatar from './PlayerAvatar';
 import PlayerImageUpload from './PlayerImageUpload';
 import PlayerFormModal from './PlayerFormModal';
+import Button from './Button';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 // Module-scope helpers — stable references, never recreated per render.
@@ -152,12 +153,9 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
           )}
         </h3>
         {canConfigure && (
-          <button
-            onClick={openAddPlayer}
-            className="inline-flex items-center gap-1.5 bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-semibold px-4 py-2 rounded-lg text-sm shadow-md shadow-emerald-500/30 transition-[background-color,transform] duration-150 hover:-translate-y-0.5 active:translate-y-0"
-          >
+          <Button variant="success" size="sm" onClick={openAddPlayer}>
             ➕ Add Player
-          </button>
+          </Button>
         )}
       </div>
 
@@ -336,13 +334,14 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
                             onUploaded={() => onDataRefresh && onDataRefresh()}
                           />
                           {canStartBiddingForPlayer && (
-                            <button
+                            <Button
+                              variant="primary"
+                              size="sm"
                               onClick={() => handleStartBidding(player.id)}
                               disabled={loading}
-                              className="inline-flex items-center gap-1 bg-gradient-to-br from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:opacity-50 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 px-3 py-1.5 rounded-lg text-xs font-semibold shadow-sm shadow-indigo-500/30"
                             >
                               {loading ? 'Starting…' : '🔨 Start Bidding'}
-                            </button>
+                            </Button>
                           )}
                           {isCurrentlyBidding && (
                             <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-700 border border-amber-200 animate-pulse">
@@ -351,18 +350,12 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
                           )}
                           {canConfigure && (
                             <>
-                              <button
-                                onClick={() => openEditPlayer(player)}
-                                className="inline-flex items-center gap-1 bg-slate-100 hover:bg-slate-200 text-slate-700 px-3 py-1.5 rounded-lg text-xs font-semibold border border-slate-200 transition-colors"
-                              >
+                              <Button variant="secondary" size="sm" onClick={() => openEditPlayer(player)}>
                                 ✏️ Edit
-                              </button>
-                              <button
-                                onClick={() => handleDeletePlayer(player)}
-                                className="inline-flex items-center gap-1 bg-rose-50 hover:bg-rose-100 text-rose-600 px-3 py-1.5 rounded-lg text-xs font-semibold border border-rose-200 transition-colors"
-                              >
+                              </Button>
+                              <Button variant="danger" size="sm" onClick={() => handleDeletePlayer(player)}>
                                 🗑️ Delete
-                              </button>
+                              </Button>
                             </>
                           )}
                         </div>

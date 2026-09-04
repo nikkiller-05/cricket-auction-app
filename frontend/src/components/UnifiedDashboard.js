@@ -83,7 +83,7 @@ const getCategoryStyle = (category) => {
         bg: 'bg-green-50',
         border: 'border-green-200',
         badge: 'bg-green-100 text-green-800',
-        icon: '�',
+        icon: '🧤',
         name: 'Wicket-keepers'
       };
     default:
@@ -1521,9 +1521,9 @@ const UnifiedDashboard = () => {
                 onClick={() => setActiveTab(tab.id)}
                 className={`tab-button ${activeTab === tab.id ? 'active' : ''} ${
                   activeTab === tab.id
-                    ? 'bg-gradient-to-br from-slate-900 via-indigo-900 to-indigo-700 text-white border-indigo-500/40 shadow-[0_10px_24px_-12px_rgba(79,70,229,0.6)]'
-                    : 'bg-white/70 text-slate-700 hover:text-slate-900 hover:bg-white border-slate-200/80 hover:border-slate-300'
-                } whitespace-nowrap py-2.5 px-5 font-semibold text-sm flex items-center rounded-xl border shadow-sm min-w-fit transition-colors duration-150`}
+                    ? 'bg-gradient-to-br from-indigo-500 to-violet-600 text-white border-transparent shadow-lg shadow-violet-600/40 -translate-y-0.5'
+                    : 'bg-white/70 text-slate-700 hover:text-slate-900 hover:bg-white border-slate-200/80 hover:border-slate-300 hover:-translate-y-0.5'
+                } whitespace-nowrap py-2.5 px-5 font-semibold text-sm flex items-center rounded-full border shadow-sm min-w-fit transition-[background-color,transform,box-shadow] duration-200`}
               >
                 <span className="mr-2">{tab.icon}</span>
                 {tab.name}
