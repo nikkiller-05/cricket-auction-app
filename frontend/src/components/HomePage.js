@@ -264,7 +264,7 @@ const HomePage = () => {
                 {[
                   { icon: '⚡', title: 'Real-Time Bidding', desc: 'Instant live updates' },
                   { icon: '💰', title: 'Auto Budgets', desc: 'Team spend tracked live' },
-                  { icon: '🖼️', title: 'Squad Exports', desc: 'One-tap PNG & PDF' },
+                  { icon: '📥', title: 'Squad Exports', desc: 'One-tap PNG & PDF' },
                   { icon: '📊', title: 'Live Stats', desc: 'Full auction analytics' },
                 ].map((f) => (
                   <div
