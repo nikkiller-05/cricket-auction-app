@@ -291,7 +291,7 @@ const HomePage = () => {
 
       {/* Resume / Clear saved-auction modal */}
       {resumeStep && savedSession && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center px-4">
           <div
             className="absolute inset-0 bg-black/60 backdrop-blur-sm"
             onClick={resumeStep === 'resume' ? handleCancelResume : undefined}

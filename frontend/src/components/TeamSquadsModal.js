@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { useNotification } from './NotificationSystem';
+import Button from './Button';
 
 // Distinct accent per team card (cycled)
 const TEAM_ACCENTS = [
@@ -190,39 +191,42 @@ const TeamSquadsModal = ({ isOpen, onClose, teams = [], players = [] }) => {
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-slate-900/60 backdrop-blur-sm" onClick={onClose} />
-      <div className="relative w-full max-w-4xl max-h-[92vh] overflow-y-auto rounded-2xl border border-slate-200 bg-slate-50 shadow-2xl">
-        <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white/95 backdrop-blur">
-          <h3 className="text-xl font-bold text-slate-900 tracking-tight">🖼️ Team Squads</h3>
-          <div className="flex items-center gap-3">
+      <div className="relative flex w-full max-w-4xl max-h-[92vh] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-slate-50 shadow-2xl">
+        <div className="flex flex-shrink-0 flex-wrap items-center justify-between gap-2 px-4 sm:px-6 py-3 sm:py-4 border-b border-slate-200 bg-white">
+          <h3 className="text-lg sm:text-xl font-bold text-slate-900 tracking-tight">🖼️ Team Squads</h3>
+          <div className="flex items-center gap-2 sm:gap-3">
+            <Button variant="primary" size="sm" onClick={downloadAllPdf} className="whitespace-nowrap">
+              <span className="text-base leading-none">⬇️</span>
+              <span className="hidden sm:inline">Download all </span>(PDF)
+            </Button>
             <button
-              onClick={downloadAllPdf}
-              className="px-4 py-2 rounded-lg text-sm font-bold text-white bg-gradient-to-br from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 shadow-md shadow-indigo-500/30"
+              onClick={onClose}
+              aria-label="Close"
+              className="grid h-9 w-9 place-items-center rounded-full text-slate-400 hover:text-slate-700 hover:bg-slate-100 active:scale-95 transition text-2xl leading-none"
             >
-              ⬇️ Download all (PDF)
-            </button>
-            <button onClick={onClose} className="text-slate-400 hover:text-slate-700 text-2xl leading-none" aria-label="Close">
               ×
             </button>
           </div>
         </div>
 
-        <div className="p-6 grid grid-cols-1 gap-6">
+        <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 grid grid-cols-1 gap-6">
           {teams.map((team, idx) => (
             <div key={team.id} className="flex flex-col items-center gap-3">
-              <TeamCard
-                ref={(el) => (cardRefs.current[team.id] = el)}
-                team={team}
-                players={players}
-                accent={TEAM_ACCENTS[idx % TEAM_ACCENTS.length]}
-              />
-              <button
-                onClick={() => downloadPng(team)}
-                className="px-4 py-1.5 rounded-lg text-xs font-semibold text-slate-700 bg-white border border-slate-200 hover:bg-slate-100 shadow-sm"
-              >
-                🖼️ Download this squad (PNG)
-              </button>
+              {/* Wide (640px) card scrolls within its own cell instead of widening the modal */}
+              <div className="w-full overflow-x-auto flex justify-start sm:justify-center">
+                <TeamCard
+                  ref={(el) => (cardRefs.current[team.id] = el)}
+                  team={team}
+                  players={players}
+                  accent={TEAM_ACCENTS[idx % TEAM_ACCENTS.length]}
+                />
+              </div>
+              <Button variant="secondary" size="sm" onClick={() => downloadPng(team)}>
+                <span className="text-base leading-none">🖼️</span>
+                Download this squad (PNG)
+              </Button>
             </div>
           ))}
         </div>

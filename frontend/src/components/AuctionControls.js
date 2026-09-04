@@ -1,6 +1,7 @@
 import React, { useState, memo } from 'react';
 import axios from 'axios';
 import { useNotification } from './NotificationSystem';
+import Button from './Button';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const AuctionControls = memo(({ auctionData, socket }) => {
@@ -86,23 +87,15 @@ const AuctionControls = memo(({ auctionData, socket }) => {
         <h4 className="text-xs uppercase tracking-[0.18em] font-semibold text-slate-500 mb-4">Controls</h4>
         <div className="flex flex-wrap gap-3">
           {auctionStatus === 'stopped' && (
-            <button
-              onClick={handleStartAuction}
-              disabled={loading}
-              className="inline-flex items-center gap-2 bg-gradient-to-br from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 disabled:opacity-50 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 px-6 py-3 rounded-xl font-semibold text-sm shadow-lg shadow-emerald-500/30 hover:-translate-y-0.5 active:scale-95"
-            >
+            <Button variant="success" size="lg" onClick={handleStartAuction} disabled={loading} loading={loading}>
               {loading ? 'Starting…' : '▶ Start Auction'}
-            </button>
+            </Button>
           )}
           
           {auctionStatus === 'running' && (
-            <button
-              onClick={handleStopAuction}
-              disabled={loading}
-              className="inline-flex items-center gap-2 bg-gradient-to-br from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 disabled:opacity-50 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 px-6 py-3 rounded-xl font-semibold text-sm shadow-lg shadow-rose-500/30 hover:-translate-y-0.5 active:scale-95"
-            >
+            <Button variant="danger" size="lg" onClick={handleStopAuction} disabled={loading} loading={loading}>
               {loading ? 'Stopping…' : '⏹ Stop Auction'}
-            </button>
+            </Button>
           )}
         </div>
       </div>

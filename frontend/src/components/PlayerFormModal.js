@@ -110,7 +110,7 @@ const PlayerFormModal = ({ isOpen, mode = 'add', player = null, onClose, onSubmi
     'block text-[11px] uppercase tracking-[0.14em] font-semibold text-slate-500 mb-1.5';
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" onClick={saving ? undefined : onClose} />
       <div className="relative w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-2xl border border-slate-200 bg-white shadow-2xl">
         <div className="sticky top-0 z-10 flex items-center justify-between px-6 py-4 border-b border-slate-200 bg-white/95 backdrop-blur">
