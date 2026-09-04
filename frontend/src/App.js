@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { NotificationProvider } from './components/NotificationSystem';
+import ErrorBoundary from './components/ErrorBoundary';
 import './index.css';
 import './App.css';
 
@@ -21,25 +22,27 @@ const LoadingSpinner = () => (
 
 function App() {
   return (
-    <NotificationProvider>
-      <Router>
-        <Suspense fallback={<LoadingSpinner />}>
-          <Routes>
-            {/* Home page with login options */}
-            <Route path="/" element={<HomePage />} />
-            
-            {/* NEW: Auction setup for admin */}
-            <Route path="/setup" element={<AuctionSetup />} />
-            
-            {/* Unified dashboard for both admin and spectators */}
-            <Route path="/dashboard" element={<UnifiedDashboard />} />
-            
-            {/* Fallback route */}
-            <Route path="*" element={<Navigate to="/" replace />} />
-          </Routes>
-        </Suspense>
-      </Router>
-    </NotificationProvider>
+    <ErrorBoundary>
+      <NotificationProvider>
+        <Router>
+          <Suspense fallback={<LoadingSpinner />}>
+            <Routes>
+              {/* Home page with login options */}
+              <Route path="/" element={<HomePage />} />
+              
+              {/* NEW: Auction setup for admin */}
+              <Route path="/setup" element={<AuctionSetup />} />
+              
+              {/* Unified dashboard for both admin and spectators */}
+              <Route path="/dashboard" element={<UnifiedDashboard />} />
+              
+              {/* Fallback route */}
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
+        </Router>
+      </NotificationProvider>
+    </ErrorBoundary>
   );
 }
 

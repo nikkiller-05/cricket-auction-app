@@ -13,45 +13,27 @@ console.log('AuthController loaded. Available users:', users.map(u => ({ usernam
 const authController = {
   login: async (req, res, next) => {
     try {
-      console.log('\n=== LOGIN ATTEMPT START ===');
-      console.log('Request body received:', req.body);
-      console.log('Available users:', users.map(u => u.username));
-      
       const { username, password } = req.body;
       
       // Validate input
       if (!username || !password) {
-        console.log('Missing credentials');
         return res.status(400).json({ error: 'Username and password are required' });
       }
       
-      console.log(`Looking for user: ${username} with password: ${password}`);
-      
       // Check main users first
-      let user = users.find(u => {
-        console.log(`Checking user: ${u.username} === ${username} && ${u.password} === ${password}`);
-        return u.username === username && u.password === password;
-      });
-      
-      console.log('Found in main users:', user ? 'Yes' : 'No');
+      let user = users.find(u => u.username === username && u.password === password);
       
       // If not found in main users, check sub-admins
       if (!user) {
-        console.log('Checking sub-admins:', subAdmins.length);
         user = subAdmins.find(u => u.username === username && u.password === password);
-        console.log('Found in sub-admins:', user ? 'Yes' : 'No');
       }
       
       if (!user) {
-        console.log('LOGIN FAILED: Invalid credentials');
         return res.status(401).json({ error: 'Invalid credentials' });
       }
 
-      console.log('LOGIN SUCCESS: User found:', user.username, 'Role:', user.role);
-
       // Generate JWT token with role
       const tokenPayload = { id: user.id, username: user.username, role: user.role };
-      console.log('Creating token with payload:', tokenPayload);
       
       const token = jwt.sign(
         tokenPayload,
@@ -59,8 +41,6 @@ const authController = {
         { expiresIn: '24h' }
       );
 
-      console.log('Token created successfully');
-      
       const response = {
         message: 'Login successful',
         token,
@@ -70,9 +50,6 @@ const authController = {
           role: user.role
         }
       };
-      
-      console.log('Sending response:', response);
-      console.log('=== LOGIN ATTEMPT END ===\n');
       
       res.json(response);
 
