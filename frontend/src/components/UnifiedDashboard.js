@@ -15,6 +15,7 @@ import Header from './Header';
 import LiveBiddingCard from './LiveBiddingCard';
 import PlayerNameLink from './PlayerNameLink';
 import PlayerAvatar from './PlayerAvatar';
+import ShareAuctionModal from './ShareAuctionModal';
 import { useNotification } from './NotificationSystem';
 
 // Use environment variable for backend URL, fallback to localhost for dev
@@ -461,6 +462,7 @@ const UnifiedDashboard = () => {
   
   // Spectator filter state for All Players tab
   const [spectatorPlayerFilter, setSpectatorPlayerFilter] = useState('all');
+  const [showShareModal, setShowShareModal] = useState(false);
   
   // Download dropdown state
   const [showDownloadDropdown, setShowDownloadDropdown] = useState(false);
@@ -1613,7 +1615,18 @@ const UnifiedDashboard = () => {
           {/* Live Status Tab - Available to everyone */}
           {activeTab === 'live' && (
             <div className="space-y-6">
-              <h3 className="text-2xl font-bold text-slate-900 tracking-tight">Live Auction Status</h3>
+              <div className="flex items-center justify-between gap-3 flex-wrap">
+                <h3 className="text-2xl font-bold text-slate-900 tracking-tight">Live Auction Status</h3>
+                <button
+                  onClick={() => setShowShareModal(true)}
+                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-indigo-500 to-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-violet-600/30 hover:-translate-y-0.5 active:translate-y-0 transition"
+                >
+                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M8.7 10.7l6.6-3.4M8.7 13.3l6.6 3.4M18 8a3 3 0 100-6 3 3 0 000 6zM6 15a3 3 0 100-6 3 3 0 000 6zm12 7a3 3 0 100-6 3 3 0 000 6z" />
+                  </svg>
+                  Share
+                </button>
+              </div>
               
               {/* Overview Stats */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
@@ -2569,6 +2582,12 @@ const UnifiedDashboard = () => {
         onClose={() => setShowTeamSquadsModal(false)}
         teams={auctionData.teams || []}
         players={auctionData.players || []}
+      />
+
+      <ShareAuctionModal
+        isOpen={showShareModal}
+        onClose={() => setShowShareModal(false)}
+        url={window.location.origin}
       />
 
       {/* Edit Settings Modal */}
