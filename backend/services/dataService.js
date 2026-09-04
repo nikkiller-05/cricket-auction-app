@@ -34,6 +34,29 @@ let actionHistory = [];
 // NEW: Per-player bidding history (key = playerId, value = array of bids)
 let playerBiddingHistory = {};
 
+// --- Persistence: best-effort Supabase snapshot ---------------------------
+// In-memory state above stays the source of truth. After any mutation we
+// schedule a debounced write of the whole state so a restart can restore it.
+const snapshotStore = require('./snapshotStore');
+
+const SNAPSHOT_DEBOUNCE_MS = 1000;
+let snapshotTimer = null;
+
+function serializeState() {
+  return { auctionData, settings, actionHistory, playerBiddingHistory };
+}
+
+// Throttle-trailing: coalesce a burst of mutations into a single write and
+// never keep the process alive just for a pending snapshot.
+function scheduleSnapshot() {
+  if (snapshotTimer) return;
+  snapshotTimer = setTimeout(() => {
+    snapshotTimer = null;
+    snapshotStore.saveState(serializeState());
+  }, SNAPSHOT_DEBOUNCE_MS);
+  if (snapshotTimer.unref) snapshotTimer.unref();
+}
+
 const dataService = {
   // Get complete auction data
   getAuctionData() {
@@ -51,6 +74,7 @@ const dataService = {
   updateSettings(newSettings) {
     console.log('Updating settings:', newSettings);
     settings = { ...settings, ...newSettings };
+    scheduleSnapshot();
     return settings;
   },
 
@@ -68,12 +92,14 @@ const dataService = {
   updateConfig(newConfig) {
     console.log('Updating config:', newConfig);
     settings = { ...settings, ...newConfig };
+    scheduleSnapshot();
     return settings;
   },
 
   // Auction data management
   updateAuctionData(data) {
     auctionData = { ...auctionData, ...data };
+    scheduleSnapshot();
     return auctionData;
   },
 
@@ -84,6 +110,7 @@ const dataService = {
 
   setPlayers(players) {
     auctionData.players = players;
+    scheduleSnapshot();
     return players;
   },
 
@@ -94,6 +121,7 @@ const dataService = {
 
   setTeams(teams) {
     auctionData.teams = teams;
+    scheduleSnapshot();
     return teams;
   },
 
@@ -104,6 +132,7 @@ const dataService = {
 
   setCurrentBid(bid) {
     auctionData.currentBid = bid;
+    scheduleSnapshot();
     return bid;
   },
 
@@ -114,6 +143,7 @@ const dataService = {
 
   setAuctionStatus(status) {
     auctionData.auctionStatus = status;
+    scheduleSnapshot();
     return status;
   },
 
@@ -124,6 +154,7 @@ const dataService = {
 
   updateStats(stats) {
     auctionData.stats = stats;
+    scheduleSnapshot();
     return stats;
   },
 
@@ -144,6 +175,7 @@ const dataService = {
     });
     console.log(`Added bid to player ${playerId} history:`, bid);
     console.log(`Current history for player ${playerId}:`, playerBiddingHistory[playerId]);
+    scheduleSnapshot();
   },
 
   getPlayerBiddingHistory(playerId) {
@@ -154,6 +186,7 @@ const dataService = {
     if (playerBiddingHistory[playerId] && playerBiddingHistory[playerId].length > 0) {
       const removedBid = playerBiddingHistory[playerId].pop();
       console.log(`Removed last bid from player ${playerId} history:`, removedBid);
+      scheduleSnapshot();
       return removedBid;
     }
     return null;
@@ -162,6 +195,7 @@ const dataService = {
   clearPlayerBiddingHistory(playerId) {
     playerBiddingHistory[playerId] = [];
     console.log(`Cleared bidding history for player ${playerId}`);
+    scheduleSnapshot();
   },
 
   getPreviousBidForPlayer(playerId) {
@@ -181,6 +215,7 @@ const dataService = {
       actionHistory = actionHistory.slice(-50);
     }
     console.log('Action recorded:', action.type, action.playerName);
+    scheduleSnapshot();
   },
 
   getActionHistory() {
@@ -190,17 +225,22 @@ const dataService = {
   removeActionById(actionId) {
     const index = actionHistory.findIndex(action => action.id === actionId);
     if (index !== -1) {
-      return actionHistory.splice(index, 1)[0];
+      const removed = actionHistory.splice(index, 1)[0];
+      scheduleSnapshot();
+      return removed;
     }
     return null;
   },
 
   removeLastAction() {
-    return actionHistory.pop();
+    const removed = actionHistory.pop();
+    scheduleSnapshot();
+    return removed;
   },
 
   clearActionHistory() {
     actionHistory = [];
+    scheduleSnapshot();
   },
 
   // Reset all data
@@ -224,7 +264,30 @@ const dataService = {
     actionHistory = [];
     playerBiddingHistory = {}; // Clear all player bidding histories
     
+    scheduleSnapshot();
     return auctionData;
+  },
+
+  // --- Persistence API (best-effort; safe no-op when Supabase is off) ---
+
+  // Restore state from the last Supabase snapshot. Call once on startup.
+  async loadSnapshot() {
+    const snap = await snapshotStore.loadState();
+    if (!snap) return false;
+    if (snap.auctionData) auctionData = snap.auctionData;
+    if (snap.settings) settings = snap.settings;
+    if (snap.actionHistory) actionHistory = snap.actionHistory;
+    if (snap.playerBiddingHistory) playerBiddingHistory = snap.playerBiddingHistory;
+    return true;
+  },
+
+  // Force an immediate snapshot write (e.g. on graceful shutdown).
+  async flushSnapshot() {
+    if (snapshotTimer) {
+      clearTimeout(snapshotTimer);
+      snapshotTimer = null;
+    }
+    await snapshotStore.saveState(serializeState());
   }
 };
 

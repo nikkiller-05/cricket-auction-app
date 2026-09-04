@@ -326,3 +326,46 @@ This writes real stats straight into the shared Supabase cache (make sure your l
 `.env` points at the same Supabase project), and produces a `*_enriched.xlsx` file
 you can feed into the upload flow. If Supabase is unreachable, cache silently no-ops
 and live fetches still run (and will fail on Render, as expected).
+
+---
+
+## Auction state persistence (snapshots)
+
+The live auction runs entirely in memory for speed. To survive a server
+restart/crash/redeploy, the backend also writes a single-row JSON "snapshot" of
+the full auction state to Supabase after every change, and restores it on
+startup. This is best-effort: if Supabase is unavailable, the auction still runs
+normally in memory (you just lose the restart-recovery safety net).
+
+### One-time SQL setup
+
+Run in **Supabase SQL Editor**:
+
+```sql
+CREATE TABLE IF NOT EXISTS auction_state (
+  id         text PRIMARY KEY,
+  state      jsonb NOT NULL,
+  updated_at timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE auction_state ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "service_role full access" ON auction_state;
+CREATE POLICY "service_role full access"
+  ON auction_state FOR ALL
+  TO service_role
+  USING (true) WITH CHECK (true);
+```
+
+### How it works
+
+- After any mutating action (bid, sell, unsold, undo, settings, upload, reset),
+  the backend schedules a debounced write of the whole state to the single
+  `auction_state` row (at most ~1 write/second, coalescing bursts).
+- On startup, the server loads the last snapshot before accepting connections,
+  so the auction resumes where it left off.
+- On a planned shutdown (Render sends `SIGTERM` on deploy/restart), the backend
+  flushes the latest state so nothing in the debounce window is lost.
+- Starting a fresh auction (reset/upload) overwrites the snapshot, so a stale
+  auction is never silently restored.
+

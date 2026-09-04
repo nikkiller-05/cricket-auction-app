@@ -10,6 +10,11 @@ const HomePage = () => {
   const [loginLoading, setLoginLoading] = useState(false);
   const [loginError, setLoginError] = useState('');
 
+  // Saved-auction resume flow: null | 'resume' | 'clear'
+  const [resumeStep, setResumeStep] = useState(null);
+  const [savedSession, setSavedSession] = useState(null);
+  const [resumeLoading, setResumeLoading] = useState(false);
+
   const handleAdminLogin = async (e) => {
     e.preventDefault();
     setLoginLoading(true);
@@ -19,8 +24,29 @@ const HomePage = () => {
   const response = await axios.post(`${API_BASE_URL}/api/auth/login`, credentials);
       localStorage.setItem('adminToken', response.data.token);
       axios.defaults.headers.common['Authorization'] = `Bearer ${response.data.token}`;
-      
-      // UPDATED: Redirect to setup instead of dashboard
+
+      // If a saved auction is in progress, offer to resume it instead of
+      // forcing a fresh setup. Any failure here falls back to normal setup.
+      try {
+        const { data } = await axios.get(`${API_BASE_URL}/api/auction/data`);
+        const hasSaved =
+          data?.fileUploaded ||
+          (Array.isArray(data?.players) && data.players.length > 0);
+        if (hasSaved) {
+          setSavedSession({
+            fileName: data.fileName,
+            totalPlayers: data.players?.length || 0,
+            soldPlayers: (data.players || []).filter((p) => p.status === 'sold').length,
+            teams: data.teams?.length || 0,
+            status: data.auctionStatus,
+          });
+          setResumeStep('resume');
+          return; // wait for the user's choice in the modal
+        }
+      } catch (checkErr) {
+        console.warn('Could not check for a saved auction:', checkErr.message);
+      }
+
       navigate('/setup');
     } catch (error) {
       console.error('Login error:', error);
@@ -28,6 +54,39 @@ const HomePage = () => {
     } finally {
       setLoginLoading(false);
     }
+  };
+
+  // Resume the existing auction and jump straight to the live dashboard.
+  const handleResume = () => {
+    navigate('/dashboard', { state: { isAdmin: true } });
+  };
+
+  // Move to the explicit second confirmation before wiping a saved auction.
+  const handleStartNew = () => {
+    setResumeStep('clear');
+  };
+
+  // Clear the saved auction, then start the fresh setup flow.
+  const handleConfirmClear = async () => {
+    setResumeLoading(true);
+    setLoginError('');
+    try {
+      await axios.post(`${API_BASE_URL}/api/auction/reset`);
+      setResumeStep(null);
+      setSavedSession(null);
+      navigate('/setup');
+    } catch (err) {
+      setLoginError(err.response?.data?.error || 'Could not clear the previous auction');
+      setResumeStep('resume');
+    } finally {
+      setResumeLoading(false);
+    }
+  };
+
+  // Safe default: close the prompt without touching the saved auction.
+  const handleCancelResume = () => {
+    setResumeStep(null);
+    setSavedSession(null);
   };
 
   const handleViewerAccess = () => {
@@ -221,6 +280,137 @@ const HomePage = () => {
           </div>
         </footer>
       </div>
+
+      {/* Resume / Clear saved-auction modal */}
+      {resumeStep && savedSession && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4">
+          <div
+            className="absolute inset-0 bg-black/60 backdrop-blur-sm"
+            onClick={resumeStep === 'resume' ? handleCancelResume : undefined}
+          />
+          <div className="relative w-full max-w-md rounded-2xl border border-white/15 bg-white/[0.08] backdrop-blur-2xl shadow-[0_1px_0_rgba(255,255,255,0.15)_inset,0_30px_80px_-30px_rgba(0,0,0,0.7)] p-7">
+            {resumeStep === 'resume' ? (
+              <>
+                <div className="flex items-center gap-3 mb-1">
+                  <span className="text-3xl">♻️</span>
+                  <h3 className="text-2xl font-bold tracking-tight text-white">
+                    Resume previous auction?
+                  </h3>
+                </div>
+                <p className="text-indigo-200/90 text-sm mb-5 leading-relaxed">
+                  We found an auction already in progress. You can pick up right where it
+                  left off, or start a brand-new one.
+                </p>
+
+                <div className="rounded-xl border border-white/10 bg-white/[0.04] p-4 mb-6">
+                  {savedSession.fileName && (
+                    <div className="flex items-center justify-between py-1.5">
+                      <span className="text-blue-200/80 text-sm">Player file</span>
+                      <span className="text-white font-medium text-sm truncate max-w-[60%] text-right">
+                        {savedSession.fileName}
+                      </span>
+                    </div>
+                  )}
+                  <div className="flex items-center justify-between py-1.5">
+                    <span className="text-blue-200/80 text-sm">Players</span>
+                    <span className="text-white font-semibold text-sm">
+                      {savedSession.soldPlayers} sold
+                      <span className="text-blue-300/70 font-normal"> / {savedSession.totalPlayers} total</span>
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between py-1.5">
+                    <span className="text-blue-200/80 text-sm">Teams</span>
+                    <span className="text-white font-semibold text-sm">{savedSession.teams}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-1.5">
+                    <span className="text-blue-200/80 text-sm">Status</span>
+                    <span className="inline-flex items-center gap-1.5 text-white font-medium text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/30 capitalize">
+                      <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                      {savedSession.status || 'stopped'}
+                    </span>
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <button
+                    onClick={handleResume}
+                    className="w-full bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white font-bold py-3.5 px-6 rounded-xl transition-[background-color,transform] duration-150 transform hover:-translate-y-0.5 active:translate-y-0 shadow-lg shadow-emerald-500/30"
+                  >
+                    Resume auction
+                  </button>
+                  <button
+                    onClick={handleStartNew}
+                    className="w-full bg-white/[0.06] hover:bg-white/[0.12] text-white font-semibold py-3.5 px-6 rounded-xl border border-white/15 transition-colors duration-150"
+                  >
+                    Start a new auction
+                  </button>
+                  <button
+                    onClick={handleCancelResume}
+                    className="w-full text-blue-200/70 hover:text-white text-sm font-medium py-2 transition-colors"
+                  >
+                    Cancel
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <div className="flex items-center gap-3 mb-1">
+                  <span className="text-3xl">⚠️</span>
+                  <h3 className="text-2xl font-bold tracking-tight text-white">
+                    Clear previous auction?
+                  </h3>
+                </div>
+                <p className="text-rose-200/90 text-sm mb-2 leading-relaxed">
+                  This will permanently delete the saved auction
+                  {savedSession.soldPlayers > 0 && (
+                    <>
+                      {' '}— including{' '}
+                      <span className="font-semibold text-white">
+                        {savedSession.soldPlayers} sold player
+                        {savedSession.soldPlayers === 1 ? '' : 's'}
+                      </span>
+                    </>
+                  )}
+                  . This cannot be undone.
+                </p>
+                <p className="text-blue-200/70 text-sm mb-6">
+                  Are you sure you want to start fresh?
+                </p>
+
+                {loginError && (
+                  <div className="text-rose-300 text-sm text-center bg-rose-500/15 border border-rose-400/20 p-3 rounded-lg mb-4">
+                    {loginError}
+                  </div>
+                )}
+
+                <div className="space-y-3">
+                  <button
+                    onClick={handleConfirmClear}
+                    disabled={resumeLoading}
+                    className="w-full bg-gradient-to-br from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 disabled:opacity-50 text-white font-bold py-3.5 px-6 rounded-xl transition-[background-color,transform] duration-150 transform hover:-translate-y-0.5 active:translate-y-0 shadow-lg shadow-rose-500/30"
+                  >
+                    {resumeLoading ? (
+                      <span className="flex items-center justify-center">
+                        <span className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2" />
+                        Clearing...
+                      </span>
+                    ) : (
+                      'Yes, clear & start new'
+                    )}
+                  </button>
+                  <button
+                    onClick={() => setResumeStep('resume')}
+                    disabled={resumeLoading}
+                    className="w-full bg-white/[0.06] hover:bg-white/[0.12] disabled:opacity-50 text-white font-semibold py-3.5 px-6 rounded-xl border border-white/15 transition-colors duration-150"
+                  >
+                    Back
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
