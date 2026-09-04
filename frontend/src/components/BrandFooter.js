@@ -2,15 +2,15 @@ import React from 'react';
 
 // Shared brand/credit footer. Use theme="dark" on dark backgrounds (landing),
 // "light" on the dashboard's lighter surface.
-const BrandFooter = ({ theme = 'light' }) => {
+const BrandFooter = ({ theme = 'light', compact = false }) => {
   const isDark = theme === 'dark';
   return (
-    <footer className="py-8 text-center">
+    <footer className={compact ? 'py-4 text-center' : 'py-8 text-center'}>
       <div className="max-w-6xl mx-auto px-4">
         <div
-          className={`mx-auto mb-4 h-px w-44 bg-gradient-to-r from-transparent to-transparent ${
-            isDark ? 'via-white/25' : 'via-slate-300'
-          }`}
+          className={`mx-auto h-px w-44 bg-gradient-to-r from-transparent to-transparent ${
+            compact ? 'mb-2.5' : 'mb-4'
+          } ${isDark ? 'via-white/25' : 'via-slate-300'}`}
         />
         <p
           className={`text-[11px] uppercase tracking-[0.3em] font-semibold mb-1.5 ${

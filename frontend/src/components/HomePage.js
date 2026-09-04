@@ -118,33 +118,33 @@ const HomePage = () => {
 
       <div className="relative z-10 min-h-screen flex flex-col">
         {/* Header */}
-        <header className="pt-12 pb-4">
+        <header className="pt-6 pb-2">
           <div className="max-w-6xl mx-auto px-4 flex flex-col items-center text-center">
             <img
               src="/auction-logo.png"
               alt="Auction logo"
-              className="w-28 h-28 sm:w-40 sm:h-40 rounded-2xl mb-5 ring-1 ring-amber-300/30 shadow-[0_14px_50px_-12px_rgba(232,184,75,0.5)]"
+              className="w-24 h-24 sm:w-32 sm:h-32 rounded-2xl mb-3 ring-1 ring-amber-300/30 shadow-[0_14px_50px_-12px_rgba(232,184,75,0.5)]"
             />
-            <h1 className="text-3xl md:text-5xl font-extrabold mb-3 tracking-tight drop-shadow-[0_4px_30px_rgba(232,184,75,0.35)]">
+            <h1 className="text-3xl md:text-4xl font-extrabold mb-1.5 tracking-tight drop-shadow-[0_4px_30px_rgba(232,184,75,0.35)]">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-100 via-white to-amber-200">
                 Cricket Auction
               </span>
             </h1>
-            <p className="text-xs sm:text-sm font-bold uppercase tracking-[0.4em] text-amber-300/90 mb-3">
+            <p className="text-xs sm:text-sm font-bold uppercase tracking-[0.4em] text-amber-300/90 mb-2">
               Bid · Discover · Own
             </p>
-            <p className="text-lg md:text-xl text-indigo-200/90 font-light">
+            <p className="text-base md:text-lg text-indigo-200/90 font-light">
               Experience the thrill of live player auctions
             </p>
           </div>
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 flex items-center justify-center px-4 py-8">
+        <main className="flex-1 flex items-center justify-center px-4 py-4">
           <div className="max-w-lg w-full">
-            <div className="rounded-2xl p-8 border border-white/15 bg-white/[0.06] backdrop-blur-2xl shadow-[0_1px_0_rgba(255,255,255,0.15)_inset,0_30px_80px_-30px_rgba(0,0,0,0.6)]">
-              <div className="text-center mb-8">
-                <h2 className="text-3xl font-bold text-white mb-4">Welcome to the Auction</h2>
+            <div className="rounded-2xl p-6 border border-white/15 bg-white/[0.06] backdrop-blur-2xl shadow-[0_1px_0_rgba(255,255,255,0.15)_inset,0_30px_80px_-30px_rgba(0,0,0,0.6)]">
+              <div className="text-center mb-5">
+                <h2 className="text-2xl font-bold text-white mb-2">Welcome to the Auction</h2>
                 <p className="text-blue-200">
                   {showAdminLogin 
                     ? 'Login as admin to set up and manage the auction' 
@@ -259,7 +259,7 @@ const HomePage = () => {
             </div>
 
             {/* Features Preview */}
-            <div className="mt-8">
+            <div className="mt-5">
               <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
                 {[
                   { icon: '⚡', title: 'Real-Time Bidding', desc: 'Instant live updates' },
@@ -269,11 +269,11 @@ const HomePage = () => {
                 ].map((f) => (
                   <div
                     key={f.title}
-                    className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.04] p-4 text-center transition-all duration-300 hover:-translate-y-0.5 hover:border-amber-300/40 hover:bg-white/[0.07]"
+                    className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.04] p-3 text-center transition-all duration-300 hover:-translate-y-0.5 hover:border-amber-300/40 hover:bg-white/[0.07]"
                   >
                     <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-amber-300/70 to-transparent" />
-                    <div className="text-2xl mb-2">{f.icon}</div>
-                    <h5 className="text-white font-semibold text-sm mb-1">{f.title}</h5>
+                    <div className="text-xl mb-1">{f.icon}</div>
+                    <h5 className="text-white font-semibold text-sm mb-0.5">{f.title}</h5>
                     <p className="text-blue-200/80 text-xs">{f.desc}</p>
                   </div>
                 ))}
@@ -283,7 +283,7 @@ const HomePage = () => {
         </main>
 
         {/* Footer */}
-        <BrandFooter theme="dark" />
+        <BrandFooter theme="dark" compact />
       </div>
 
       {/* Resume / Clear saved-auction modal */}
