@@ -8,8 +8,8 @@
    accent on a near-white canvas, echoing the LiveBiddingCard hero.
    ------------------------------------------------------------------ */
 :root {
-  --canvas: #f4f5fb;
-  --canvas-soft: #fbfbfe;
+  --canvas: #f7f5ef;
+  --canvas-soft: #fdfbf6;
   --ink: #0b1020;            /* near-black slate, used by header & deep accents */
   --accent-indigo: #6366f1;
   --accent-violet: #8b5cf6;
@@ -17,7 +17,7 @@
   --accent-cyan: #22d3ee;
   --ring-elevated: 0 1px 0 rgba(255, 255, 255, 0.7) inset,
                    0 8px 24px -12px rgba(15, 23, 42, 0.18),
-                   0 24px 48px -24px rgba(79, 70, 229, 0.18);
+                   0 24px 48px -24px rgba(180, 130, 40, 0.18);
 }
 
 body {
@@ -46,10 +46,10 @@ body::before {
   background-color: var(--canvas);
   background-image:
     radial-gradient(circle at 1px 1px, rgba(15, 23, 42, 0.035) 1px, transparent 0),
-    radial-gradient(60rem 40rem at -5% -10%, rgba(99, 102, 241, 0.22) 0%, transparent 60%),
-    radial-gradient(55rem 38rem at 105% 110%, rgba(217, 70, 239, 0.18) 0%, transparent 60%),
-    radial-gradient(40rem 28rem at 50% 50%, rgba(34, 211, 238, 0.10) 0%, transparent 65%),
-    linear-gradient(180deg, #f8fafc 0%, #eef2ff 50%, #fdf4ff 100%);
+    radial-gradient(60rem 40rem at -5% -10%, rgba(232, 184, 75, 0.20) 0%, transparent 60%),
+    radial-gradient(55rem 38rem at 105% 110%, rgba(176, 120, 32, 0.16) 0%, transparent 60%),
+    radial-gradient(40rem 28rem at 50% 50%, rgba(99, 102, 241, 0.06) 0%, transparent 65%),
+    linear-gradient(180deg, #faf9f5 0%, #f6f1e6 50%, #fbf7ee 100%);
   background-size: 22px 22px, auto, auto, auto, auto;
   background-repeat: repeat, no-repeat, no-repeat, no-repeat, no-repeat;
 }
