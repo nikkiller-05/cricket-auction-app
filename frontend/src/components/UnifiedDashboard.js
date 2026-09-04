@@ -16,6 +16,7 @@ import LiveBiddingCard from './LiveBiddingCard';
 import PlayerNameLink from './PlayerNameLink';
 import PlayerAvatar from './PlayerAvatar';
 import ShareAuctionModal from './ShareAuctionModal';
+import BrandFooter from './BrandFooter';
 import { useNotification } from './NotificationSystem';
 
 // Use environment variable for backend URL, fallback to localhost for dev
@@ -2802,6 +2803,8 @@ const UnifiedDashboard = () => {
           </div>
         </div>
       )}
+
+      <BrandFooter />
     </div>
   );
 };
