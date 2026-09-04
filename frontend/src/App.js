@@ -2,6 +2,7 @@ import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { NotificationProvider } from './components/NotificationSystem';
 import './index.css';
+import './App.css';
 
 // Lazy load components for better initial performance
 const HomePage = lazy(() => import('./components/HomePage'));

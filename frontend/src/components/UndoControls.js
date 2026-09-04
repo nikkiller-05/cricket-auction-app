@@ -391,7 +391,7 @@ const UndoControls = ({ userRole, auctionData }) => {
             <h4 className="text-lg font-semibold text-gray-900">📜 Recent Action History</h4>
             <button
               onClick={fetchActionHistory}
-              className="text-sm text-indigo-600 hover:text-indigo-500 border-2 border-indigo-300 border-opacity-50 px-3 py-1 rounded-lg hover:bg-indigo-50"
+              className="text-sm text-indigo-600 hover:text-white border border-indigo-300 px-4 py-1.5 rounded-full hover:bg-indigo-500 hover:border-indigo-500 hover:-translate-y-0.5 active:translate-y-0 transition-all font-semibold"
             >
               🔄 Refresh
             </button>
@@ -482,7 +482,7 @@ const UndoControls = ({ userRole, auctionData }) => {
               <div className="flex space-x-3">
                 <button
                   onClick={cancelAction}
-                  className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-2 px-4 rounded-md transition-colors border-2 border-gray-400 border-opacity-60 shadow-sm"
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 px-4 rounded-full border border-slate-200 hover:-translate-y-0.5 active:translate-y-0 transition-all"
                 >
                   Cancel
                 </button>

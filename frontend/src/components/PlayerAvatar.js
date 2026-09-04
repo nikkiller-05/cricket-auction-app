@@ -16,6 +16,7 @@ const SIZES = {
   md: { box: 'w-12 h-12', text: 'text-sm', px: 48 },
   lg: { box: 'w-20 h-20', text: 'text-xl', px: 80 },
   xl: { box: 'w-32 h-32', text: 'text-3xl', px: 128 },
+  '2xl': { box: 'w-40 h-40 sm:w-48 sm:h-48 lg:w-56 lg:h-56', text: 'text-5xl', px: 224 },
 };
 
 const GRADIENTS = [
@@ -45,20 +46,23 @@ const getGradient = (id = '') => {
   return GRADIENTS[hash % GRADIENTS.length];
 };
 
-const PlayerAvatar = ({ player = {}, size = 'md', className = '' }) => {
+const PlayerAvatar = ({ player = {}, size = 'md', shape = 'circle', fit = 'cover', position = 'center', className = '' }) => {
   const [imgError, setImgError] = useState(false);
   const dim = SIZES[size] || SIZES.md;
   const showImage = player.imageUrl && !imgError;
+  const shapeClass = shape === 'rounded' ? 'rounded-3xl' : 'rounded-full';
+  const fitClass = fit === 'contain' ? 'object-contain' : 'object-cover';
+  const positionClass = position === 'top' ? 'object-top' : 'object-center';
 
   return (
     <div
-      className={`${dim.box} rounded-full overflow-hidden flex items-center justify-center flex-shrink-0 border-2 border-white shadow-md ${className}`}
+      className={`${dim.box} ${shapeClass} overflow-hidden flex items-center justify-center flex-shrink-0 border-2 border-white shadow-md ${className}`}
     >
       {showImage ? (
         <img
           src={player.imageUrl}
           alt={player.name || 'Player'}
-          className="w-full h-full object-cover"
+          className={`w-full h-full ${fitClass} ${positionClass}`}
           onError={() => setImgError(true)}
           loading="lazy"
           decoding="async"
@@ -80,6 +84,7 @@ const PlayerAvatar = ({ player = {}, size = 'md', className = '' }) => {
 
 export default React.memo(PlayerAvatar, (prev, next) =>
   prev.size === next.size &&
+  prev.shape === next.shape &&
   prev.className === next.className &&
   prev.player?.id === next.player?.id &&
   prev.player?.imageUrl === next.player?.imageUrl &&

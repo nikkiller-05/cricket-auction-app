@@ -259,17 +259,9 @@ const Header = memo(({
               aria-label="User menu"
             >
               {/* Modern Circular Avatar Button */}
-              <div className="avatar-circle">
+              <div className={`avatar-circle ${isDropdownOpen ? 'is-open' : ''}`}>
                 <span className="avatar-initials">{getUserInitials(username)}</span>
                 <div className="avatar-status-indicator"></div>
-                <svg 
-                  className={`chevron-badge ${isDropdownOpen ? 'rotate-180' : ''}`} 
-                  fill="none" 
-                  stroke="currentColor" 
-                  viewBox="0 0 24 24"
-                >
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M19 9l-7 7-7-7" />
-                </svg>
               </div>
               {/* Username Tooltip */}
               <span className="username-tooltip">{username}</span>

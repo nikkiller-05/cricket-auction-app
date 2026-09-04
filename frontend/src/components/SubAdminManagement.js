@@ -128,7 +128,7 @@ const SubAdminManagement = memo(({ userRole }) => {
               <button
                 type="button"
                 onClick={() => setShowCreateForm(false)}
-                className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-700 py-2 px-4 rounded-md border-2 border-gray-400 shadow-md transition-all"
+                className="flex-1 bg-white/85 hover:bg-white text-slate-700 py-2 px-4 rounded-full border border-slate-200 shadow-sm hover:-translate-y-0.5 active:translate-y-0 transition-all font-semibold"
               >
                 Cancel
               </button>
@@ -214,13 +214,13 @@ const SubAdminManagement = memo(({ userRole }) => {
               <div className="items-center px-4 py-3 space-x-3 flex justify-center">
                 <button
                   onClick={cancelDelete}
-                  className="px-4 py-2 bg-gray-300 text-gray-800 text-base font-medium rounded-md hover:bg-gray-400 focus:outline-none"
+                  className="px-5 py-2 bg-slate-100 text-slate-700 text-base font-semibold rounded-full border border-slate-200 hover:bg-slate-200 hover:-translate-y-0.5 active:translate-y-0 transition-all focus:outline-none"
                 >
                   Cancel
                 </button>
                 <button
                   onClick={confirmDeleteSubAdmin}
-                  className="px-4 py-2 bg-red-600 text-white text-base font-medium rounded-md hover:bg-red-700 focus:outline-none"
+                  className="px-5 py-2 text-white text-base font-semibold rounded-full bg-gradient-to-b from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 shadow-md shadow-rose-500/30 hover:-translate-y-0.5 active:translate-y-0 transition-all focus:outline-none"
                 >
                   Delete
                 </button>

@@ -44,6 +44,34 @@ const getTeamStyle = (teamId, teams) => {
   return teamIndex !== -1 ? teamColors[teamIndex % teamColors.length] : 'bg-gray-100 text-gray-800 border border-gray-300';
 };
 
+// Inline SVG cricket icons (scalable, themeable, no external dependency)
+const CATEGORY_ICONS = {
+  batter: (
+    <svg viewBox="0 0 24 24" className="w-9 h-9 inline-block align-middle text-blue-600" fill="currentColor" aria-hidden="true">
+      <g transform="rotate(42 12 12)">
+        <rect x="10.7" y="2.5" width="2.6" height="6.5" rx="1.3" />
+        <rect x="8.6" y="9" width="6.8" height="12.5" rx="3.4" />
+      </g>
+    </svg>
+  ),
+  bowler: (
+    <svg viewBox="0 0 24 24" className="w-7 h-7 inline-block align-middle text-red-600" fill="currentColor" aria-hidden="true">
+      <circle cx="12" cy="12" r="9" />
+      <path d="M7.5 5.5c2.5 3.8 2.5 9.2 0 13" fill="none" stroke="#fff" strokeWidth="1.3" strokeLinecap="round" strokeDasharray="1.6 1.9" opacity="0.9" />
+    </svg>
+  ),
+  allrounder: (
+    <svg viewBox="0 0 24 24" className="w-9 h-9 inline-block align-middle text-orange-600" fill="currentColor" aria-hidden="true">
+      <g transform="rotate(42 9 11)">
+        <rect x="7.7" y="2.5" width="2" height="5" rx="1" />
+        <rect x="6.1" y="7.6" width="5.2" height="10" rx="2.6" />
+      </g>
+      <circle cx="17.2" cy="16.5" r="4" />
+      <path d="M15 13.7c1.5 1.5 1.5 4.1 0 5.6" fill="none" stroke="#fff" strokeWidth="0.9" strokeLinecap="round" strokeDasharray="1.2 1.4" opacity="0.9" />
+    </svg>
+  ),
+};
+
 const getCategoryStyle = (category) => {
   switch (category) {
     case 'captain':
@@ -59,7 +87,7 @@ const getCategoryStyle = (category) => {
         bg: 'bg-blue-50',
         border: 'border-blue-200',
         badge: 'bg-blue-100 text-blue-800',
-        icon: '🏏',
+        icon: CATEGORY_ICONS.batter,
         name: 'Batters'
       };
     case 'bowler':
@@ -67,7 +95,7 @@ const getCategoryStyle = (category) => {
         bg: 'bg-red-50',
         border: 'border-red-200',
         badge: 'bg-red-100 text-red-800',
-        icon: '⚾',
+        icon: CATEGORY_ICONS.bowler,
         name: 'Bowlers'
       };
     case 'allrounder':
@@ -75,7 +103,7 @@ const getCategoryStyle = (category) => {
         bg: 'bg-orange-50',
         border: 'border-orange-200',
         badge: 'bg-orange-100 text-orange-800',
-        icon: '🌟',
+        icon: CATEGORY_ICONS.allrounder,
         name: 'All-rounders'
       };
     case 'wicket-keeper':
@@ -1357,7 +1385,9 @@ const UnifiedDashboard = () => {
                     className="group relative overflow-hidden px-5 sm:px-7 py-2.5 sm:py-3 bg-gradient-to-br from-emerald-400 to-green-600 hover:from-emerald-300 hover:to-green-500 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed disabled:opacity-50 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 rounded-xl font-bold text-xs sm:text-sm shadow-lg shadow-emerald-500/40 hover:shadow-xl hover:shadow-emerald-400/60 hover:-translate-y-0.5 active:scale-95 duration-200 border border-emerald-300/50 inline-flex items-center gap-2"
                   >
                     <span className="absolute inset-x-3 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
-                    <span className="text-base">✅</span>
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
+                    </svg>
                     <span className="tracking-wide">SELL</span>
                   </button>
                   <button
@@ -1374,7 +1404,9 @@ const UnifiedDashboard = () => {
                     className="group relative overflow-hidden px-5 sm:px-7 py-2.5 sm:py-3 bg-gradient-to-br from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 rounded-xl font-bold text-xs sm:text-sm shadow-lg shadow-rose-500/40 hover:shadow-xl hover:shadow-rose-400/60 hover:-translate-y-0.5 active:scale-95 duration-200 border border-rose-300/50 inline-flex items-center gap-2"
                   >
                     <span className="absolute inset-x-3 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
-                    <span className="text-base">❌</span>
+                    <svg className="w-4 h-4 sm:w-5 sm:h-5" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24" aria-hidden="true">
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                     <span className="tracking-wide">UNSOLD</span>
                   </button>
                 </div>
@@ -1797,14 +1829,14 @@ const UnifiedDashboard = () => {
                       <button
                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                         disabled={currentPage === 1}
-                        className="px-3 py-1 text-sm bg-white bg-opacity-20 hover:bg-white hover:bg-opacity-30 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg border border-white border-opacity-30 shadow-md"
+                        className="px-4 py-1.5 text-sm bg-white/20 hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed rounded-full border border-white/30 shadow-md hover:-translate-y-0.5 active:translate-y-0 transition-all"
                       >
                         Previous
                       </button>
                       <button
                         onClick={() => setCurrentPage(prev => Math.min(prev + 1, Math.ceil(transactionHistory.length / transactionsPerPage)))}
                         disabled={currentPage >= Math.ceil(transactionHistory.length / transactionsPerPage)}
-                        className="px-3 py-1 text-sm bg-white bg-opacity-20 hover:bg-white hover:bg-opacity-30 disabled:opacity-50 disabled:cursor-not-allowed rounded-lg border border-white border-opacity-30 shadow-md"
+                        className="px-4 py-1.5 text-sm bg-white/20 hover:bg-white/30 disabled:opacity-50 disabled:cursor-not-allowed rounded-full border border-white/30 shadow-md hover:-translate-y-0.5 active:translate-y-0 transition-all"
                       >
                         Next
                       </button>
@@ -2483,7 +2515,7 @@ const UnifiedDashboard = () => {
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={cancelUndoAction}
-                  className="flex-1 bg-gray-300 hover:bg-gray-400 text-gray-800 font-medium py-2 px-4 rounded-md transition-colors"
+                  className="flex-1 bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold py-2 px-4 rounded-full border border-slate-200 hover:-translate-y-0.5 active:translate-y-0 transition-all"
                 >
                   Cancel
                 </button>
@@ -2655,7 +2687,7 @@ const UnifiedDashboard = () => {
                   </h3>
                   <button
                     onClick={addSettingsIncrement}
-                    className="w-full sm:w-auto px-3 sm:px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors text-xs sm:text-sm font-medium"
+                    className="w-full sm:w-auto px-4 py-2 bg-gradient-to-b from-emerald-500 to-green-600 text-white rounded-full hover:from-emerald-400 hover:to-green-500 shadow-md shadow-emerald-500/30 hover:-translate-y-0.5 active:translate-y-0 transition-all text-xs sm:text-sm font-semibold"
                   >
                     + Add Increment
                   </button>
@@ -2724,14 +2756,14 @@ const UnifiedDashboard = () => {
               <button
                 onClick={() => setShowEditSettingsModal(false)}
                 disabled={settingsSaveLoading}
-                className="w-full sm:w-auto px-4 sm:px-6 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-100 transition-colors font-medium text-sm sm:text-base"
+                className="w-full sm:w-auto px-5 sm:px-6 py-2 bg-slate-100 text-slate-700 rounded-full border border-slate-200 hover:bg-slate-200 hover:-translate-y-0.5 active:translate-y-0 transition-all font-semibold text-sm sm:text-base"
               >
                 Cancel
               </button>
               <button
                 onClick={handleSaveSettings}
                 disabled={settingsSaveLoading}
-                className="w-full sm:w-auto px-4 sm:px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors font-medium disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm sm:text-base"
+                className="w-full sm:w-auto px-5 sm:px-6 py-2 bg-gradient-to-b from-indigo-500 to-blue-600 text-white rounded-full hover:from-indigo-400 hover:to-blue-500 shadow-md shadow-blue-500/30 hover:-translate-y-0.5 active:translate-y-0 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm sm:text-base"
               >
                 {settingsSaveLoading ? (
                   <>

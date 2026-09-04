@@ -159,7 +159,7 @@ const Notification = ({ notification, onRemove, onConfirm, onCancel }) => {
               setIsExiting(true);
               setTimeout(() => onCancel(id), 300);
             }}
-            className="px-3 py-1.5 bg-gray-700 hover:bg-gray-600 text-white rounded-lg transition-all font-semibold text-xs shadow-lg hover:shadow-xl transform hover:scale-105"
+            className="px-4 py-1.5 bg-gray-700/90 hover:bg-gray-600 text-white rounded-full transition-all font-semibold text-xs shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0"
           >
             Cancel
           </button>
@@ -168,7 +168,7 @@ const Notification = ({ notification, onRemove, onConfirm, onCancel }) => {
               setIsExiting(true);
               setTimeout(() => onConfirm(id), 300);
             }}
-            className="px-3 py-1.5 bg-white bg-opacity-90 hover:bg-opacity-100 text-gray-800 rounded-lg transition-all font-semibold text-xs shadow-lg hover:shadow-xl transform hover:scale-105"
+            className="px-4 py-1.5 bg-white/90 hover:bg-white text-gray-800 rounded-full transition-all font-semibold text-xs shadow-lg hover:shadow-xl hover:-translate-y-0.5 active:translate-y-0"
           >
             Confirm
           </button>

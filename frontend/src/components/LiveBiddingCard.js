@@ -85,8 +85,8 @@ const LiveBiddingCardInner = ({
     player.bestBowling,
   ]);
   const meta = useMemo(
-    () => [player.role, player.battingHand, player.bowlingStyle].filter(Boolean).join(' · '),
-    [player.role, player.battingHand, player.bowlingStyle]
+    () => [player.battingHand, player.bowlingStyle].filter(Boolean).join(' · '),
+    [player.battingHand, player.bowlingStyle]
   );
 
   return (
@@ -118,20 +118,16 @@ const LiveBiddingCardInner = ({
 
       <div className="relative grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 p-4 sm:p-6 pt-4">
         {/* Player profile (spans 2 cols on lg) */}
-        <div className="lg:col-span-2 relative flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6 bg-gradient-to-br from-white/15 to-white/5 backdrop-blur-xl rounded-2xl p-4 sm:p-6 border border-white/20 shadow-2xl overflow-hidden">
+        <div className="lg:col-span-2 relative flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-8 bg-gradient-to-br from-white/15 to-white/5 backdrop-blur-xl rounded-2xl p-6 sm:p-8 border border-white/20 shadow-2xl overflow-hidden">
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
-          {/* Avatar with animated ring */}
+          {/* Player photo in rounded frame */}
           <div className="relative shrink-0">
-            <div className="absolute inset-0 rounded-full bg-gradient-to-tr from-cyan-400 via-indigo-500 to-fuchsia-500 blur-xl opacity-80 animate-pulse" style={{ animationDuration: '3s' }} />
-            <div className="absolute -inset-1 rounded-full bg-gradient-to-tr from-cyan-300 via-fuchsia-400 to-amber-300 opacity-90" />
-            <div className="relative">
-              <PlayerAvatar player={player} size="xl" className="border-4 border-white shadow-2xl ring-2 ring-white/30" />
-            </div>
+            <PlayerAvatar player={player} size="2xl" shape="rounded" position="top" className="border-[6px] border-white shadow-2xl ring-2 ring-white/30" />
           </div>
 
           {/* Info */}
           <div className="flex-1 min-w-0 text-center sm:text-left w-full">
-            <div className="flex flex-col sm:flex-row sm:items-baseline sm:gap-2">
+            <div className="flex flex-col">
               {player.cricHeroesLink ? (
                 <a
                   href={player.cricHeroesLink}
@@ -147,9 +143,9 @@ const LiveBiddingCardInner = ({
                   {player.name}
                 </h3>
               )}
-              {player.category && (
-                <span className="mt-1 sm:mt-0 inline-block text-[10px] sm:text-xs font-bold uppercase tracking-[0.15em] px-2.5 py-1 rounded-full bg-gradient-to-r from-cyan-500/30 to-fuchsia-500/30 border border-white/30 backdrop-blur-sm shadow-lg">
-                  {player.category === 'wicket-keeper' ? 'Keeper' : player.category}
+              {player.role && (
+                <span className="mt-2 self-center sm:self-start inline-block text-[10px] sm:text-xs font-bold uppercase tracking-[0.15em] px-2.5 py-1 rounded-full bg-gradient-to-r from-cyan-500/30 to-fuchsia-500/30 border border-white/30 backdrop-blur-sm shadow-lg">
+                  {player.role}
                 </span>
               )}
             </div>
