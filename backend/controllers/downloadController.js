@@ -38,99 +38,43 @@ const downloadController = {
     }
   },
 
-  // Download Team Squads only
-  async downloadTeamSquads(req, res) {
+  // Download Sale Log (chronological purchase record)
+  async downloadSaleLog(req, res) {
     try {
-      console.log('downloadTeamSquads called');
       const auctionData = dataService.getAuctionData();
-      
       if (!auctionData || !auctionData.players || auctionData.players.length === 0) {
-        return res.status(400).json({ 
-          error: 'No auction data available for download' 
-        });
+        return res.status(400).json({ error: 'No auction data available for download' });
       }
 
-      console.log('Generating Team Squads Excel with secureExcelService');
-      const buffer = await secureExcelService.generateTeamSquadsExcel(auctionData);
-
-      // Set headers for file download
+      const buffer = await secureExcelService.generateSaleLogExcel(auctionData);
       const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
-      const filename = `team-squads-${timestamp}.xlsx`;
-      
+      const filename = `sale-log-${timestamp}.xlsx`;
+
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
       res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
       res.setHeader('Content-Length', buffer.length);
-      
-      console.log(`Sending Team Squads file: ${filename}, size: ${buffer.length} bytes`);
-      
       res.send(buffer);
-
     } catch (error) {
-      console.error('Error generating Team Squads Excel:', error);
-      res.status(500).json({ 
-        error: 'Failed to generate Team Squads Excel file',
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
+      console.error('Error generating Sale Log:', error);
+      res.status(500).json({ error: 'Failed to generate Sale Log' });
     }
   },
 
-  // Download Auction Summary only
-  async downloadAuctionSummary(req, res) {
+  // Download full auction backup as JSON (admin/super-admin only - route-guarded)
+  async downloadBackup(req, res) {
     try {
-      console.log('downloadAuctionSummary called');
       const auctionData = dataService.getAuctionData();
-      
-      if (!auctionData || !auctionData.players || auctionData.players.length === 0) {
-        return res.status(400).json({ 
-          error: 'No auction data available for download' 
-        });
-      }
-
-      console.log('Generating Auction Summary Excel with secureExcelService');
-      const buffer = await secureExcelService.generateAuctionSummaryExcel(auctionData);
-
-      // Set headers for file download
       const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
-      const filename = `auction-summary-${timestamp}.xlsx`;
-      
+      const filename = `auction-backup-${timestamp}.json`;
+      const json = JSON.stringify(auctionData, null, 2);
+
       res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
-      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
-      res.setHeader('Content-Length', buffer.length);
-      
-      console.log(`Sending Auction Summary file: ${filename}, size: ${buffer.length} bytes`);
-      
-      res.send(buffer);
-
+      res.setHeader('Content-Type', 'application/json');
+      res.setHeader('Content-Length', Buffer.byteLength(json));
+      res.send(json);
     } catch (error) {
-      console.error('Error generating Auction Summary Excel:', error);
-      res.status(500).json({ 
-        error: 'Failed to generate Auction Summary Excel file',
-        details: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
-    }
-  },
-
-  // Download CSV results (as ZIP)
-  async downloadCSV(req, res) {
-    try {
-      const auctionData = dataService.getAuctionData();
-      
-      if (!auctionData || !auctionData.players || auctionData.players.length === 0) {
-        return res.status(400).json({ 
-          error: 'No auction data available for download' 
-        });
-      }
-
-      // For now, return a simple message
-      // You can implement ZIP generation here using archiver package
-      res.json({ 
-        message: 'CSV download not implemented yet. Use Excel download instead.',
-        excelEndpoint: '/api/download-results'
-      });
-
-    } catch (error) {
-      console.error('Error generating CSV:', error);
-      res.status(500).json({ error: 'Error generating CSV files' });
+      console.error('Error generating backup:', error);
+      res.status(500).json({ error: 'Failed to generate backup' });
     }
   }
 };

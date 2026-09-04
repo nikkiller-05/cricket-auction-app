@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import PlayerFormModal from './PlayerFormModal';
+import Button from './Button';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const AuctionSetup = () => {
@@ -29,6 +31,15 @@ const AuctionSetup = () => {
     preview: null,
     validation: null
   });
+
+  // Manual player entry (alternative to Excel upload)
+  const [entryMode, setEntryMode] = useState('upload'); // 'upload' | 'manual'
+  const [manualPlayers, setManualPlayers] = useState([]);
+  const [showManualModal, setShowManualModal] = useState(false);
+
+  const removeManualPlayer = (index) => {
+    setManualPlayers((prev) => prev.filter((_, i) => i !== index));
+  };
 
   const handleConfigChange = (field, value) => {
     // Allow empty string so user can clear and type new value
@@ -165,13 +176,15 @@ const AuctionSetup = () => {
       // First, save auction settings
       await axios.post(`${API_BASE_URL}/api/auction/settings`, sanitizedConfig);
 
-      // Then upload players file
+      // Then add players: either from an uploaded file or a manual list.
       if (fileData.file) {
         const formData = new FormData();
         formData.append('playerFile', fileData.file);
         await axios.post(`${API_BASE_URL}/api/players/upload`, formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
+      } else if (manualPlayers.length > 0) {
+        await axios.post(`${API_BASE_URL}/api/players/manual-setup`, { players: manualPlayers });
       }
 
       // Navigate to unified dashboard
@@ -200,7 +213,7 @@ const AuctionSetup = () => {
                  (typeof inc.increment === 'number' && inc.increment > 0)
                );
       case 3:
-        return fileData.file && fileData.validation?.valid;
+        return (fileData.file && fileData.validation?.valid) || manualPlayers.length > 0;
       default:
         return false;
     }
@@ -507,8 +520,28 @@ const AuctionSetup = () => {
               {/* Step 3: File Upload */}
               {currentStep === 3 && (
                 <div className="space-y-6">
-                  <h3 className="text-2xl font-bold text-white text-center mb-6">Upload Players File</h3>
-                  
+                  <h3 className="text-2xl font-bold text-white text-center mb-6">Add Players</h3>
+
+                  {/* Entry mode tabs */}
+                  <div className="flex justify-center gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setEntryMode('upload')}
+                      className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${entryMode === 'upload' ? 'bg-white text-indigo-700' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                    >
+                      📁 Upload Excel / CSV
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setEntryMode('manual')}
+                      className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${entryMode === 'manual' ? 'bg-white text-indigo-700' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                    >
+                      ✍️ Add Manually
+                    </button>
+                  </div>
+
+                  {entryMode === 'upload' && (
+                  <>
                   {!fileData.file ? (
                     <div className="border-2 border-dashed border-blue-400 border-opacity-30 rounded-lg p-8 text-center">
                       <div className="text-6xl mb-4">📁</div>
@@ -592,6 +625,56 @@ const AuctionSetup = () => {
                       <p>• Excel (.xlsx) or CSV (.csv) format supported</p>
                     </div>
                   </div>
+                  </>
+                  )}
+
+                  {entryMode === 'manual' && (
+                    <div className="space-y-4">
+                      <Button
+                        variant="success"
+                        size="lg"
+                        onClick={() => setShowManualModal(true)}
+                        className="w-full"
+                      >
+                        ➕ Add Player (full details)
+                      </Button>
+
+                      {/* Added players list */}
+                      {manualPlayers.length === 0 ? (
+                        <div className="text-center text-blue-200 py-6 border-2 border-dashed border-blue-400 border-opacity-30 rounded-lg">
+                          No players added yet. Click “Add Player” to enter name, role, stats & photo.
+                        </div>
+                      ) : (
+                        <div className="bg-white bg-opacity-10 rounded-lg p-4 border border-white border-opacity-20">
+                          <div className="flex items-center justify-between mb-3">
+                            <h4 className="text-white font-medium">Players added</h4>
+                            <span className="text-blue-200 text-sm">{manualPlayers.length} total</span>
+                          </div>
+                          <div className="max-h-64 overflow-y-auto space-y-2">
+                            {manualPlayers.map((p, i) => (
+                              <div key={i} className="flex items-center justify-between bg-white bg-opacity-5 rounded-lg px-3 py-2">
+                                <div className="flex items-center text-white text-sm">
+                                  <span className="text-blue-300 mr-2">{i + 1}.</span>
+                                  {p.imageUrl && (
+                                    <img src={p.imageUrl} alt="" className="w-6 h-6 rounded-full object-cover mr-2 border border-white border-opacity-30" />
+                                  )}
+                                  <span className="font-medium">{p.name}</span>
+                                  {p.role && <span className="text-blue-200 ml-2">— {p.role}</span>}
+                                </div>
+                                <button
+                                  type="button"
+                                  onClick={() => removeManualPlayer(i)}
+                                  className="text-rose-300 hover:text-rose-100 text-sm"
+                                >
+                                  ✕
+                                </button>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -604,42 +687,24 @@ const AuctionSetup = () => {
 
               {/* Navigation Buttons */}
               <div className="flex justify-between mt-8">
-                <button
-                  onClick={handleBack}
-                  disabled={currentStep === 1}
-                  className={`px-6 py-3 rounded-lg font-medium transition-all ${
-                    currentStep === 1
-                      ? 'bg-gray-500 bg-opacity-30 text-gray-400 cursor-not-allowed'
-                      : 'bg-gray-600 bg-opacity-50 text-white hover:bg-opacity-70'
-                  }`}
-                >
+                <Button variant="glass" size="lg" onClick={handleBack} disabled={currentStep === 1}>
                   Back
-                </button>
+                </Button>
 
                 {currentStep < 3 ? (
-                  <button
-                    onClick={handleNext}
-                    disabled={!canProceedToNext()}
-                    className={`px-6 py-3 rounded-lg font-medium transition-all ${
-                      canProceedToNext()
-                        ? 'bg-gradient-to-br from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150'
-                        : 'bg-gray-500 bg-opacity-30 text-gray-400 cursor-not-allowed'
-                    }`}
-                  >
+                  <Button variant="primary" size="lg" onClick={handleNext} disabled={!canProceedToNext()}>
                     Next
-                  </button>
+                  </Button>
                 ) : (
-                  <button
+                  <Button
+                    variant="success"
+                    size="xl"
                     onClick={handleFinishSetup}
-                    disabled={!canProceedToNext() || loading}
-                    className={`px-8 py-3 rounded-lg font-semibold ${
-                      canProceedToNext() && !loading
-                        ? 'bg-gradient-to-br from-emerald-500 to-green-600 hover:from-emerald-400 hover:to-green-500 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150'
-                        : 'bg-gray-500 bg-opacity-30 text-gray-400 cursor-not-allowed'
-                    }`}
+                    disabled={!canProceedToNext()}
+                    loading={loading}
                   >
-                    {loading ? 'Setting up...' : 'Start Auction'}
-                  </button>
+                    {loading ? 'Setting up…' : '🏏 Start Auction'}
+                  </Button>
                 )}
               </div>
             </div>
@@ -653,6 +718,14 @@ const AuctionSetup = () => {
           </p>
         </footer>
       </div>
+
+      {/* Full add-player form (collects into the manual list) */}
+      <PlayerFormModal
+        isOpen={showManualModal}
+        mode="add"
+        onClose={() => setShowManualModal(false)}
+        onSubmitOverride={(data) => setManualPlayers((prev) => [...prev, data])}
+      />
     </div>
   );
 };

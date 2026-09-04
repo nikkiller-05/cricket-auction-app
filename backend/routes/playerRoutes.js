@@ -14,6 +14,7 @@ router.post('/validate', playerController.uploadMiddleware, playerController.val
 
 // Manual player management (admin/super-admin only)
 router.post('/add', verifyConfigPermission, playerController.addPlayer);
+router.post('/manual-setup', verifyConfigPermission, playerController.manualSetup);
 
 // Clear auction data (admin/super-admin only)
 // NOTE: keep this specific route BEFORE the parametric '/:id' routes below,

@@ -348,6 +348,7 @@ const auctionController = {
       player.team = team.id;
       player.currentBid = 0;
       player.biddingTeam = null;
+      player.soldAt = new Date().toISOString(); // for chronological sale log
 
       team.budget -= currentBid.currentAmount;
       team.players.push(player.id);

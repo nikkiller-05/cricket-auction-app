@@ -408,6 +408,93 @@ const playerController = {
     }
   },
 
+  // Initialize an auction from a manually-entered player list (no Excel file).
+  // Mirrors uploadPlayers: resets data, builds players, creates teams.
+  async manualSetup(req, res) {
+    try {
+      const list = Array.isArray(req.body?.players) ? req.body.players : [];
+      const players = list
+        .map((row, index) => {
+          const name = (row.name || row.Name || '').toString().trim();
+          if (!name) return null;
+          const role = (row.role || '').toString().trim();
+          return {
+            id: uuidv4(),
+            slNo: index + 1,
+            name,
+            role,
+            category: determineCategory(role),
+            cricHeroesLink: (row.cricHeroesLink || '').toString().trim(),
+            manualId: (row.manualId || '').toString().trim(),
+            imageUrl: (row.imageUrl || '').toString().trim(),
+            matches: (row.matches || '').toString().trim(),
+            runs: (row.runs || '').toString().trim(),
+            battingAvg: (row.battingAvg || '').toString().trim(),
+            highestScore: (row.highestScore || '').toString().trim(),
+            wickets: (row.wickets || '').toString().trim(),
+            economy: (row.economy || '').toString().trim(),
+            bestBowling: (row.bestBowling || '').toString().trim(),
+            status: 'available',
+            currentBid: 0,
+            finalBid: 0,
+            team: null,
+            biddingTeam: null,
+          };
+        })
+        .filter(Boolean);
+
+      if (players.length === 0) {
+        return res.status(400).json({ error: 'Add at least one player with a name' });
+      }
+
+      dataService.resetAuctionData();
+
+      const captains = players.filter((p) => p.category === 'captain');
+      const regularPlayers = players.filter((p) => p.category !== 'captain');
+      dataService.setPlayers([...captains, ...regularPlayers]);
+
+      dataService.updateAuctionData({ fileUploaded: true, fileName: 'Manual Entry' });
+
+      const settings = dataService.getSettings();
+      const teams = [];
+      for (let i = 1; i <= settings.teamCount; i++) {
+        teams.push({
+          id: i,
+          name: `Team ${i}`,
+          budget: settings.startingBudget,
+          players: [],
+          captain: null,
+          captainAmount: 0,
+        });
+      }
+      dataService.setTeams(teams);
+
+      const stats = calculateStats(dataService.getPlayers());
+      dataService.updateStats(stats);
+
+      socketService.emit('playersUpdated', dataService.getPlayers());
+      socketService.emit('teamsUpdated', dataService.getTeams());
+      socketService.emit('statsUpdated', stats);
+      socketService.emit('fileUploaded', {
+        fileName: 'Manual Entry',
+        playerCount: players.length,
+        captainCount: captains.length,
+      });
+
+      console.log(`🖊️  Manual auction setup with ${players.length} players`);
+      res.json({
+        message: 'Players added successfully',
+        playerCount: players.length,
+        players: dataService.getPlayers(),
+        teams: dataService.getTeams(),
+        stats,
+      });
+    } catch (error) {
+      console.error('Error in manual setup:', error);
+      res.status(500).json({ error: error.message || 'Error setting up players' });
+    }
+  },
+
   // Add a single player manually (e.g. a late registration)
   async addPlayer(req, res) {
     try {

@@ -8,6 +8,7 @@ import TeamManagement from './TeamManagement';
 import ResetControls from './ResetControls';
 import PlayersList from './PlayersList';
 import PlayerFormModal from './PlayerFormModal';
+import TeamSquadsModal from './TeamSquadsModal';
 import StatsDisplay from './StatsDisplay';
 import SubAdminManagement from './SubAdminManagement';
 import Header from './Header';
@@ -82,7 +83,7 @@ const getCategoryStyle = (category) => {
         bg: 'bg-green-50',
         border: 'border-green-200',
         badge: 'bg-green-100 text-green-800',
-        icon: '🥅',
+        icon: '�',
         name: 'Wicket-keepers'
       };
     default:
@@ -417,6 +418,8 @@ const UnifiedDashboard = () => {
   const [showUploadModal, setShowUploadModal] = useState(false);  
   // Add Player (manual, from empty state) modal
   const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
+  // Designed team squads (PDF/PNG) modal
+  const [showTeamSquadsModal, setShowTeamSquadsModal] = useState(false);
   // Edit Settings modal state
   const [showEditSettingsModal, setShowEditSettingsModal] = useState(false);
   const [settingsConfig, setSettingsConfig] = useState({
@@ -937,63 +940,51 @@ const UnifiedDashboard = () => {
     }
   };
 
-  const downloadTeamSquads = async () => {
+  const downloadSaleLog = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/download-team-squads`, { responseType: 'blob' });
-      
+      const response = await axios.get(`${API_BASE_URL}/api/download-sale-log`, { responseType: 'blob' });
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      
       const contentDisposition = response.headers['content-disposition'];
-      let filename = 'team-squads.xlsx';
+      let filename = 'sale-log.xlsx';
       if (contentDisposition) {
         const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-        if (filenameMatch) {
-          filename = filenameMatch[1].replace(/['"]/g, '');
-        }
+        if (filenameMatch) filename = filenameMatch[1].replace(/['"]/g, '');
       }
-      
       link.setAttribute('download', filename);
       document.body.appendChild(link);
       link.click();
       link.remove();
-      
       setTimeout(() => window.URL.revokeObjectURL(url), 100);
-      showSuccess('Team squads downloaded successfully');
+      showSuccess('Sale log downloaded successfully');
     } catch (error) {
-      console.error('Error downloading team squads:', error);
-      showError('Error downloading team squads');
+      console.error('Error downloading sale log:', error);
+      showError('Error downloading sale log');
     }
   };
 
-  const downloadAuctionSummary = async () => {
+  const downloadBackup = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/download-auction-summary`, { responseType: 'blob' });
-      
+      const response = await axios.get(`${API_BASE_URL}/api/download-backup`, { responseType: 'blob' });
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      
       const contentDisposition = response.headers['content-disposition'];
-      let filename = 'auction-summary.xlsx';
+      let filename = 'auction-backup.json';
       if (contentDisposition) {
         const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-        if (filenameMatch) {
-          filename = filenameMatch[1].replace(/['"]/g, '');
-        }
+        if (filenameMatch) filename = filenameMatch[1].replace(/['"]/g, '');
       }
-      
       link.setAttribute('download', filename);
       document.body.appendChild(link);
       link.click();
       link.remove();
-      
       setTimeout(() => window.URL.revokeObjectURL(url), 100);
-      showSuccess('Auction summary downloaded successfully');
+      showSuccess('Backup downloaded successfully');
     } catch (error) {
-      console.error('Error downloading auction summary:', error);
-      showError('Error downloading auction summary');
+      console.error('Error downloading backup:', error);
+      showError('Error downloading backup');
     }
   };
 
@@ -1260,9 +1251,10 @@ const UnifiedDashboard = () => {
         auctionLoading={auctionToggleLoading}
         showDownloadOptions={auctionData.fileUploaded}
         onDownloadExcel={() => downloadResults('excel')}
-        onDownloadTeamSquads={downloadTeamSquads}
-        onDownloadSummary={downloadAuctionSummary}
-        onDownloadCSV={() => downloadResults('csv')}
+        onDownloadSaleLog={downloadSaleLog}
+        onOpenTeamSquads={() => setShowTeamSquadsModal(true)}
+        onDownloadBackup={downloadBackup}
+        canBackup={isAdmin && canConfigure}
         onUploadPlayers={() => setShowUploadModal(true)}
         onEditSettings={isAdmin ? handleOpenEditSettings : null}
         onUndoLastSale={handleUndoLastSale}
@@ -2535,6 +2527,14 @@ const UnifiedDashboard = () => {
         isOpen={showAddPlayerModal}
         mode="add"
         onClose={() => setShowAddPlayerModal(false)}
+      />
+
+      {/* Designed Team Squads (PDF / PNG) Modal */}
+      <TeamSquadsModal
+        isOpen={showTeamSquadsModal}
+        onClose={() => setShowTeamSquadsModal(false)}
+        teams={auctionData.teams || []}
+        players={auctionData.players || []}
       />
 
       {/* Edit Settings Modal */}

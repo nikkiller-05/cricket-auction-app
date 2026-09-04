@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
+import Button from './Button';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const HomePage = () => {
@@ -147,9 +148,11 @@ const HomePage = () => {
               {!showAdminLogin ? (
                 // Role Selection
                 <div className="space-y-4">
-                  <button
+                  <Button
+                    variant="success"
+                    size="xl"
                     onClick={handleViewerAccess}
-                    className="w-full bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-400 hover:to-teal-500 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 font-bold py-4 px-6 rounded-xl duration-200 transform hover:-translate-y-0.5 shadow-lg shadow-emerald-500/30"
+                    className="w-full flex-col !gap-0"
                   >
                     <div className="flex items-center justify-center">
                       <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -157,8 +160,8 @@ const HomePage = () => {
                       </svg>
                       Enter as Spectator
                     </div>
-                    <div className="text-sm opacity-90 mt-1">Watch live auction & view team squads</div>
-                  </button>
+                    <div className="text-sm opacity-90 mt-1 font-medium">Watch live auction & view team squads</div>
+                  </Button>
 
                   <div className="relative">
                     <div className="absolute inset-0 flex items-center">
@@ -169,9 +172,11 @@ const HomePage = () => {
                     </div>
                   </div>
 
-                  <button
+                  <Button
+                    variant="primary"
+                    size="xl"
                     onClick={() => setShowAdminLogin(true)}
-                    className="w-full bg-gradient-to-br from-indigo-500 via-violet-500 to-fuchsia-500 hover:from-indigo-400 hover:via-violet-400 hover:to-fuchsia-400 text-white font-bold py-4 px-6 rounded-xl transition-colors duration-200 transform hover:-translate-y-0.5 shadow-lg shadow-violet-500/30"
+                    className="w-full flex-col !gap-0"
                   >
                     <div className="flex items-center justify-center">
                       <svg className="w-6 h-6 mr-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -180,8 +185,8 @@ const HomePage = () => {
                       </svg>
                       Admin Setup
                     </div>
-                    <div className="text-sm opacity-90 mt-1">Set up & manage auction</div>
-                  </button>
+                    <div className="text-sm opacity-90 mt-1 font-medium">Set up & manage auction</div>
+                  </Button>
                 </div>
               ) : (
                 // Admin Login Form
@@ -223,31 +228,29 @@ const HomePage = () => {
                   )}
 
                   <div className="flex space-x-3">
-                    <button
+                    <Button
                       type="button"
+                      variant="glass"
+                      size="lg"
                       onClick={() => {
                         setShowAdminLogin(false);
                         setLoginError('');
                         setCredentials({ username: '', password: '' });
                       }}
-                      className="flex-1 bg-slate-200 hover:bg-slate-300 !text-slate-700 text-white font-medium py-3 px-4 rounded-lg transition-colors"
+                      className="flex-1"
                     >
                       Back
-                    </button>
-                    <button
+                    </Button>
+                    <Button
                       type="submit"
+                      variant="primary"
+                      size="lg"
                       disabled={loginLoading}
-                      className="flex-1 bg-gradient-to-r from-indigo-500 to-purple-600 hover:from-indigo-600 hover:to-purple-700 disabled:opacity-50 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 font-bold py-3 px-4 rounded-lg duration-200"
+                      loading={loginLoading}
+                      className="flex-1"
                     >
-                      {loginLoading ? (
-                        <div className="flex items-center justify-center">
-                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-2"></div>
-                          Signing in...
-                        </div>
-                      ) : (
-                        'Sign In'
-                      )}
-                    </button>
+                      {loginLoading ? 'Signing in…' : 'Sign In'}
+                    </Button>
                   </div>
                 </form>
               )}

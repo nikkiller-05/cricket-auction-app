@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNotification } from './NotificationSystem';
+import PlayerImageUpload from './PlayerImageUpload';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
@@ -31,10 +32,15 @@ const STAT_FIELDS = [
 ];
 
 // Reusable modal for adding a new player or editing an existing one.
-const PlayerFormModal = ({ isOpen, mode = 'add', player = null, onClose }) => {
+// When `onSubmitOverride` is provided, the form data is handed back to the
+// parent instead of being POSTed (used to collect players during setup).
+const PlayerFormModal = ({ isOpen, mode = 'add', player = null, onClose, onSubmitOverride = null }) => {
   const { showSuccess, showError } = useNotification();
   const [form, setForm] = useState(BLANK);
   const [saving, setSaving] = useState(false);
+  // Stable temp id so a photo can be uploaded before a new player is created.
+  const [tempId] = useState(() => `manual-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`);
+  const uploadId = mode === 'edit' && player ? player.id : tempId;
 
   useEffect(() => {
     if (!isOpen) return;
@@ -72,6 +78,13 @@ const PlayerFormModal = ({ isOpen, mode = 'add', player = null, onClose }) => {
         economy: form.economy,
         bestBowling: form.bestBowling,
       };
+
+      // Setup flow collects players locally instead of persisting immediately.
+      if (onSubmitOverride) {
+        onSubmitOverride(payload);
+        onClose();
+        return;
+      }
 
       if (mode === 'edit' && player) {
         await axios.put(`${API_BASE_URL}/api/players/${player.id}`, payload);
@@ -149,12 +162,26 @@ const PlayerFormModal = ({ isOpen, mode = 'add', player = null, onClose }) => {
             </div>
             <div>
               <label className={labelCls}>Image URL</label>
-              <input
-                className={inputCls}
-                value={form.imageUrl}
-                onChange={(e) => setField('imageUrl', e.target.value)}
-                placeholder="https://…"
-              />
+              <div className="flex items-center gap-2">
+                <input
+                  className={inputCls}
+                  value={form.imageUrl}
+                  onChange={(e) => setField('imageUrl', e.target.value)}
+                  placeholder="Paste a URL or upload →"
+                />
+                <PlayerImageUpload
+                  playerId={uploadId}
+                  onUploaded={(url) => setField('imageUrl', url)}
+                />
+              </div>
+              {form.imageUrl && (
+                <img
+                  src={form.imageUrl}
+                  alt="preview"
+                  className="mt-2 w-14 h-14 rounded-full object-cover border border-slate-200"
+                  onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                />
+              )}
             </div>
           </div>
 

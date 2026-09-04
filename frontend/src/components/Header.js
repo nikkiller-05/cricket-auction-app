@@ -12,9 +12,10 @@ const Header = memo(({
   auctionLoading = false,
   showDownloadOptions = false,
   onDownloadExcel = () => {},
-  onDownloadTeamSquads = () => {},
-  onDownloadSummary = () => {},
-  onDownloadCSV = () => {},
+  onDownloadSaleLog = () => {},
+  onOpenTeamSquads = () => {},
+  onDownloadBackup = () => {},
+  canBackup = false,
   onUploadPlayers = null,
   auctionStatus = null,
   onUndoLastSale = null,
@@ -194,52 +195,54 @@ const Header = memo(({
                   >
                     <span className="download-item-icon">📊</span>
                     <div className="download-item-content">
-                      <div className="download-item-title">Complete Results (Excel)</div>
-                      <div className="download-item-subtitle">All sheets with detailed data</div>
+                      <div className="download-item-title">Complete Report (Excel)</div>
+                      <div className="download-item-subtitle">Every sheet: squads, finances, sale log & more</div>
                     </div>
                   </button>
-                  
+
                   <button
                     onClick={() => {
-                      onDownloadTeamSquads();
+                      onOpenTeamSquads();
                       setIsDownloadDropdownOpen(false);
                     }}
                     className="download-dropdown-item"
                   >
-                    <span className="download-item-icon">🏏</span>
+                    <span className="download-item-icon">🖼️</span>
                     <div className="download-item-content">
-                      <div className="download-item-title">Team Squads</div>
-                      <div className="download-item-subtitle">Player name, role, price by team</div>
+                      <div className="download-item-title">Team Squads (PDF / PNG)</div>
+                      <div className="download-item-subtitle">Designed, shareable team cards</div>
                     </div>
                   </button>
-                  
+
                   <button
                     onClick={() => {
-                      onDownloadSummary();
+                      onDownloadSaleLog();
                       setIsDownloadDropdownOpen(false);
                     }}
                     className="download-dropdown-item"
                   >
-                    <span className="download-item-icon">📋</span>
+                    <span className="download-item-icon">🧾</span>
                     <div className="download-item-content">
-                      <div className="download-item-title">Auction Summary</div>
-                      <div className="download-item-subtitle">Statistics and financial overview</div>
+                      <div className="download-item-title">Sale Log (Excel)</div>
+                      <div className="download-item-subtitle">Chronological record of every purchase</div>
                     </div>
                   </button>
-                  
-                  <button
-                    onClick={() => {
-                      onDownloadCSV();
-                      setIsDownloadDropdownOpen(false);
-                    }}
-                    className="download-dropdown-item"
-                  >
-                    <span className="download-item-icon">📄</span>
-                    <div className="download-item-content">
-                      <div className="download-item-title">Export as CSV</div>
-                      <div className="download-item-subtitle">Comma-separated values format</div>
-                    </div>
-                  </button>
+
+                  {canBackup && (
+                    <button
+                      onClick={() => {
+                        onDownloadBackup();
+                        setIsDownloadDropdownOpen(false);
+                      }}
+                      className="download-dropdown-item"
+                    >
+                      <span className="download-item-icon">💾</span>
+                      <div className="download-item-content">
+                        <div className="download-item-title">Full Backup (JSON)</div>
+                        <div className="download-item-subtitle">Admin only — complete auction snapshot</div>
+                      </div>
+                    </button>
+                  )}
                 </div>
               )}
             </div>

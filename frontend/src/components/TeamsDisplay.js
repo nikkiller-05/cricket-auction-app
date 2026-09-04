@@ -52,7 +52,7 @@ const TeamsDisplay = ({ teams, players }) => {
                 <div className="mb-4 p-3 bg-purple-50 border border-purple-200 rounded-lg">
                   <div className="flex justify-between items-center">
                     <div>
-                      <span className="text-xs font-medium text-purple-600 uppercase tracking-wide">Captain</span>
+                      <span className="text-xs font-medium text-purple-600 uppercase tracking-wide">👑 Captain</span>
                       <div className="font-medium text-purple-800">{teamData.captain.name}</div>
                       <div className="text-sm text-purple-600">{teamData.captain.role}</div>
                     </div>

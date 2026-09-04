@@ -180,6 +180,31 @@ const secureExcelService = {
     }
   },
 
+  // Build chronological sale-log rows (sold players ordered by sale time).
+  buildSaleLogRows(auctionData) {
+    const players = auctionData.players || [];
+    const teams = auctionData.teams || [];
+    const teamName = (id) => teams.find((t) => t.id === id)?.name || id || '';
+    const sold = players.filter((p) => p.status === 'sold');
+    // Order by soldAt when present; players sold before this feature existed
+    // fall back to the end, ordered by price.
+    sold.sort((a, b) => {
+      if (a.soldAt && b.soldAt) return new Date(a.soldAt) - new Date(b.soldAt);
+      if (a.soldAt) return -1;
+      if (b.soldAt) return 1;
+      return (b.finalBid || 0) - (a.finalBid || 0);
+    });
+    return sold.map((p, i) => ({
+      '#': i + 1,
+      'Player Name': p.name || '',
+      'Category': p.category || '',
+      'Role': p.role || '',
+      'Team': teamName(p.team),
+      'Price': p.finalBid ? `₹${p.finalBid}` : '',
+      'Sold At': p.soldAt ? new Date(p.soldAt).toLocaleString() : '',
+    }));
+  },
+
   // Generate comprehensive auction report
   async generateAuctionReport(auctionData) {
     try {
@@ -417,6 +442,15 @@ const secureExcelService = {
         this.setColumnWidths(ws7, categoryAnalysis);
       }
 
+      // 9. Sale Log Sheet (chronological)
+      const saleLogRows = this.buildSaleLogRows(auctionData);
+      if (saleLogRows.length > 0) {
+        const ws8 = workbook.addWorksheet('Sale Log');
+        ws8.addRow(Object.keys(saleLogRows[0]));
+        saleLogRows.forEach((row) => ws8.addRow(Object.values(row)));
+        this.setColumnWidths(ws8, saleLogRows);
+      }
+
       // Generate buffer
       const buffer = await workbook.xlsx.writeBuffer();
       
@@ -427,6 +461,25 @@ const secureExcelService = {
       console.error('Error generating auction report:', error);
       throw new Error('Failed to generate auction report: ' + error.message);
     }
+  },
+
+  // Generate standalone Sale Log Excel (chronological purchase record)
+  async generateSaleLogExcel(auctionData) {
+    if (!auctionData || !auctionData.players) {
+      throw new Error('No auction data provided');
+    }
+    const workbook = new ExcelJS.Workbook();
+    workbook.created = new Date();
+    const ws = workbook.addWorksheet('Sale Log');
+    const rows = this.buildSaleLogRows(auctionData);
+    if (rows.length > 0) {
+      ws.addRow(Object.keys(rows[0]));
+      rows.forEach((row) => ws.addRow(Object.values(row)));
+      this.setColumnWidths(ws, rows);
+    } else {
+      ws.addRow(['No players have been sold yet']);
+    }
+    return workbook.xlsx.writeBuffer();
   },
 
   // Generate team squads only Excel file
