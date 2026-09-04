@@ -168,7 +168,13 @@ const playerController = {
         (p) => (p.cricHeroesLink || p.manualId) && needsStats(p)
       );
 
-      if (playersNeedingStats.length > 0) {
+      // CricHeroes live fetch is disabled by default: it is blocked by Cloudflare
+      // on Render and only adds a long delay to uploads. Stats now come straight
+      // from the uploaded Excel (pre-enriched locally via utils/enrichPlayerStats.js).
+      // Set ENABLE_STATS_FETCH=true to re-enable this fallback auto-fetch.
+      const liveFetchEnabled = process.env.ENABLE_STATS_FETCH === 'true';
+
+      if (liveFetchEnabled && playersNeedingStats.length > 0) {
         console.log(`\n🏏 Auto-fetching stats for ${playersNeedingStats.length} players (parallel batches)...`);
         const startTime = Date.now();
 
@@ -202,6 +208,8 @@ const playerController = {
 
         const duration = ((Date.now() - startTime) / 1000).toFixed(1);
         console.log(`✅ Stats fetching complete: ${fetchedCount}/${playersNeedingStats.length} in ${duration}s\n`);
+      } else if (playersNeedingStats.length > 0) {
+        console.log(`ℹ️  Live stats fetch disabled - using stats from the uploaded file (${playersNeedingStats.length} players have blanks)`);
       }
 
       // Separate captains and regular players
