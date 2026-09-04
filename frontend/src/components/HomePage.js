@@ -119,13 +119,20 @@ const HomePage = () => {
       <div className="relative z-10 min-h-screen flex flex-col">
         {/* Header */}
         <header className="pt-12 pb-4">
-          <div className="max-w-6xl mx-auto px-4 text-center">
-            <h1 className="text-5xl md:text-7xl font-extrabold mb-4 tracking-tight drop-shadow-[0_4px_30px_rgba(139,92,246,0.4)]">
-              <span aria-hidden="true">🏏</span>{' '}
+          <div className="max-w-6xl mx-auto px-4 flex flex-col items-center text-center">
+            <img
+              src="/auction-logo.png"
+              alt="Auction logo"
+              className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl mb-5 ring-1 ring-amber-300/30 shadow-[0_14px_50px_-12px_rgba(232,184,75,0.5)]"
+            />
+            <h1 className="text-5xl md:text-7xl font-extrabold mb-3 tracking-tight drop-shadow-[0_4px_30px_rgba(139,92,246,0.4)]">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-100 to-fuchsia-200">
                 Cricket Auction
               </span>
             </h1>
+            <p className="text-xs sm:text-sm font-bold uppercase tracking-[0.4em] text-amber-300/90 mb-3">
+              Bid · Discover · Own
+            </p>
             <p className="text-lg md:text-xl text-indigo-200/90 font-light">
               Experience the thrill of live player auctions
             </p>
@@ -252,23 +259,24 @@ const HomePage = () => {
             </div>
 
             {/* Features Preview */}
-            <div className="mt-8 text-center">
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div className="bg-white bg-opacity-5 rounded-lg p-4">
-                  <div className="text-3xl mb-2">⚡</div>
-                  <h5 className="text-white font-medium mb-2">Real-Time Updates</h5>
-                  <p className="text-blue-200 text-sm">Live bidding with instant updates</p>
-                </div>
-                <div className="bg-white bg-opacity-5 rounded-lg p-4">
-                  <div className="text-3xl mb-2">📊</div>
-                  <h5 className="text-white font-medium mb-2">Live Statistics</h5>
-                  <p className="text-blue-200 text-sm">Comprehensive auction analytics</p>
-                </div>
-                <div className="bg-white bg-opacity-5 rounded-lg p-4">
-                  <div className="text-3xl mb-2">🏏</div>
-                  <h5 className="text-white font-medium mb-2">Team Management</h5>
-                  <p className="text-blue-200 text-sm">Complete squad management</p>
-                </div>
+            <div className="mt-8">
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+                {[
+                  { icon: '⚡', title: 'Real-Time Bidding', desc: 'Instant live updates' },
+                  { icon: '💰', title: 'Auto Budgets', desc: 'Team spend tracked live' },
+                  { icon: '🖼️', title: 'Squad Exports', desc: 'One-tap PNG & PDF' },
+                  { icon: '📊', title: 'Live Stats', desc: 'Full auction analytics' },
+                ].map((f) => (
+                  <div
+                    key={f.title}
+                    className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.04] p-4 text-center transition-all duration-300 hover:-translate-y-0.5 hover:border-amber-300/40 hover:bg-white/[0.07]"
+                  >
+                    <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-amber-300/70 to-transparent" />
+                    <div className="text-2xl mb-2">{f.icon}</div>
+                    <h5 className="text-white font-semibold text-sm mb-1">{f.title}</h5>
+                    <p className="text-blue-200/80 text-xs">{f.desc}</p>
+                  </div>
+                ))}
               </div>
             </div>
           </div>
