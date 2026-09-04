@@ -1,4 +1,16 @@
 import React, { useMemo } from 'react';
+import PlayerAvatar from './PlayerAvatar';
+
+const CATEGORY_LABELS = {
+  batter: 'Batter',
+  bowler: 'Bowler',
+  allrounder: 'All-rounder',
+  'wicket-keeper': 'Keeper',
+  captain: 'Captain',
+  other: 'Other',
+};
+const formatCategoryLabel = (c) => CATEGORY_LABELS[c] || (c ? c.charAt(0).toUpperCase() + c.slice(1) : '—');
+const formatCurrency = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
 
 const StatsDisplay = ({ stats, teams, players, settings }) => {
   // Memoize calculated stats to avoid recalculation on every render
@@ -18,9 +30,61 @@ const StatsDisplay = ({ stats, teams, players, settings }) => {
     };
   }, [players]);
 
+  // Per-team spend for the chart + biggest spender highlight
+  const { teamSpend, maxTeamSpend, biggestSpender } = useMemo(() => {
+    const spendByTeam = (teams || []).map((t) => {
+      const spent = (players || [])
+        .filter(p => p.team === t.id && p.status === 'sold' && p.category !== 'captain')
+        .reduce((s, p) => s + (p.finalBid || 0), 0);
+      return { team: t, spent };
+    });
+    const max = Math.max(1, ...spendByTeam.map(x => x.spent));
+    const top = spendByTeam.slice().sort((a, b) => b.spent - a.spent)[0];
+    return { teamSpend: spendByTeam, maxTeamSpend: max, biggestSpender: top };
+  }, [teams, players]);
+
   return (
     <div className="space-y-6">
       <h3 className="text-2xl font-bold text-slate-900 tracking-tight">Auction Statistics</h3>
+
+      {/* Headline tiles */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="relative overflow-hidden rounded-2xl border border-emerald-200/70 bg-white/90 p-5 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)]">
+          <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-emerald-500 to-teal-500" />
+          <div className="text-[11px] uppercase tracking-[0.18em] font-semibold text-slate-500">Total Spent</div>
+          <div className="mt-1 text-2xl font-extrabold text-emerald-600">{formatCurrency(totalSpent)}</div>
+          <div className="mt-0.5 text-xs text-slate-500">{soldPlayers.length} sold via bidding</div>
+        </div>
+
+        <div className="relative overflow-hidden rounded-2xl border border-amber-200/70 bg-white/90 p-5 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)]">
+          <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-amber-500 to-orange-500" />
+          <div className="text-[11px] uppercase tracking-[0.18em] font-semibold text-slate-500">Most Expensive</div>
+          {stats?.highestBid?.player ? (
+            <div className="mt-1 flex items-center gap-3">
+              <PlayerAvatar player={stats.highestBid.player} size="md" />
+              <div className="min-w-0">
+                <div className="font-bold text-slate-900 truncate">{stats.highestBid.player.name}</div>
+                <div className="text-sm font-bold text-amber-600">{formatCurrency(stats.highestBid.amount)}</div>
+              </div>
+            </div>
+          ) : (
+            <div className="mt-1 text-sm text-slate-400">—</div>
+          )}
+        </div>
+
+        <div className="relative overflow-hidden rounded-2xl border border-indigo-200/70 bg-white/90 p-5 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)]">
+          <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-indigo-500 to-violet-500" />
+          <div className="text-[11px] uppercase tracking-[0.18em] font-semibold text-slate-500">Biggest Spender</div>
+          {biggestSpender && biggestSpender.spent > 0 ? (
+            <>
+              <div className="mt-1 font-bold text-slate-900 truncate">{biggestSpender.team.name}</div>
+              <div className="text-sm font-bold text-indigo-600">{formatCurrency(biggestSpender.spent)}</div>
+            </>
+          ) : (
+            <div className="mt-1 text-sm text-slate-400">—</div>
+          )}
+        </div>
+      </div>
       
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Overall Statistics */}
@@ -58,27 +122,27 @@ const StatsDisplay = ({ stats, teams, players, settings }) => {
           <div className="space-y-3">
             <div className="flex justify-between items-center">
               <span className="text-sm text-slate-600">Total Spent</span>
-              <span className="text-lg font-bold text-emerald-600">₹{totalSpent}</span>
+              <span className="text-lg font-bold text-emerald-600">{formatCurrency(totalSpent)}</span>
             </div>
             
             {stats?.highestBid && stats.highestBid.player && (
               <div className="flex justify-between items-center">
                 <span className="text-sm text-slate-600">Highest Bid</span>
-                <span className="font-semibold text-emerald-600">₹{stats.highestBid.amount}</span>
+                <span className="font-semibold text-emerald-600">{formatCurrency(stats.highestBid.amount)}</span>
               </div>
             )}
             
             {stats?.lowestBid && stats.lowestBid.player && (
               <div className="flex justify-between items-center">
                 <span className="text-sm text-slate-600">Lowest Bid</span>
-                <span className="font-semibold text-sky-600">₹{stats.lowestBid.amount}</span>
+                <span className="font-semibold text-sky-600">{formatCurrency(stats.lowestBid.amount)}</span>
               </div>
             )}
             
             {stats?.averageBid && stats.averageBid > 0 && (
               <div className="flex justify-between items-center">
                 <span className="text-sm text-slate-600">Average Sale Price</span>
-                <span className="font-semibold text-indigo-600">₹{Math.round(stats.averageBid)}</span>
+                <span className="font-semibold text-indigo-600">{formatCurrency(Math.round(stats.averageBid))}</span>
               </div>
             )}
 
@@ -94,72 +158,76 @@ const StatsDisplay = ({ stats, teams, players, settings }) => {
         </div>
       </div>
 
-      {/* RESTORED: Detailed Highest/Lowest Bid Cards */}
+      {/* Detailed Highest/Lowest Bid Cards */}
       {(stats?.highestBid?.player || stats?.lowestBid?.player) && (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Highest Bid Card */}
           {stats?.highestBid?.player && (
-            <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg shadow-2xl p-6 border-2 border-green-400 border-opacity-70">
+            <div className="relative overflow-hidden rounded-2xl border border-emerald-200/70 bg-white/90 p-6 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)]">
+              <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-emerald-500 to-teal-500" />
               <div className="flex items-center justify-between mb-4">
-                <h4 className="text-lg font-medium text-green-800">🤑 Highest Bid</h4>
-                <span className="text-3xl font-bold text-green-600">₹{stats.highestBid.amount}</span>
+                <h4 className="text-xs uppercase tracking-[0.18em] font-semibold text-slate-500">🤑 Highest Bid</h4>
+                <span className="text-2xl sm:text-3xl font-extrabold text-emerald-600">{formatCurrency(stats.highestBid.amount)}</span>
               </div>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-green-700">Player:</span>
-                  <span className="font-semibold text-green-900">{stats.highestBid.player.name}</span>
+              <div className="flex items-center gap-4">
+                <PlayerAvatar player={stats.highestBid.player} size="lg" />
+                <div className="min-w-0 space-y-1">
+                  <div className="text-lg font-bold text-slate-900 truncate">{stats.highestBid.player.name}</div>
+                  <div className="text-sm text-slate-600">{stats.highestBid.player.role} · {formatCategoryLabel(stats.highestBid.player.category)}</div>
+                  {stats.highestBid.player.team && (
+                    <div className="text-sm font-medium text-slate-700">
+                      🏏 {teams?.find(t => t.id === stats.highestBid.player.team)?.name || 'Unknown'}
+                    </div>
+                  )}
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-green-700">Role:</span>
-                  <span className="text-green-800">{stats.highestBid.player.role}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-green-700">Category:</span>
-                  <span className="capitalize text-green-800">{stats.highestBid.player.category}</span>
-                </div>
-                {stats.highestBid.player.team && (
-                  <div className="flex justify-between">
-                    <span className="text-green-700">Team:</span>
-                    <span className="font-medium text-green-900">
-                      {teams?.find(t => t.id === stats.highestBid.player.team)?.name || 'Unknown'}
-                    </span>
-                  </div>
-                )}
               </div>
             </div>
           )}
 
           {/* Lowest Bid Card */}
           {stats?.lowestBid?.player && (
-            <div className="bg-gradient-to-r from-blue-50 to-cyan-50 rounded-lg shadow-2xl p-6 border-2 border-blue-400 border-opacity-70">
+            <div className="relative overflow-hidden rounded-2xl border border-sky-200/70 bg-white/90 p-6 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)]">
+              <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-sky-500 to-blue-500" />
               <div className="flex items-center justify-between mb-4">
-                <h4 className="text-lg font-medium text-blue-800">💎 Lowest Bid</h4>
-                <span className="text-3xl font-bold text-blue-600">₹{stats.lowestBid.amount}</span>
+                <h4 className="text-xs uppercase tracking-[0.18em] font-semibold text-slate-500">💎 Lowest Bid</h4>
+                <span className="text-2xl sm:text-3xl font-extrabold text-sky-600">{formatCurrency(stats.lowestBid.amount)}</span>
               </div>
-              <div className="space-y-2">
-                <div className="flex justify-between">
-                  <span className="text-blue-700">Player:</span>
-                  <span className="font-semibold text-blue-900">{stats.lowestBid.player.name}</span>
+              <div className="flex items-center gap-4">
+                <PlayerAvatar player={stats.lowestBid.player} size="lg" />
+                <div className="min-w-0 space-y-1">
+                  <div className="text-lg font-bold text-slate-900 truncate">{stats.lowestBid.player.name}</div>
+                  <div className="text-sm text-slate-600">{stats.lowestBid.player.role} · {formatCategoryLabel(stats.lowestBid.player.category)}</div>
+                  {stats.lowestBid.player.team && (
+                    <div className="text-sm font-medium text-slate-700">
+                      🏏 {teams?.find(t => t.id === stats.lowestBid.player.team)?.name || 'Unknown'}
+                    </div>
+                  )}
                 </div>
-                <div className="flex justify-between">
-                  <span className="text-blue-700">Role:</span>
-                  <span className="text-blue-800">{stats.lowestBid.player.role}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-blue-700">Category:</span>
-                  <span className="capitalize text-blue-800">{stats.lowestBid.player.category}</span>
-                </div>
-                {stats.lowestBid.player.team && (
-                  <div className="flex justify-between">
-                    <span className="text-blue-700">Team:</span>
-                    <span className="font-medium text-blue-900">
-                      {teams?.find(t => t.id === stats.lowestBid.player.team)?.name || 'Unknown'}
-                    </span>
-                  </div>
-                )}
               </div>
             </div>
           )}
+        </div>
+      )}
+
+      {/* Spend by Team — comparative bar chart */}
+      {teamSpend.some(t => t.spent > 0) && (
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white/90 p-6 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)]">
+          <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-sky-500 to-indigo-500" />
+          <h4 className="text-xs uppercase tracking-[0.18em] font-semibold text-slate-500 mb-4">Spend by Team</h4>
+          <div className="space-y-3">
+            {teamSpend.slice().sort((a, b) => b.spent - a.spent).map(({ team, spent }) => (
+              <div key={team.id} className="flex items-center gap-3">
+                <span className="w-28 sm:w-36 shrink-0 truncate text-sm font-medium text-slate-700">{team.name}</span>
+                <div className="flex-1 h-3 rounded-full bg-slate-100 overflow-hidden">
+                  <div
+                    className="h-3 rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-[width] duration-500"
+                    style={{ width: `${Math.max(2, (spent / maxTeamSpend) * 100)}%` }}
+                  />
+                </div>
+                <span className="w-20 sm:w-24 shrink-0 text-right text-sm font-bold text-slate-900">{formatCurrency(spent)}</span>
+              </div>
+            ))}
+          </div>
         </div>
       )}
 
@@ -181,8 +249,8 @@ const StatsDisplay = ({ stats, teams, players, settings }) => {
                   <span className="font-medium text-gray-900">{team.name}</span>
                   <div className="flex items-center space-x-4 text-sm">
                     <span className="text-gray-600">Players: {teamPlayers.length}</span>
-                    <span className="text-green-600">Spent: ₹{totalSpentByTeam}</span>
-                    <span className="text-blue-600">Remaining: ₹{team.budget}</span>
+                    <span className="text-green-600">Spent: {formatCurrency(totalSpentByTeam)}</span>
+                    <span className="text-blue-600">Remaining: {formatCurrency(team.budget)}</span>
                   </div>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
@@ -196,7 +264,7 @@ const StatsDisplay = ({ stats, teams, players, settings }) => {
                 </div>
                 <div className="flex justify-between text-xs text-gray-500">
                   <span>{Math.round(budgetUsed)}% budget used</span>
-                  <span>Avg: ₹{boughtPlayers.length > 0 ? Math.round(totalSpentByTeam / boughtPlayers.length) : 0} per player</span>
+                  <span>Avg: {formatCurrency(boughtPlayers.length > 0 ? Math.round(totalSpentByTeam / boughtPlayers.length) : 0)} per player</span>
                 </div>
               </div>
             );
@@ -216,14 +284,14 @@ const StatsDisplay = ({ stats, teams, players, settings }) => {
             
             return (
               <div key={category} className="text-center p-4 bg-white bg-opacity-70 rounded-lg border border-gray-300 shadow-md">
-                <h5 className="font-medium text-gray-900 capitalize mb-2">{category.replace('-', ' ')}</h5>
+                <h5 className="font-medium text-gray-900 mb-2">{formatCategoryLabel(category)}</h5>
                 <div className="space-y-1 text-sm">
                   <div className="text-gray-600">Total: {categoryPlayers.length}</div>
                   <div className="text-green-600">Sold: {soldInCategory.length}</div>
                   <div className="text-red-600">Unsold: {categoryPlayers.filter(p => p.status === 'unsold').length}</div>
-                  <div className="font-medium text-blue-600">₹{totalSpentInCategory}</div>
+                  <div className="font-medium text-blue-600">{formatCurrency(totalSpentInCategory)}</div>
                   <div className="text-xs text-gray-500">
-                    Avg: ₹{soldInCategory.length > 0 ? Math.round(totalSpentInCategory / soldInCategory.length) : 0}
+                    Avg: {formatCurrency(soldInCategory.length > 0 ? Math.round(totalSpentInCategory / soldInCategory.length) : 0)}
                   </div>
                 </div>
               </div>
