@@ -107,7 +107,7 @@ const HomePage = () => {
   };
 
   return (
-    <div className="min-h-screen relative overflow-hidden" style={{background: 'radial-gradient(60rem 40rem at -10% -20%, rgba(139,92,246,0.45) 0%, transparent 60%), radial-gradient(55rem 38rem at 110% 110%, rgba(217,70,239,0.35) 0%, transparent 60%), radial-gradient(40rem 28rem at 50% 40%, rgba(34,211,238,0.18) 0%, transparent 60%), linear-gradient(160deg, #0b1020 0%, #1e1b4b 50%, #312e81 100%)'}}>
+    <div className="min-h-screen relative overflow-hidden" style={{background: 'radial-gradient(58rem 40rem at -8% -18%, rgba(232,184,75,0.16) 0%, transparent 60%), radial-gradient(54rem 40rem at 112% 116%, rgba(176,120,32,0.18) 0%, transparent 60%), radial-gradient(42rem 30rem at 50% 32%, rgba(99,102,241,0.12) 0%, transparent 62%), linear-gradient(160deg, #0a0a0f 0%, #12101b 46%, #0b0b11 100%)'}}>
       {/* Background Pattern */}
       <div 
         className="absolute inset-0 opacity-[0.07] pointer-events-none"
@@ -125,8 +125,8 @@ const HomePage = () => {
               alt="Auction logo"
               className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl mb-5 ring-1 ring-amber-300/30 shadow-[0_14px_50px_-12px_rgba(232,184,75,0.5)]"
             />
-            <h1 className="text-5xl md:text-7xl font-extrabold mb-3 tracking-tight drop-shadow-[0_4px_30px_rgba(139,92,246,0.4)]">
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-100 to-fuchsia-200">
+            <h1 className="text-5xl md:text-7xl font-extrabold mb-3 tracking-tight drop-shadow-[0_4px_30px_rgba(232,184,75,0.35)]">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-100 via-white to-amber-200">
                 Cricket Auction
               </span>
             </h1>
