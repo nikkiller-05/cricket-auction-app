@@ -123,9 +123,9 @@ const HomePage = () => {
             <img
               src="/auction-logo.png"
               alt="Auction logo"
-              className="w-20 h-20 sm:w-24 sm:h-24 rounded-2xl mb-5 ring-1 ring-amber-300/30 shadow-[0_14px_50px_-12px_rgba(232,184,75,0.5)]"
+              className="w-28 h-28 sm:w-40 sm:h-40 rounded-2xl mb-5 ring-1 ring-amber-300/30 shadow-[0_14px_50px_-12px_rgba(232,184,75,0.5)]"
             />
-            <h1 className="text-5xl md:text-7xl font-extrabold mb-3 tracking-tight drop-shadow-[0_4px_30px_rgba(232,184,75,0.35)]">
+            <h1 className="text-3xl md:text-5xl font-extrabold mb-3 tracking-tight drop-shadow-[0_4px_30px_rgba(232,184,75,0.35)]">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-100 via-white to-amber-200">
                 Cricket Auction
               </span>

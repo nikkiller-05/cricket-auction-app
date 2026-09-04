@@ -1,6 +1,8 @@
 import React, { useMemo } from 'react';
 import PlayerAvatar from './PlayerAvatar';
 
+const formatCurrency = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
+
 /**
  * LiveBiddingCard
  * Modern, responsive hero card for the active player + current bid.
@@ -189,7 +191,7 @@ const LiveBiddingCardInner = ({
                 className="text-3xl sm:text-4xl md:text-5xl font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)]"
                 style={{ animation: 'bidAmountPulse 1.5s ease-in-out infinite' }}
               >
-                ₹{currentAmount ?? 0}
+                {formatCurrency(currentAmount ?? 0)}
               </p>
             </div>
           </div>
@@ -217,7 +219,7 @@ const LiveBiddingCardInner = ({
                   <span className="text-[10px] sm:text-[11px] uppercase tracking-wider font-semibold text-white/90">
                     Budget
                   </span>
-                  <span className="text-xs sm:text-sm font-bold text-white">₹{leadingTeamBudget}</span>
+                  <span className="text-xs sm:text-sm font-bold text-white">{formatCurrency(leadingTeamBudget)}</span>
                 </div>
               )}
             </div>

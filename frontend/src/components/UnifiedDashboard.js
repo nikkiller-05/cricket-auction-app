@@ -243,7 +243,7 @@ const TeamSquadViewer = ({ teams, players }) => {
                 </div>
                 <div className="text-right">
                   <div className="text-sm text-gray-500">Budget Remaining</div>
-                  <div className="text-xl font-semibold text-green-600">₹{currentTeam.budget}</div>
+                  <div className="text-xl font-semibold text-green-600">{formatCurrency(currentTeam.budget)}</div>
                 </div>
               </div>
             </div>
@@ -251,7 +251,7 @@ const TeamSquadViewer = ({ teams, players }) => {
             {/* Budget Bar */}
             <div className="mb-4">
               <div className="flex justify-between text-sm text-gray-600 mb-1">
-                <span>Budget Used: ₹{totalSpent}</span>
+                <span>Budget Used: {formatCurrency(totalSpent)}</span>
                 <span>{Math.round(budgetUsed)}% used</span>
               </div>
               <div className="w-full bg-gray-200 rounded-full h-2">
@@ -280,12 +280,12 @@ const TeamSquadViewer = ({ teams, players }) => {
                 <div className="text-xs text-blue-600">Bought</div>
               </div>
               <div className="bg-green-50 rounded-lg p-3 text-center">
-                <div className="text-2xl font-bold text-green-600">₹{totalSpent}</div>
+                <div className="text-2xl font-bold text-green-600">{formatCurrency(totalSpent)}</div>
                 <div className="text-xs text-green-600">Total Spent</div>
               </div>
               <div className="bg-orange-50 rounded-lg p-3 text-center">
                 <div className="text-2xl font-bold text-orange-600">
-                  ₹{(boughtPlayers.length + teamRetainedPlayers.length) > 0 ? Math.round(totalSpent / (boughtPlayers.length + teamRetainedPlayers.length)) : 0}
+                  {formatCurrency((boughtPlayers.length + teamRetainedPlayers.length) > 0 ? Math.round(totalSpent / (boughtPlayers.length + teamRetainedPlayers.length)) : 0)}
                 </div>
                 <div className="text-xs text-orange-600">Avg Price</div>
               </div>
@@ -317,7 +317,7 @@ const TeamSquadViewer = ({ teams, players }) => {
                       </div>
                     </div>
                     <div className="text-right">
-                      <div className="text-lg font-semibold text-purple-600">₹{captainAmount}</div>
+                      <div className="text-lg font-semibold text-purple-600">{formatCurrency(captainAmount)}</div>
                       <div className="text-xs text-gray-500">{captain.status === 'retained' ? 'Retention Cost' : 'Assignment Cost'}</div>
                     </div>
                   </div>
@@ -355,19 +355,19 @@ const TeamSquadViewer = ({ teams, players }) => {
                               </h5>
                               <p className="text-sm text-gray-600">{player.role}</p>
                               <span className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-1 ${style.badge}`}>
-                                {category.replace('-', ' ')}
+                                {formatCategoryLabel(category)}
                               </span>
                             </div>
                           </div>
                           <div className="text-right">
                             {player.status === 'retained' ? (
                               <div>
-                                <div className="text-lg font-semibold text-purple-600">₹{player.retentionAmount || player.finalBid}</div>
+                                <div className="text-lg font-semibold text-purple-600">{formatCurrency(player.retentionAmount || player.finalBid)}</div>
                                 <div className="text-xs text-gray-500">Retention Cost</div>
                               </div>
                             ) : (
                               <div>
-                                <div className="text-lg font-semibold text-green-600">₹{player.finalBid}</div>
+                                <div className="text-lg font-semibold text-green-600">{formatCurrency(player.finalBid)}</div>
                                 <div className="text-xs text-gray-500">Auction Price</div>
                               </div>
                             )}
@@ -384,10 +384,10 @@ const TeamSquadViewer = ({ teams, players }) => {
                         {categoryPlayers.length} player{categoryPlayers.length !== 1 ? 's' : ''}
                       </span>
                       <span className="font-medium text-gray-900">
-                        Total: ₹{categoryPlayers.reduce((sum, p) => sum + (p.status === 'retained' ? (p.retentionAmount || p.finalBid || 0) : (p.finalBid || 0)), 0)}
+                        Total: {formatCurrency(categoryPlayers.reduce((sum, p) => sum + (p.status === 'retained' ? (p.retentionAmount || p.finalBid || 0) : (p.finalBid || 0)), 0))}
                       </span>
                       <span className="text-gray-600">
-                        Avg: ₹{Math.round(categoryPlayers.reduce((sum, p) => sum + (p.status === 'retained' ? (p.retentionAmount || p.finalBid || 0) : (p.finalBid || 0)), 0) / categoryPlayers.length)}
+                        Avg: {formatCurrency(Math.round(categoryPlayers.reduce((sum, p) => sum + (p.status === 'retained' ? (p.retentionAmount || p.finalBid || 0) : (p.finalBid || 0)), 0) / categoryPlayers.length))}
                       </span>
                     </div>
                   )}
@@ -431,7 +431,7 @@ const TeamSquadViewer = ({ teams, players }) => {
                          category + 's'}
                       </div>
                       <div className="text-xs font-medium text-green-600">
-                        ₹{categorySpent}
+                        {formatCurrency(categorySpent)}
                       </div>
                     </div>
                   );
@@ -1328,7 +1328,7 @@ const UnifiedDashboard = () => {
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-center">
               <div className="px-4 py-2 rounded-full text-sm font-medium bg-yellow-400 bg-opacity-80 text-yellow-900 animate-pulse shadow-lg border border-yellow-300">
-                💰 Current Bid: ₹{auctionData.currentBid.currentAmount}
+                💰 Current Bid: {formatCurrency(auctionData.currentBid.currentAmount)}
               </div>
             </div>
           </div>
@@ -1388,7 +1388,7 @@ const UnifiedDashboard = () => {
                         )}
                         <div className="relative flex flex-col items-center leading-tight">
                           <span className="tracking-wide">{cleanTeamName(team.name)}</span>
-                          <span className={`text-[10px] mt-0.5 font-semibold ${canBid ? 'text-white/85' : 'text-white/30'}`}>₹{team.budget}</span>
+                          <span className={`text-[10px] mt-0.5 font-semibold ${canBid ? 'text-white/85' : 'text-white/30'}`}>{formatCurrency(team.budget)}</span>
                         </div>
                       </button>
                     );

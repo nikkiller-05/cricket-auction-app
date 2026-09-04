@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNotification } from './NotificationSystem';
 import Button from './Button';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+const formatCurrency = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
 
 const AuctionControls = memo(({ auctionData, socket }) => {
   const [loading, setLoading] = useState(false);
@@ -72,7 +73,7 @@ const AuctionControls = memo(({ auctionData, socket }) => {
           </div>
           <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 text-left">
             <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-slate-500">Base Price</div>
-            <div className="mt-1 text-2xl font-bold text-emerald-600">₹{settings.basePrice}</div>
+            <div className="mt-1 text-2xl font-bold text-emerald-600">{formatCurrency(settings.basePrice)}</div>
           </div>
           <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4 text-left">
             <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-slate-500">Teams</div>
@@ -107,7 +108,7 @@ const AuctionControls = memo(({ auctionData, socket }) => {
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
             <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-slate-500">Base Price</div>
-            <div className="mt-1 text-lg font-bold text-slate-900">₹{settings.basePrice}</div>
+            <div className="mt-1 text-lg font-bold text-slate-900">{formatCurrency(settings.basePrice)}</div>
           </div>
           <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
             <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-slate-500">Teams</div>
@@ -119,7 +120,7 @@ const AuctionControls = memo(({ auctionData, socket }) => {
           </div>
           <div className="rounded-xl border border-slate-200 bg-slate-50/60 p-4">
             <div className="text-[10px] uppercase tracking-[0.18em] font-semibold text-slate-500">Starting Budget</div>
-            <div className="mt-1 text-lg font-bold text-slate-900">₹{settings.startingBudget}</div>
+            <div className="mt-1 text-lg font-bold text-slate-900">{formatCurrency(settings.startingBudget)}</div>
           </div>
         </div>
       </div>
