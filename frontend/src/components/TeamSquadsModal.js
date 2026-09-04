@@ -138,6 +138,34 @@ const TeamCard = React.forwardRef(({ team, players, accent }, ref) => {
           <span style={{ fontWeight: 800, color: '#0f172a' }}>Total Spent: ₹{spent}</span>
         </div>
       </div>
+
+      {/* Branding watermark (captured in the exported image) */}
+      <div
+        style={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          padding: '10px 22px',
+          background: '#0b0b0f',
+          color: '#ffffff',
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <img
+            src="/auction-logo.png"
+            alt=""
+            width={26}
+            height={26}
+            crossOrigin="anonymous"
+            style={{ borderRadius: 6, display: 'block' }}
+          />
+          <span style={{ fontWeight: 800, letterSpacing: '0.16em', fontSize: 12 }}>AUCTION</span>
+          <span style={{ color: '#e8b84b', fontSize: 11, fontWeight: 600 }}>Bid · Discover · Own</span>
+        </div>
+        <span style={{ fontSize: 10, color: '#94a3b8', letterSpacing: '0.04em' }}>
+          Vernekar Brothers
+        </span>
+      </div>
     </div>
   );
 });

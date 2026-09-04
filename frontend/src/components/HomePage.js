@@ -280,10 +280,18 @@ const HomePage = () => {
         </main>
 
         {/* Footer */}
-        <footer className="py-6 text-center">
+        <footer className="py-10 text-center">
           <div className="max-w-6xl mx-auto px-4">
-            <p className="text-blue-300 text-sm">
-              © 2025 Cricket Auction Platform. Built with ❤️ for cricket enthusiasts.
+            <div className="mx-auto mb-5 h-px w-44 bg-gradient-to-r from-transparent via-white/25 to-transparent" />
+            <p className="text-[11px] uppercase tracking-[0.3em] text-indigo-300/70 font-semibold mb-2">
+              Crafted by
+            </p>
+            <p className="text-lg font-bold bg-clip-text text-transparent bg-gradient-to-r from-white via-indigo-100 to-fuchsia-200">
+              The Vernekar Brothers
+            </p>
+            <p className="text-indigo-200/80 text-sm mt-1 tracking-wide">Nikhil &amp; Shripad</p>
+            <p className="text-blue-300/50 text-xs mt-4">
+              © 2025 Auction · Bid · Discover · Own
             </p>
           </div>
         </footer>
