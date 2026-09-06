@@ -4,6 +4,7 @@ import { useNotification } from './NotificationSystem';
 import PlayerAvatar from './PlayerAvatar';
 import PlayerImageUpload from './PlayerImageUpload';
 import PlayerFormModal from './PlayerFormModal';
+import EditPriceModal from './EditPriceModal';
 import Button from './Button';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
@@ -112,22 +113,23 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
   }, [currentBid, showWarning, showError]);
 
   // Correct a sold player's price without reverting the auction.
-  const handleEditSalePrice = useCallback(async (player) => {
-    const input = window.prompt(`Edit sale price for ${player.name} (current ₹${player.finalBid}):`, player.finalBid);
-    if (input === null) return; // cancelled
-    const newAmount = parseInt(input, 10);
-    if (isNaN(newAmount) || newAmount <= 0) {
-      showError('Please enter a valid amount', 'Invalid Price');
-      return;
-    }
+  const [editPricePlayer, setEditPricePlayer] = useState(null);
+  const [savingPrice, setSavingPrice] = useState(false);
+
+  const submitEditSalePrice = useCallback(async (newAmount) => {
+    if (!editPricePlayer) return;
+    setSavingPrice(true);
     try {
-      await axios.post(`${API_BASE_URL}/api/auction/edit-sale-price`, { playerId: player.id, newAmount });
-      showSuccess(`${player.name} price updated to ₹${newAmount.toLocaleString('en-IN')}`, 'Price Updated');
+      await axios.post(`${API_BASE_URL}/api/auction/edit-sale-price`, { playerId: editPricePlayer.id, newAmount });
+      showSuccess(`${editPricePlayer.name} price updated to ₹${Number(newAmount).toLocaleString('en-IN')}`, 'Price Updated');
+      setEditPricePlayer(null);
       if (onDataRefresh) onDataRefresh();
     } catch (error) {
       showError(error.response?.data?.error || 'Could not update price', 'Update Failed');
+    } finally {
+      setSavingPrice(false);
     }
-  }, [showError, showSuccess, onDataRefresh]);
+  }, [editPricePlayer, showError, showSuccess, onDataRefresh]);
 
   // Filter players based on search and filters - MEMOIZED for performance
   const filteredPlayers = useMemo(() => {
@@ -377,7 +379,7 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
                             </>
                           )}
                           {canConfigure && player.status === 'sold' && (
-                            <Button variant="secondary" size="sm" onClick={() => handleEditSalePrice(player)}>
+                            <Button variant="secondary" size="sm" onClick={() => setEditPricePlayer(player)}>
                               💰 Edit Price
                             </Button>
                           )}
@@ -425,6 +427,14 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
         mode={playerFormMode}
         player={editingPlayer}
         onClose={() => setShowPlayerForm(false)}
+      />
+
+      <EditPriceModal
+        isOpen={!!editPricePlayer}
+        player={editPricePlayer}
+        saving={savingPrice}
+        onClose={() => setEditPricePlayer(null)}
+        onSave={submitEditSalePrice}
       />
     </div>
   );

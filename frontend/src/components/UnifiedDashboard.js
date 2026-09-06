@@ -360,12 +360,12 @@ const TeamSquadViewer = ({ teams, players }) => {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
                     {categoryPlayers.map((player, index) => (
                       <div key={player.id} className="bg-white bg-opacity-15 border-2 border-gray-200 border-opacity-50 rounded-xl p-3 hover:shadow-2xl hover:bg-opacity-25 hover:border-gray-300 hover:border-opacity-70 transition-colors duration-200">
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center space-x-3">
-                            <div className="w-6 h-6 bg-gray-600 text-white rounded-full flex items-center justify-center text-xs font-semibold">
+                        <div className="flex items-center justify-between gap-2">
+                          <div className="flex items-center space-x-3 min-w-0">
+                            <div className="w-6 h-6 bg-gray-600 text-white rounded-full flex items-center justify-center text-xs font-semibold shrink-0">
                               {index + 1}
                             </div>
-                            <div>
+                            <div className="min-w-0">
                               <h5 className="font-medium text-gray-900 flex items-center">
                                 <PlayerNameLink player={player} />
                               </h5>
@@ -375,15 +375,15 @@ const TeamSquadViewer = ({ teams, players }) => {
                               </span>
                             </div>
                           </div>
-                          <div className="text-right">
+                          <div className="text-right shrink-0">
                             {player.status === 'retained' ? (
                               <div>
-                                <div className="text-lg font-semibold text-purple-600">{formatCurrency(player.retentionAmount || player.finalBid)}</div>
+                                <div className="text-lg font-semibold text-purple-600 whitespace-nowrap">{formatCurrency(player.retentionAmount || player.finalBid)}</div>
                                 <div className="text-xs text-gray-500">Retention Cost</div>
                               </div>
                             ) : (
                               <div>
-                                <div className="text-lg font-semibold text-green-600">{formatCurrency(player.finalBid)}</div>
+                                <div className="text-lg font-semibold text-green-600 whitespace-nowrap">{formatCurrency(player.finalBid)}</div>
                                 <div className="text-xs text-gray-500">Auction Price</div>
                               </div>
                             )}
@@ -1451,6 +1451,17 @@ const UnifiedDashboard = () => {
                         if (!customBidTeamId) { showError('Select a team for the custom bid'); return; }
                         const amt = parseInt(customBidAmount, 10);
                         if (isNaN(amt) || amt <= 0) { showError('Enter a valid bid amount'); return; }
+                        const cur = auctionData.currentBid?.currentAmount || 0;
+                        // Guard against fat-finger jumps: confirm big leaps.
+                        const bigJump = amt >= cur * 2 || (amt - cur) >= 100000;
+                        if (bigJump) {
+                          const team = auctionData.teams?.find(t => t.id === parseInt(customBidTeamId));
+                          const ok = await confirm(
+                            `Place a bid of ${formatCurrency(amt)} for ${cleanTeamName(team?.name)}?\n\nThis is a big jump from the current ${formatCurrency(cur)}.`,
+                            'Confirm Big Bid'
+                          );
+                          if (!ok) return;
+                        }
                         try {
                           await axios.post(`${API_BASE_URL}/api/auction/bidding/place`, { teamId: parseInt(customBidTeamId), amount: amt });
                           setCustomBidAmount('');
@@ -1792,9 +1803,9 @@ const UnifiedDashboard = () => {
                                 : 'bg-red-50 border-red-400 border-l-red-600'
                             }`}
                           >
-                            <div className="flex-1">
-                              <div className="flex items-center space-x-2">
-                                <span className="font-medium text-gray-900">{transaction.playerName}</span>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center gap-2 flex-wrap">
+                                <span className="font-medium text-gray-900 break-words">{transaction.playerName}</span>
                                 <CategoryTag category={transaction.playerCategory} />
                               </div>
                               <div className="text-sm text-gray-600 mt-1">
@@ -1802,10 +1813,10 @@ const UnifiedDashboard = () => {
                               </div>
                             </div>
                             
-                            <div className="text-right">
+                            <div className="text-right shrink-0 pl-2">
                               {transaction.type === 'sold' ? (
                                 <>
-                                  <div className="font-bold text-green-600">{formatCurrency(transaction.finalBid)}</div>
+                                  <div className="font-bold text-green-600 whitespace-nowrap">{formatCurrency(transaction.finalBid)}</div>
                                   <div className="text-sm text-gray-700">
                                     Sold to <span className={`px-2 py-1 rounded-full text-xs font-bold ml-1 ${getTeamStyle(transaction.player?.team, auctionData.teams)}`}>
                                       🏏 {cleanTeamName(team?.name) || 'Unknown Team'}
