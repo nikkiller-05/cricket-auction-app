@@ -123,6 +123,7 @@ const playerController = {
         const wickets = row['Wickets'] || row['Wkts'] || '';
         const economy = row['Economy'] || row['Econ'] || '';
         const bestBowling = row['Best Bowling'] || row['BB'] || row['Best'] || '';
+        const strikeRate = row['Strike Rate'] || row['SR'] || row['Strike rate'] || row['Str Rate'] || '';
 
         if (!name.trim()) {
           return null; // Skip empty names
@@ -144,6 +145,7 @@ const playerController = {
           wickets: wickets.toString().trim(),
           economy: economy.toString().trim(),
           bestBowling: bestBowling.toString().trim(),
+          strikeRate: strikeRate.toString().trim(),
           status: 'available',
           currentBid: 0,
           finalBid: 0,
@@ -434,6 +436,7 @@ const playerController = {
             wickets: (row.wickets || '').toString().trim(),
             economy: (row.economy || '').toString().trim(),
             bestBowling: (row.bestBowling || '').toString().trim(),
+            strikeRate: (row.strikeRate || '').toString().trim(),
             status: 'available',
             currentBid: 0,
             finalBid: 0,
@@ -525,6 +528,7 @@ const playerController = {
         wickets: (body.wickets || '').toString().trim(),
         economy: (body.economy || '').toString().trim(),
         bestBowling: (body.bestBowling || '').toString().trim(),
+        strikeRate: (body.strikeRate || '').toString().trim(),
         status: 'available',
         currentBid: 0,
         finalBid: 0,
@@ -564,7 +568,7 @@ const playerController = {
       const editableStrings = [
         'name', 'role', 'cricHeroesLink', 'manualId', 'imageUrl',
         'matches', 'runs', 'battingAvg', 'highestScore', 'wickets',
-        'economy', 'bestBowling',
+        'economy', 'bestBowling', 'strikeRate',
       ];
       editableStrings.forEach((key) => {
         if (body[key] !== undefined) {

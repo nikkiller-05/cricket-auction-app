@@ -248,6 +248,17 @@ const auctionController = {
       const settings = dataService.getSettings();
       let newBidAmount;
 
+      // Enforce max-players quota here too — the UI only disables the button,
+      // so keyboard/API bids must be blocked server-side as well.
+      const teamPlayerCount = dataService.getPlayers().filter(
+        p => p.team === team.id && (p.status === 'sold' || p.status === 'assigned')
+      ).length;
+      if (teamPlayerCount >= settings.maxPlayersPerTeam) {
+        return res.status(400).json({
+          error: `Team ${team.name} is full (${teamPlayerCount}/${settings.maxPlayersPerTeam} players)`
+        });
+      }
+
       // FIXED: Check if this is the first bid or subsequent bid
       if (!currentBid.biddingTeam) {
         // FIRST BID: Team bids at base price (no increment)

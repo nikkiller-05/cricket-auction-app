@@ -4,10 +4,7 @@ const authController = require('../controllers/authController');
 const { verifySuperAdmin, verifyAdmin } = require('../middlewares/authMiddleware');
 
 // Login route (public)
-router.post('/login', (req, res, next) => {
-    console.log('Login route hit with body:', req.body);
-    authController.login(req, res, next);
-  });
+router.post('/login', authController.login);
 
 // Sub-admin management (super-admin and admin only)
 router.post('/sub-admin', verifyAdmin, authController.createSubAdmin);

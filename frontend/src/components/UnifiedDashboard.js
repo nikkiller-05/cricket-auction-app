@@ -143,6 +143,22 @@ const formatCategoryLabel = (c) =>
 // Indian-style number formatting for currency
 const formatCurrency = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
 
+// Mirror of backend bidding-increment rules (utils/biddingRules.js)
+const getNextBidIncrement = (currentBid, increments) => {
+  if (!increments || increments.length === 0) return 5;
+  for (const rule of increments) {
+    if (currentBid < rule.threshold) return rule.increment;
+  }
+  return increments[increments.length - 1].increment;
+};
+
+// Real next bid: first bid is at base price (no increment), else current + increment.
+const computeNextBid = (currentBid, settings) => {
+  const basePrice = settings?.basePrice || 0;
+  if (!currentBid?.biddingTeam) return basePrice;
+  return currentBid.currentAmount + getNextBidIncrement(currentBid.currentAmount, settings?.biddingIncrements);
+};
+
 // Reusable colored category pill
 const CategoryTag = ({ category, className = '' }) => (
   <span className={`px-2 py-1 rounded-full text-xs font-semibold ${getCategoryStyle(category).badge} ${className}`}>
@@ -915,7 +931,17 @@ const UnifiedDashboard = () => {
           if (auctionData?.currentBid?.playerId) {
             const team = teams[keyNum - 1];
             if (team) {
-              // Place bid for this team
+              // Same guards as the on-screen bid buttons.
+              const nextBidAmount = computeNextBid(auctionData.currentBid, auctionData.settings);
+              const maxPlayers = auctionData.settings?.maxPlayersPerTeam || 15;
+              if (team.players?.length >= maxPlayers) {
+                showError(`Team ${cleanTeamName(team.name)} is full (${team.players?.length}/${maxPlayers} players)`);
+                return;
+              }
+              if (team.budget < nextBidAmount) {
+                showError(`Insufficient budget for ${cleanTeamName(team.name)} (${formatCurrency(team.budget)})`);
+                return;
+              }
               axios.post(`${API_BASE_URL}/api/auction/bidding/place`, { teamId: team.id })
                 .catch(error => showError(error.response?.data?.error || 'Failed to place bid'));
             }
@@ -1353,8 +1379,7 @@ const UnifiedDashboard = () => {
                 </p>
                 <div className="flex flex-wrap justify-center gap-2 sm:gap-2.5 mb-5">
                   {auctionData.teams?.map(team => {
-                    const increment = 5;
-                    const nextBidAmount = auctionData.currentBid.currentAmount + increment;
+                    const nextBidAmount = computeNextBid(auctionData.currentBid, auctionData.settings);
                     const hasMaxPlayers = team.players?.length >= (auctionData.settings?.maxPlayersPerTeam || 15);
                     const hasSufficientBudget = team.budget >= nextBidAmount;
                     const canBid = hasSufficientBudget && !hasMaxPlayers;
@@ -1379,8 +1404,8 @@ const UnifiedDashboard = () => {
                           hasMaxPlayers 
                             ? `Team full (${team.players?.length}/${auctionData.settings?.maxPlayersPerTeam || 15} players)` 
                             : !hasSufficientBudget 
-                              ? `Insufficient budget (₹${team.budget})` 
-                              : `Bid ₹${nextBidAmount} for ${cleanTeamName(team.name)}`
+                              ? `Insufficient budget (${formatCurrency(team.budget)})` 
+                              : `Bid ${formatCurrency(nextBidAmount)} for ${cleanTeamName(team.name)}`
                         }
                       >
                         {canBid && (

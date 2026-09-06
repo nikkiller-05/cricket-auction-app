@@ -4,6 +4,12 @@ const socketIo = require('socket.io');
 const app = require('./app'); // Import the Express app
 const config = require('./config/config');
 
+// Fail fast: a real JWT secret is mandatory — never run on a default.
+if (!process.env.JWT_SECRET) {
+  console.error('❌ JWT_SECRET is not set. Refusing to start. Set JWT_SECRET in the environment.');
+  process.exit(1);
+}
+
 // Create HTTP server
 const server = http.createServer(app);
 
