@@ -30,6 +30,9 @@ router.post('/bidding/sell', verifyBiddingPermission, auctionController.sellPlay
 router.post('/bidding/unsold', verifyBiddingPermission, auctionController.markUnsold);
 router.post('/bidding/cancel', verifyBiddingPermission, auctionController.cancelBidding);
 
+// Correct a sold player's price (admin + super-admin)
+router.post('/edit-sale-price', verifyConfigPermission, auctionController.editSalePrice);
+
 // NEW: Undo functionality (super-admin only)
 router.post('/undo/sale', verifySuperAdmin, auctionController.undoLastSale);
 router.post('/undo/bid', verifySuperAdmin, auctionController.undoCurrentBid);

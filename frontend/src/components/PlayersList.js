@@ -111,6 +111,24 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
     }
   }, [currentBid, showWarning, showError]);
 
+  // Correct a sold player's price without reverting the auction.
+  const handleEditSalePrice = useCallback(async (player) => {
+    const input = window.prompt(`Edit sale price for ${player.name} (current ₹${player.finalBid}):`, player.finalBid);
+    if (input === null) return; // cancelled
+    const newAmount = parseInt(input, 10);
+    if (isNaN(newAmount) || newAmount <= 0) {
+      showError('Please enter a valid amount', 'Invalid Price');
+      return;
+    }
+    try {
+      await axios.post(`${API_BASE_URL}/api/auction/edit-sale-price`, { playerId: player.id, newAmount });
+      showSuccess(`${player.name} price updated to ₹${newAmount.toLocaleString('en-IN')}`, 'Price Updated');
+      if (onDataRefresh) onDataRefresh();
+    } catch (error) {
+      showError(error.response?.data?.error || 'Could not update price', 'Update Failed');
+    }
+  }, [showError, showSuccess, onDataRefresh]);
+
   // Filter players based on search and filters - MEMOIZED for performance
   const filteredPlayers = useMemo(() => {
     if (!players?.length) return [];
@@ -357,6 +375,11 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
                                 🗑️ Delete
                               </Button>
                             </>
+                          )}
+                          {canConfigure && player.status === 'sold' && (
+                            <Button variant="secondary" size="sm" onClick={() => handleEditSalePrice(player)}>
+                              💰 Edit Price
+                            </Button>
                           )}
                         </div>
                       </td>

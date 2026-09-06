@@ -231,7 +231,7 @@ const auctionController = {
   // FIXED: Place bid - first bid at base price, subsequent bids with increment
   placeBid: async (req, res) => {
     try {
-      const { teamId } = req.body;
+      const { teamId, amount } = req.body;
       console.log('Place bid request for team:', teamId);
       
       const currentBid = dataService.getCurrentBid();
@@ -259,17 +259,34 @@ const auctionController = {
         });
       }
 
-      // FIXED: Check if this is the first bid or subsequent bid
+      // A custom amount (from the "custom / big bid" input) overrides the
+      // auto base/increment calculation, allowing large jumps in one action.
+      const hasCustom = amount !== undefined && amount !== null && `${amount}`.trim() !== '';
+      const customAmount = hasCustom ? parseInt(amount, 10) : null;
+      if (hasCustom && (isNaN(customAmount) || customAmount <= 0)) {
+        return res.status(400).json({ error: 'Invalid bid amount' });
+      }
+
       if (!currentBid.biddingTeam) {
-        // FIRST BID: Team bids at base price (no increment)
-        newBidAmount = settings.basePrice;
-        console.log(`First bid from ${team.name}: ₹${newBidAmount} (base price)`);
+        // FIRST BID: base price, or a custom amount at/above base
+        if (hasCustom && customAmount < settings.basePrice) {
+          return res.status(400).json({ error: `First bid must be at least the base price (₹${settings.basePrice})` });
+        }
+        newBidAmount = hasCustom ? customAmount : settings.basePrice;
+        console.log(`First bid from ${team.name}: ₹${newBidAmount}`);
       } else {
-        // SUBSEQUENT BIDS: Add increment to current amount
-        const increment = getNextBidIncrement(currentBid.currentAmount, settings.biddingIncrements);
-        newBidAmount = currentBid.currentAmount + increment;
-        console.log(`Subsequent bid from ${team.name}: ₹${newBidAmount} (₹${currentBid.currentAmount} + ₹${increment})`);
-        
+        if (hasCustom) {
+          if (customAmount <= currentBid.currentAmount) {
+            return res.status(400).json({ error: `Bid must be higher than the current bid (₹${currentBid.currentAmount})` });
+          }
+          newBidAmount = customAmount;
+        } else {
+          // SUBSEQUENT BIDS: Add increment to current amount
+          const increment = getNextBidIncrement(currentBid.currentAmount, settings.biddingIncrements);
+          newBidAmount = currentBid.currentAmount + increment;
+        }
+        console.log(`Subsequent bid from ${team.name}: ₹${newBidAmount}`);
+
         // Store the current bid in history BEFORE updating (for undo functionality)
         dataService.addBidToPlayerHistory(currentBid.playerId, {
           teamId: parseInt(currentBid.biddingTeam),
@@ -308,6 +325,59 @@ const auctionController = {
     } catch (error) {
       console.error('Error placing bid:', error);
       res.status(500).json({ error: 'Error placing bid' });
+    }
+  },
+
+  // Correct a sold player's final price without reverting the whole auction.
+  // Adjusts only that player's finalBid and the team budget by the delta.
+  editSalePrice: async (req, res) => {
+    try {
+      const { playerId, newAmount } = req.body;
+      const players = dataService.getPlayers();
+      const player = players.find(p => p.id === playerId);
+      if (!player) {
+        return res.status(404).json({ error: 'Player not found' });
+      }
+      if (player.status !== 'sold') {
+        return res.status(400).json({ error: 'Only sold players can have their price edited' });
+      }
+
+      const settings = dataService.getSettings();
+      const amount = parseInt(newAmount, 10);
+      if (isNaN(amount) || amount < settings.basePrice) {
+        return res.status(400).json({ error: `Price must be at least the base price (₹${settings.basePrice})` });
+      }
+
+      const teams = dataService.getTeams();
+      const team = teams.find(t => t.id === player.team);
+      if (!team) {
+        return res.status(400).json({ error: 'Player is not assigned to a team' });
+      }
+
+      const oldAmount = player.finalBid || 0;
+      const delta = amount - oldAmount; // positive => team pays more
+      if (delta > 0 && team.budget < delta) {
+        return res.status(400).json({ error: `Team ${team.name} cannot afford the increase (short by ₹${delta - team.budget})` });
+      }
+
+      team.budget -= delta;
+      player.finalBid = amount;
+
+      dataService.setPlayers(players);
+      dataService.setTeams(teams);
+
+      const stats = calculateStats(players);
+      dataService.updateStats(stats);
+
+      socketService.emit('playersUpdated', players);
+      socketService.emit('teamsUpdated', teams);
+      socketService.emit('statsUpdated', stats);
+
+      console.log(`Sale price edited: ${player.name} ₹${oldAmount} -> ₹${amount} (team ${team.name})`);
+      res.json({ message: 'Sale price updated', player, team });
+    } catch (error) {
+      console.error('Error editing sale price:', error);
+      res.status(500).json({ error: 'Error editing sale price' });
     }
   },
 

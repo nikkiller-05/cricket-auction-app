@@ -480,6 +480,9 @@ const UnifiedDashboard = () => {
   // Spectator filter state for All Players tab
   const [spectatorPlayerFilter, setSpectatorPlayerFilter] = useState('all');
   const [showShareModal, setShowShareModal] = useState(false);
+  // Custom / big-bid controls
+  const [customBidTeamId, setCustomBidTeamId] = useState('');
+  const [customBidAmount, setCustomBidAmount] = useState('');
   
   // Download dropdown state
   const [showDownloadDropdown, setShowDownloadDropdown] = useState(false);
@@ -1418,6 +1421,73 @@ const UnifiedDashboard = () => {
                       </button>
                     );
                   })}
+                </div>
+
+                {/* Custom / Big Bid — jump to a large amount in one action */}
+                <div className="mb-5 pt-4 border-t border-white/15">
+                  <p className="text-[10px] sm:text-xs uppercase tracking-[0.25em] font-bold text-white/70 text-center mb-2.5">
+                    Custom / Big Bid
+                  </p>
+                  <div className="flex flex-wrap items-center justify-center gap-2">
+                    <select
+                      value={customBidTeamId}
+                      onChange={(e) => setCustomBidTeamId(e.target.value)}
+                      className="rounded-lg bg-white/10 border border-white/25 text-white text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400/60 [&>option]:text-slate-900"
+                    >
+                      <option value="">Select team…</option>
+                      {auctionData.teams?.map((t) => (
+                        <option key={t.id} value={t.id}>{cleanTeamName(t.name)}</option>
+                      ))}
+                    </select>
+                    <input
+                      type="number"
+                      value={customBidAmount}
+                      onChange={(e) => setCustomBidAmount(e.target.value)}
+                      placeholder="Amount ₹"
+                      className="w-32 rounded-lg bg-white/10 border border-white/25 text-white text-sm px-3 py-2 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-cyan-400/60"
+                    />
+                    <button
+                      onClick={async () => {
+                        if (!customBidTeamId) { showError('Select a team for the custom bid'); return; }
+                        const amt = parseInt(customBidAmount, 10);
+                        if (isNaN(amt) || amt <= 0) { showError('Enter a valid bid amount'); return; }
+                        try {
+                          await axios.post(`${API_BASE_URL}/api/auction/bidding/place`, { teamId: parseInt(customBidTeamId), amount: amt });
+                          setCustomBidAmount('');
+                        } catch (error) {
+                          showError(error.response?.data?.error || 'Error placing bid');
+                        }
+                      }}
+                      className="rounded-full bg-gradient-to-b from-emerald-500 to-teal-600 px-5 py-2 text-sm font-semibold text-white shadow-md shadow-emerald-500/30 hover:-translate-y-0.5 active:translate-y-0 transition"
+                    >
+                      Place
+                    </button>
+                  </div>
+                  <div className="flex justify-center gap-2 mt-2.5">
+                    {[
+                      { label: '+1L', val: 100000 },
+                      { label: '+5L', val: 500000 },
+                      { label: '+10L', val: 1000000 },
+                    ].map((j) => (
+                      <button
+                        key={j.label}
+                        onClick={() => {
+                          const cur = auctionData.currentBid?.currentAmount || 0;
+                          const start = customBidAmount ? parseInt(customBidAmount, 10) : cur;
+                          setCustomBidAmount(String((isNaN(start) ? cur : start) + j.val));
+                        }}
+                        className="rounded-full bg-white/10 border border-white/20 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-white/20 hover:-translate-y-0.5 active:translate-y-0 transition"
+                      >
+                        {j.label}
+                      </button>
+                    ))}
+                    <button
+                      onClick={() => setCustomBidAmount('')}
+                      className="rounded-full bg-white/5 border border-white/15 px-3.5 py-1.5 text-xs font-semibold text-white/70 hover:bg-white/15 transition"
+                    >
+                      Clear
+                    </button>
+                  </div>
                 </div>
                 
                 {/* Primary Action Buttons */}
