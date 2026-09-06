@@ -24,12 +24,14 @@ const auctionRoutes = require('./routes/auctionRoutes');
 const playerRoutes = require('./routes/playerRoutes');
 const teamRoutes = require('./routes/teamRoutes');
 const downloadRoutes = require('./routes/downloadRoutes');
+const registrationRoutes = require('./routes/registrationRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/auction', auctionRoutes);
 app.use('/api/players', playerRoutes);
 app.use('/api/teams', teamRoutes);
 app.use('/api', downloadRoutes);
+app.use('/api/registrations', registrationRoutes);
 
 // ENHANCED ERROR HANDLING MIDDLEWARE (Must be AFTER routes)
 app.use((err, req, res, next) => {

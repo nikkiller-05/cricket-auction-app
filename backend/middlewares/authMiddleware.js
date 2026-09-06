@@ -121,9 +121,34 @@ const verifyConfigPermission = (req, res, next) => {
   }
 };
 
+// Verify a registration manager: super-admin, admin, or organizer.
+const verifyRegistrationManager = (req, res, next) => {
+  try {
+    const authHeader = req.headers['authorization'];
+    const token = authHeader && authHeader.split(' ')[1];
+    if (!token) {
+      return res.status(401).json({ error: 'Access token required' });
+    }
+    jwt.verify(token, JWT_SECRET, (err, user) => {
+      if (err) {
+        return res.status(403).json({ error: 'Invalid token' });
+      }
+      if (!['super-admin', 'admin', 'organizer'].includes(user.role)) {
+        return res.status(403).json({ error: 'Registration management permission required' });
+      }
+      req.user = user;
+      next();
+    });
+  } catch (error) {
+    console.error('Registration auth error:', error);
+    return res.status(500).json({ error: 'Authentication error' });
+  }
+};
+
 module.exports = {
   verifyAdmin,
   verifySuperAdmin,
   verifyBiddingPermission,
-  verifyConfigPermission
+  verifyConfigPermission,
+  verifyRegistrationManager
 };

@@ -11,4 +11,8 @@ router.post('/sub-admin', verifyAdmin, authController.createSubAdmin);
 router.get('/sub-admins', verifyAdmin, authController.getSubAdmins);
 router.delete('/sub-admin/:id', verifySuperAdmin, authController.deleteSubAdmin);
 
+// Organizer accounts (super-admin only)
+router.post('/organizer', verifySuperAdmin, authController.createOrganizer);
+router.get('/organizers', verifySuperAdmin, authController.getOrganizers);
+
 module.exports = router;

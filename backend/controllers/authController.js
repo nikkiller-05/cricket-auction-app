@@ -53,7 +53,7 @@ const authController = {
       }
 
       const token = jwt.sign(
-        { id: user.id, username: user.username, role: user.role },
+        { id: user.id, username: user.username, role: user.role, eventId: user.event_id || null },
         JWT_SECRET,
         { expiresIn: '24h' }
       );
@@ -61,7 +61,7 @@ const authController = {
       res.json({
         message: 'Login successful',
         token,
-        user: { id: user.id, username: user.username, role: user.role },
+        user: { id: user.id, username: user.username, role: user.role, eventId: user.event_id || null },
       });
     } catch (error) {
       console.error('Login error:', error.message);
@@ -157,6 +157,65 @@ const authController = {
       }
 
       res.json({ message: 'Sub-admin deleted successfully', deletedAdmin: data.username });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // Create an organizer account scoped to a single registration event (super-admin).
+  createOrganizer: async (req, res, next) => {
+    try {
+      const { username, password, name, eventId } = req.body;
+      if (!username || !password) {
+        return res.status(400).json({ error: 'Username and password are required' });
+      }
+      if (!supabase) {
+        return res.status(503).json({ error: 'Authentication service unavailable' });
+      }
+
+      const existing = await findUserByUsername(username);
+      if (existing) {
+        return res.status(400).json({ error: 'Username already exists' });
+      }
+
+      const password_hash = await bcrypt.hash(password, 10);
+      const { data, error } = await supabase
+        .from(TABLE)
+        .insert({
+          username,
+          password_hash,
+          name: name || username,
+          role: 'organizer',
+          permissions: ['registrations'],
+          event_id: eventId || null,
+          created_by: req.user?.username || 'super-admin',
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('createOrganizer error:', error.message);
+        return res.status(500).json({ error: 'Could not create organizer' });
+      }
+      res.json({ message: 'Organizer created successfully', organizer: publicUser(data) });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  getOrganizers: async (req, res, next) => {
+    try {
+      if (!supabase) return res.json({ organizers: [] });
+      const { data, error } = await supabase
+        .from(TABLE)
+        .select('id, username, name, role, event_id, created_at')
+        .eq('role', 'organizer')
+        .order('created_at', { ascending: false });
+      if (error) {
+        console.error('getOrganizers error:', error.message);
+        return res.status(500).json({ error: 'Could not fetch organizers' });
+      }
+      res.json({ organizers: data || [] });
     } catch (error) {
       next(error);
     }
