@@ -1793,7 +1793,7 @@ const UnifiedDashboard = () => {
                         return (
                           <div 
                             key={transaction.id} 
-                            className={`flex justify-between items-center p-3 rounded-lg border-2 border-l-4 ${
+                            className={`flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 p-3 rounded-lg border-2 border-l-4 ${
                               transaction.type === 'sold' 
                                 ? 'bg-green-50 border-green-400 border-l-green-600' 
                                 : transaction.type === 'retained'
@@ -1813,7 +1813,7 @@ const UnifiedDashboard = () => {
                               </div>
                             </div>
                             
-                            <div className="text-right shrink-0 pl-2">
+                            <div className="text-left sm:text-right shrink-0 sm:pl-2">
                               {transaction.type === 'sold' ? (
                                 <>
                                   <div className="font-bold text-green-600 whitespace-nowrap">{formatCurrency(transaction.finalBid)}</div>

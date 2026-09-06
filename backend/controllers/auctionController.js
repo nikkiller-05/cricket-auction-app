@@ -360,6 +360,19 @@ const auctionController = {
         return res.status(400).json({ error: `Team ${team.name} cannot afford the increase (short by ₹${delta - team.budget})` });
       }
 
+      // Record for undo BEFORE mutating (previous price + team budget).
+      dataService.addAction({
+        type: 'PRICE_EDITED',
+        playerId: player.id,
+        playerName: player.name,
+        teamId: team.id,
+        teamName: team.name,
+        previousFinalBid: oldAmount,
+        newFinalBid: amount,
+        previousTeamBudget: team.budget,
+        amount: amount
+      });
+
       team.budget -= delta;
       player.finalBid = amount;
 
@@ -693,7 +706,7 @@ const auctionController = {
       const lastAction = actionHistory
         .slice()
         .reverse()
-        .find(action => action.type === 'PLAYER_SOLD' || action.type === 'PLAYER_UNSOLD');
+        .find(action => action.type === 'PLAYER_SOLD' || action.type === 'PLAYER_UNSOLD' || action.type === 'PRICE_EDITED');
 
       if (!lastAction) {
         return res.status(400).json({ error: 'No recent sale or unsold action to undo' });
@@ -704,6 +717,37 @@ const auctionController = {
       
       if (!player) {
         return res.status(400).json({ error: 'Player not found for undo operation' });
+      }
+
+      if (lastAction.type === 'PRICE_EDITED') {
+        // Revert a price correction: restore the player's price and team budget.
+        const teams = dataService.getTeams();
+        const team = teams.find(t => t.id === lastAction.teamId);
+        if (!team) {
+          return res.status(400).json({ error: 'Team not found for undo operation' });
+        }
+
+        player.finalBid = lastAction.previousFinalBid;
+        team.budget = lastAction.previousTeamBudget;
+
+        dataService.removeActionById(lastAction.id);
+        dataService.setTeams(teams);
+        dataService.setPlayers(players);
+
+        const stats = calculateStats(players);
+        dataService.updateStats(stats);
+
+        socketService.emit('teamsUpdated', teams);
+        socketService.emit('playersUpdated', players);
+        socketService.emit('statsUpdated', stats);
+
+        console.log(`Price edit undone: ${player.name} restored to ₹${lastAction.previousFinalBid}`);
+        return res.json({
+          message: 'Price edit undone successfully',
+          player: player.name,
+          restoredAmount: lastAction.previousFinalBid,
+          type: 'price-edit'
+        });
       }
 
       if (lastAction.type === 'PLAYER_SOLD') {

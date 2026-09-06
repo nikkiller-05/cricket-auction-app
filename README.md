@@ -38,13 +38,14 @@ A comprehensive full-stack web application for managing and conducting professio
 - **Export Options**: Excel (XLSX) and CSV format support
 
 ### 🔐 **Security & Performance**
-- **Secure Authentication**: JWT-based login system
+- **Hashed Credentials**: Admin/sub-admin passwords stored as **bcrypt hashes in Supabase** — no plaintext, no credentials in source
+- **JWT Authentication**: Signed tokens with a **required** `JWT_SECRET` (server fails fast if unset; no insecure fallback)
+- **Role-Based Guards**: Server-side permission checks for config, bidding, and undo actions
 - **Input Validation**: Comprehensive data validation and sanitization
-- **Vulnerability-Free**: Updated to use secure ExcelJS library (0 vulnerabilities)
 - **Real-time Updates**: WebSocket integration for live data synchronization
 - **Real-time Settings Sync**: Auction settings broadcast instantly to all clients
 - **Modern UI Components**: Custom notification system with no browser alert dependencies
-- **Enhanced Error Handling**: Graceful error management with user-friendly messages
+- **Enhanced Error Handling**: Graceful backend errors + an app-wide React ErrorBoundary
 
 ### 🎨 **Modern User Interface**
 - **Professional Design**: Glass-morphism effects with gradient backgrounds
@@ -56,6 +57,17 @@ A comprehensive full-stack web application for managing and conducting professio
 - **Cross-Device Compatibility**: Optimized for phones, tablets, and desktop browsers
 
 ## 🆕 Recent Updates & Improvements
+
+### **v2.5.0 - September 2026**
+- 🔐 **Hardened Authentication**: Admin credentials moved to **Supabase** and stored as **bcrypt hashes** (no plaintext, no hardcoded logins). `JWT_SECRET` is now **mandatory** — the server refuses to start without it, and the insecure default fallback was removed. Password/token logging stripped from the backend.
+- 👥 **Persistent Sub-Admins**: Sub-admins are stored in the database, so they survive restarts/redeploys.
+- 📈 **CricHeroes Stats Enrichment**: Player stats (matches, runs, avg, HS, **SR**, wickets, economy, best bowling) and **profile photos** auto-fill from a CricHeroes profile link, with a Supabase-backed cache and ScraperAPI fallback. Manual `SR` / `Strike Rate` Excel column now supported.
+- 🔨 **Custom / Big Bid**: Jump straight to a large amount (e.g. ₹10L) via a team + amount input, plus **+1L / +5L / +10L** quick-jump buttons — with a confirmation guard for very large jumps. Regular increments resume automatically afterward.
+- 💰 **Edit Sale Price + Undo**: Correct a sold player's final price without reverting the whole auction (adjusts only the delta to the team budget), with a styled modal and one-click **undo** for price edits.
+- 🐛 **Bidding Fixes**: Server-side enforcement of team quota (number-key bids can't bypass a full team) and correct first-bid-at-base-price / real increment logic (no more phantom "+5" or base-price teams greyed out).
+- 📊 **Statistics Upgrade**: Headline tiles (Total Spent, Most Expensive, Biggest Spender), a spend-by-team bar chart, player photos on highest/lowest bid cards, and Indian-style currency formatting (₹1,00,000) throughout.
+- 📣 **Marketing & Branding**: Open Graph / Twitter share cards with a branded banner, branded favicon & PWA icons, a spectator **QR-code share** modal, watermarked squad exports, and a cohesive black-and-gold theme on the landing/setup pages.
+- 🛡️ **Resilience**: App-wide React **ErrorBoundary** (no more white-screens), plus mobile layout fixes for long ₹ amounts and team names. Removed dead components.
 
 ### **v2.3.0 - December 2025**
 - 👑 **Captain Assignment with Amounts**: Assign any player as team captain with customizable amount deduction
@@ -99,9 +111,10 @@ A comprehensive full-stack web application for managing and conducting professio
 ## 🚀 Getting Started
 
 ### Prerequisites
-- **Node.js** (v16+ recommended)
+- **Node.js** (v18+ recommended)
 - **npm** or **yarn**
 - **Git** for version control
+- A **Supabase** project (for admin auth, stats cache, and image/snapshot storage)
 
 ### 📋 Installation
 
@@ -158,15 +171,60 @@ serve -s build -l 3000
 
 ### 🔧 Configuration
 
-#### **Environment Variables**
-Create a `.env` file in the frontend directory:
+#### **Frontend environment**
+Create `frontend/.env`:
 ```env
 REACT_APP_API_URL=http://localhost:5000
 ```
 
-#### **Default Access**
-- **Super Admin**: Access via admin login interface
-- **Spectator**: Direct access through viewer dashboard
+#### **Backend environment**
+Create `backend/.env` (and set the same on your host, e.g. Render):
+```env
+# Required — the server refuses to start without a JWT secret
+JWT_SECRET=<a long random string>
+
+# Supabase (service_role key is used server-side; keep it secret)
+SUPABASE_URL=https://<your-project>.supabase.co
+SUPABASE_SERVICE_ROLE_KEY=<service_role_key>
+
+# Optional: CricHeroes scraping fallback
+SCRAPER_API_KEY=<scraperapi_key>
+
+# Initial admin credentials (used once by the seed script; hashed on write)
+SUPER_ADMIN_USERNAME=superadmin
+SUPER_ADMIN_PASSWORD=<strong password>
+ADMIN_USERNAME=admin
+ADMIN_PASSWORD=<strong password>
+```
+
+Generate a secret with:
+```bash
+node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
+```
+
+#### **Seed admin users (one time)**
+1. Create the `admin_users` table in Supabase (SQL editor):
+   ```sql
+   create table if not exists public.admin_users (
+     id bigint generated always as identity primary key,
+     username text unique not null,
+     password_hash text not null,
+     name text,
+     role text not null check (role in ('super-admin','admin','sub-admin')),
+     permissions text[] default '{}',
+     created_at timestamptz default now(),
+     created_by text
+   );
+   alter table public.admin_users enable row level security;
+   ```
+2. Seed the hashed admins from your env vars:
+   ```bash
+   cd backend && node scripts/seedAdmins.js
+   ```
+
+#### **Access**
+- **Admins** log in with the seeded credentials via the admin login.
+- **Spectators** enter directly (no login) — read-only live view.
 
 ## 🏗️ Application Architecture & Data Flow
 
