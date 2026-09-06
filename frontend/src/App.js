@@ -9,6 +9,7 @@ import './App.css';
 const HomePage = lazy(() => import('./components/HomePage'));
 const AuctionSetup = lazy(() => import('./components/AuctionSetup'));
 const UnifiedDashboard = lazy(() => import('./components/UnifiedDashboard'));
+const RegisterPage = lazy(() => import('./components/RegisterPage'));
 
 // Loading component for suspense fallback
 const LoadingSpinner = () => (
@@ -35,6 +36,9 @@ function App() {
               
               {/* Unified dashboard for both admin and spectators */}
               <Route path="/dashboard" element={<UnifiedDashboard />} />
+              
+              {/* Public player registration form */}
+              <Route path="/register/:slug" element={<RegisterPage />} />
               
               {/* Fallback route */}
               <Route path="*" element={<Navigate to="/" replace />} />
