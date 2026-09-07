@@ -33,9 +33,11 @@ const AuctionSetup = () => {
   });
 
   // Manual player entry (alternative to Excel upload)
-  const [entryMode, setEntryMode] = useState('upload'); // 'upload' | 'manual'
+  const [entryMode, setEntryMode] = useState('upload'); // 'upload' | 'manual' | 'registrations'
   const [manualPlayers, setManualPlayers] = useState([]);
   const [showManualModal, setShowManualModal] = useState(false);
+  const [regEvents, setRegEvents] = useState([]);
+  const [selectedRegEvent, setSelectedRegEvent] = useState('');
 
   const removeManualPlayer = (index) => {
     setManualPlayers((prev) => prev.filter((_, i) => i !== index));
@@ -185,6 +187,8 @@ const AuctionSetup = () => {
         });
       } else if (manualPlayers.length > 0) {
         await axios.post(`${API_BASE_URL}/api/players/manual-setup`, { players: manualPlayers });
+      } else if (entryMode === 'registrations' && selectedRegEvent) {
+        await axios.post(`${API_BASE_URL}/api/registrations/events/${selectedRegEvent}/import-to-auction`);
       }
 
       // Navigate to unified dashboard
@@ -213,7 +217,7 @@ const AuctionSetup = () => {
                  (typeof inc.increment === 'number' && inc.increment > 0)
                );
       case 3:
-        return (fileData.file && fileData.validation?.valid) || manualPlayers.length > 0;
+        return (fileData.file && fileData.validation?.valid) || manualPlayers.length > 0 || (entryMode === 'registrations' && !!selectedRegEvent);
       default:
         return false;
     }
@@ -538,7 +542,38 @@ const AuctionSetup = () => {
                     >
                       ✍️ Add Manually
                     </button>
+                    <button
+                      type="button"
+                      onClick={async () => {
+                        setEntryMode('registrations');
+                        if (regEvents.length === 0) {
+                          try {
+                            const res = await axios.get(`${API_BASE_URL}/api/registrations/events`);
+                            setRegEvents(res.data.events || []);
+                          } catch { /* ignore */ }
+                        }
+                      }}
+                      className={`px-5 py-2 rounded-lg text-sm font-semibold transition-all ${entryMode === 'registrations' ? 'bg-white text-indigo-700' : 'bg-white/10 text-white hover:bg-white/20'}`}
+                    >
+                      📝 From Registrations
+                    </button>
                   </div>
+
+                  {entryMode === 'registrations' && (
+                    <div className="mt-6 max-w-md mx-auto text-center">
+                      <p className="text-blue-200 text-sm mb-3">Import the <b>verified</b> players from a registration event. You can review/approve them in the Registration Console.</p>
+                      <select
+                        value={selectedRegEvent}
+                        onChange={(e) => setSelectedRegEvent(e.target.value)}
+                        className="w-full rounded-lg bg-white/10 border border-white/25 text-white px-3 py-2.5 mb-2 [&>option]:text-slate-900"
+                      >
+                        <option value="">Select an event…</option>
+                        {regEvents.map((ev) => <option key={ev.id} value={ev.id}>{ev.name}</option>)}
+                      </select>
+                      {regEvents.length === 0 && <p className="text-blue-200/60 text-xs">No registration events found. Create one in the Registration Console.</p>}
+                      {selectedRegEvent && <p className="text-emerald-300 text-xs mt-1">Verified players will be imported when you finish setup.</p>}
+                    </div>
+                  )}
 
                   {entryMode === 'upload' && (
                   <>
