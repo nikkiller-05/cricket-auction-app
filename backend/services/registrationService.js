@@ -117,6 +117,17 @@ const registrationService = {
     if (error) throw new Error(error.message);
     return true;
   },
+
+  // Organizer accounts (id -> username/name) for display + scoping.
+  async listOrganizers() {
+    ensure();
+    const { data, error } = await supabase
+      .from('admin_users')
+      .select('id, username, name')
+      .eq('role', 'organizer');
+    if (error) throw new Error(error.message);
+    return data || [];
+  },
 };
 
 module.exports = registrationService;

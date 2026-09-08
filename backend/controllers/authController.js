@@ -219,6 +219,58 @@ const authController = {
     } catch (error) {
       next(error);
     }
+  },
+
+  // Change your own password (any logged-in manager: super-admin/admin/organizer).
+  changePassword: async (req, res, next) => {
+    try {
+      const { currentPassword, newPassword } = req.body;
+      if (!currentPassword || !newPassword) {
+        return res.status(400).json({ error: 'Current and new password are required' });
+      }
+      if (newPassword.length < 6) {
+        return res.status(400).json({ error: 'New password must be at least 6 characters' });
+      }
+      if (!supabase) return res.status(503).json({ error: 'Authentication service unavailable' });
+
+      const user = await findUserByUsername(req.user.username);
+      if (!user) return res.status(404).json({ error: 'User not found' });
+
+      const ok = await bcrypt.compare(currentPassword, user.password_hash);
+      if (!ok) return res.status(400).json({ error: 'Current password is incorrect' });
+
+      const password_hash = await bcrypt.hash(newPassword, 10);
+      const { error } = await supabase.from(TABLE).update({ password_hash }).eq('id', user.id);
+      if (error) return res.status(500).json({ error: 'Could not change password' });
+      res.json({ message: 'Password changed successfully' });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // Super-admin resets another user's (e.g. organizer's) password.
+  resetUserPassword: async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      const { newPassword } = req.body;
+      if (!newPassword || newPassword.length < 6) {
+        return res.status(400).json({ error: 'New password must be at least 6 characters' });
+      }
+      if (!supabase) return res.status(503).json({ error: 'Authentication service unavailable' });
+
+      const password_hash = await bcrypt.hash(newPassword, 10);
+      const { data, error } = await supabase
+        .from(TABLE)
+        .update({ password_hash })
+        .eq('id', id)
+        .select()
+        .maybeSingle();
+      if (error) return res.status(500).json({ error: 'Could not reset password' });
+      if (!data) return res.status(404).json({ error: 'User not found' });
+      res.json({ message: 'Password reset successfully', username: data.username });
+    } catch (error) {
+      next(error);
+    }
   }
 };
 

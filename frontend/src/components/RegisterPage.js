@@ -91,6 +91,7 @@ const RegisterPage = () => {
     if (!form.name.trim()) return setError('Name is required');
     if (!/^[0-9]{10}$/.test(form.mobile.trim())) return setError('Enter a valid 10-digit mobile number');
     if (!form.role) return setError('Please select a role');
+    if (!photo) return setError('Profile photo is required');
     if (event.payment_required) {
       if (!form.paymentTxnId.trim()) return setError('Enter the payment reference (UTR)');
       if (!screenshot) return setError('Please upload the payment screenshot');
@@ -181,7 +182,7 @@ const RegisterPage = () => {
             </Field>
           </div>
 
-          <Field label="Profile Photo" hint="Max 3MB — auto-compressed to save space.">
+          <Field label="Profile Photo" required hint="Max 3MB — auto-compressed to save space.">
             <input type="file" accept="image/*" onChange={pickFile(setPhoto, setPhotoName)} className="block w-full text-xs text-white/70 file:mr-3 file:rounded-full file:border-0 file:bg-amber-400/90 file:px-4 file:py-2 file:text-slate-900 file:font-semibold" />
             {photoName && <p className="mt-1 text-[11px] text-emerald-300">✓ {photoName}</p>}
           </Field>
@@ -190,14 +191,14 @@ const RegisterPage = () => {
             <input className={inputCls} value={form.profileLink} onChange={set('profileLink')} placeholder="https://cricheroes.com/player-profile/…" />
           </Field>
 
-          <details className="text-indigo-200/80">
-            <summary className="cursor-pointer text-xs font-semibold uppercase tracking-wide">Optional stats</summary>
-            <div className="grid grid-cols-3 gap-3 mt-3">
+          <div>
+            <p className="text-xs font-semibold uppercase tracking-wide text-indigo-200/80 mb-2">Optional stats</p>
+            <div className="grid grid-cols-3 gap-3">
               <Field label="Matches"><input className={inputCls} value={form.matches} onChange={set('matches')} inputMode="numeric" /></Field>
               <Field label="Runs"><input className={inputCls} value={form.runs} onChange={set('runs')} inputMode="numeric" /></Field>
               <Field label="Wickets"><input className={inputCls} value={form.wickets} onChange={set('wickets')} inputMode="numeric" /></Field>
             </div>
-          </details>
+          </div>
 
           {event.payment_required && (
             <div className="rounded-xl border border-amber-300/30 bg-amber-400/[0.06] p-4 space-y-3">

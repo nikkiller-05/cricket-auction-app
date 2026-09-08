@@ -19,6 +19,7 @@ router.delete('/events/:id', verifySuperAdmin, ctrl.deleteEvent);
 
 // ---- Registrations review (super-admin / admin / organizer) ----
 router.get('/events/:eventId/registrations', verifyRegistrationManager, ctrl.listRegistrations);
+router.get('/events/:eventId/export', verifyRegistrationManager, ctrl.exportRegistrations);
 router.patch('/registrations/:id/status', verifyRegistrationManager, ctrl.setRegistrationStatus);
 router.delete('/registrations/:id', verifyRegistrationManager, ctrl.deleteRegistration);
 

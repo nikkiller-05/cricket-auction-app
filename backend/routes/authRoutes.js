@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const authController = require('../controllers/authController');
-const { verifySuperAdmin, verifyAdmin } = require('../middlewares/authMiddleware');
+const { verifySuperAdmin, verifyAdmin, verifyRegistrationManager } = require('../middlewares/authMiddleware');
 
 // Login route (public)
 router.post('/login', authController.login);
@@ -14,5 +14,9 @@ router.delete('/sub-admin/:id', verifySuperAdmin, authController.deleteSubAdmin)
 // Organizer accounts (super-admin only)
 router.post('/organizer', verifySuperAdmin, authController.createOrganizer);
 router.get('/organizers', verifySuperAdmin, authController.getOrganizers);
+
+// Password management
+router.post('/change-password', verifyRegistrationManager, authController.changePassword);
+router.post('/users/:id/reset-password', verifySuperAdmin, authController.resetUserPassword);
 
 module.exports = router;

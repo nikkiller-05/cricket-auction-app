@@ -44,7 +44,16 @@ const registrationController = {
   // ---------- Events (super-admin) ----------
   async listEvents(req, res) {
     try {
-      res.json({ events: await registrationService.listEvents() });
+      let events = await registrationService.listEvents();
+      // Organizers only see the events assigned to them.
+      if (req.user?.role === 'organizer') {
+        events = events.filter((e) => e.organizer_id === req.user.id);
+      }
+      // Attach organizer display name for the admin view.
+      const organizers = await registrationService.listOrganizers();
+      const nameById = new Map(organizers.map((o) => [o.id, o.name || o.username]));
+      events = events.map((e) => ({ ...e, organizer_name: e.organizer_id ? nameById.get(e.organizer_id) || null : null }));
+      res.json({ events });
     } catch (e) {
       res.status(500).json({ error: e.message });
     }
@@ -137,6 +146,7 @@ const registrationController = {
       const photoFile = files.photo?.[0];
       const screenshotFile = files.screenshot?.[0];
 
+      if (!photoFile) return res.status(400).json({ error: 'Profile photo is required' });
       if (event.payment_required) {
         if (!paymentTxnId || !paymentTxnId.trim()) return res.status(400).json({ error: 'Payment reference (UTR) is required' });
         if (!screenshotFile) return res.status(400).json({ error: 'Payment screenshot is required' });
@@ -181,9 +191,12 @@ const registrationController = {
     try {
       const { eventId } = req.params;
       const { status } = req.query;
-      // Organizers may only view their assigned event.
-      if (req.user?.role === 'organizer' && req.user?.eventId && req.user.eventId !== eventId) {
-        return res.status(403).json({ error: 'Not authorized for this event' });
+      // Organizers may only view events assigned to them.
+      if (req.user?.role === 'organizer') {
+        const ev = await registrationService.getEventById(eventId);
+        if (!ev || ev.organizer_id !== req.user.id) {
+          return res.status(403).json({ error: 'Not authorized for this event' });
+        }
       }
       res.json({ registrations: await registrationService.listRegistrations(eventId, status) });
     } catch (e) {
@@ -194,19 +207,22 @@ const registrationController = {
   async setRegistrationStatus(req, res) {
     try {
       const { id } = req.params;
-      const { status } = req.body; // 'verified' | 'rejected'
-      if (!['verified', 'rejected'].includes(status)) return res.status(400).json({ error: 'Invalid status' });
+      const { status } = req.body; // 'verified' | 'rejected' | 'pending'
+      if (!['verified', 'rejected', 'pending'].includes(status)) return res.status(400).json({ error: 'Invalid status' });
 
       const reg = await registrationService.getRegistration(id);
       if (!reg) return res.status(404).json({ error: 'Registration not found' });
-      if (req.user?.role === 'organizer' && req.user?.eventId && req.user.eventId !== reg.event_id) {
-        return res.status(403).json({ error: 'Not authorized for this event' });
+      if (req.user?.role === 'organizer') {
+        const ev = await registrationService.getEventById(reg.event_id);
+        if (!ev || ev.organizer_id !== req.user.id) {
+          return res.status(403).json({ error: 'Not authorized for this event' });
+        }
       }
 
       const updated = await registrationService.updateRegistration(id, {
         payment_status: status,
-        verified_by: req.user?.username || null,
-        verified_at: new Date().toISOString(),
+        verified_by: status === 'pending' ? null : (req.user?.username || null),
+        verified_at: status === 'pending' ? null : new Date().toISOString(),
       });
       res.json({ registration: updated });
     } catch (e) {
@@ -218,6 +234,48 @@ const registrationController = {
     try {
       await registrationService.deleteRegistration(req.params.id);
       res.json({ message: 'Registration deleted' });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  },
+
+  // ---------- Export registrations to Excel ----------
+  async exportRegistrations(req, res) {
+    try {
+      const { eventId } = req.params;
+      const event = await registrationService.getEventById(eventId);
+      if (!event) return res.status(404).json({ error: 'Event not found' });
+      if (req.user?.role === 'organizer' && event.organizer_id !== req.user.id) {
+        return res.status(403).json({ error: 'Not authorized for this event' });
+      }
+
+      const rows = await registrationService.listRegistrations(eventId, req.query.status);
+
+      const ExcelJS = require('exceljs');
+      const wb = new ExcelJS.Workbook();
+      const ws = wb.addWorksheet('Registrations');
+      ws.columns = [
+        { header: 'Name', key: 'name', width: 24 },
+        { header: 'Mobile', key: 'mobile', width: 14 },
+        { header: 'Role', key: 'role', width: 14 },
+        { header: 'Status', key: 'payment_status', width: 12 },
+        { header: 'Profile Link', key: 'profile_link', width: 40 },
+        { header: 'Matches', key: 'matches', width: 10 },
+        { header: 'Runs', key: 'runs', width: 10 },
+        { header: 'Wickets', key: 'wickets', width: 10 },
+        { header: 'Payment UTR', key: 'payment_txn_id', width: 20 },
+        { header: 'Payment Screenshot', key: 'payment_screenshot_url', width: 40 },
+        { header: 'Photo', key: 'profile_pic_url', width: 40 },
+        { header: 'Registered At', key: 'created_at', width: 22 },
+      ];
+      ws.getRow(1).font = { bold: true };
+      rows.forEach((r) => ws.addRow(r));
+
+      const safe = (event.slug || 'event').replace(/[^a-z0-9-]/gi, '-');
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Disposition', `attachment; filename="${safe}-registrations.xlsx"`);
+      await wb.xlsx.write(res);
+      res.end();
     } catch (e) {
       res.status(500).json({ error: e.message });
     }
