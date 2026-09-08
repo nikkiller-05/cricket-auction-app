@@ -5,6 +5,8 @@ const { verifySuperAdmin, verifyAdmin, verifyRegistrationManager } = require('..
 
 // Login route (public)
 router.post('/login', authController.login);
+// Forgot password request (public) — flags a reset request for the super-admin.
+router.post('/forgot-password', authController.forgotPassword);
 
 // Sub-admin management (super-admin and admin only)
 router.post('/sub-admin', verifyAdmin, authController.createSubAdmin);

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { useNotification } from './NotificationSystem';
 
@@ -8,6 +8,7 @@ const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 const api = axios.create({ baseURL: API_BASE_URL });
 
 const money = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
+const initials = (s = '') => s.trim().slice(0, 2).toUpperCase() || '?';
 
 // ---- Theme tokens (dark default, matching the project; light optional) ----
 const DARK_BG = { background: 'radial-gradient(58rem 40rem at -8% -18%, rgba(232,184,75,0.16) 0%, transparent 60%), radial-gradient(54rem 40rem at 112% 116%, rgba(176,120,32,0.18) 0%, transparent 60%), linear-gradient(160deg, #0a0a0f 0%, #12101b 46%, #0b0b11 100%)' };
@@ -17,11 +18,14 @@ const THEMES = {
     pageStyle: DARK_BG, pageCls: 'text-white',
     header: 'bg-white/[0.04] border-white/10 backdrop-blur-xl',
     card: 'rounded-2xl border border-white/12 bg-white/[0.05] backdrop-blur-xl',
+    menu: 'bg-[#15131f] border border-white/12 shadow-2xl',
     cardSel: 'border-amber-300/60 bg-amber-400/10',
     cardIdle: 'border-white/12 hover:border-white/25',
     heading: 'text-white', sub: 'text-indigo-200/60', label: 'text-indigo-200/80',
     input: 'bg-white/10 border-white/20 text-white placeholder-white/40 [&>option]:text-slate-900',
     chip: 'bg-white/10 text-white border-white/20 hover:bg-white/20',
+    tabIdle: 'text-indigo-200/60 hover:text-white',
+    itemHover: 'hover:bg-white/5',
     soft: 'bg-white/[0.06] border-white/10',
     divide: 'border-white/10',
   },
@@ -30,11 +34,14 @@ const THEMES = {
     pageStyle: { backgroundColor: '#f6f4ef' }, pageCls: 'text-slate-900',
     header: 'bg-white border-slate-200',
     card: 'rounded-2xl border border-slate-200 bg-white',
+    menu: 'bg-white border border-slate-200 shadow-2xl',
     cardSel: 'border-indigo-400 bg-indigo-50',
     cardIdle: 'border-slate-200 hover:border-slate-300',
     heading: 'text-slate-900', sub: 'text-slate-500', label: 'text-slate-600',
     input: 'bg-white border-slate-300 text-slate-900 placeholder-slate-400',
     chip: 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200',
+    tabIdle: 'text-slate-500 hover:text-slate-900',
+    itemHover: 'hover:bg-slate-50',
     soft: 'bg-slate-50 border-slate-200',
     divide: 'border-slate-100',
   },
@@ -77,14 +84,15 @@ const RegistrationsAdmin = () => {
   };
 
   if (booting) return <div className="min-h-screen" style={DARK_BG} />;
-  if (!auth) return <LoginView onAuthed={setAuth} showError={showError} theme={theme} toggleTheme={toggleTheme} T={T} />;
+  if (!auth) return <LoginView onAuthed={setAuth} showSuccess={showSuccess} showError={showError} theme={theme} toggleTheme={toggleTheme} T={T} />;
   return <Console auth={auth} onLogout={onLogout} showSuccess={showSuccess} showError={showError} T={T} theme={theme} toggleTheme={toggleTheme} />;
 };
 
 // ---------------- Login ----------------
-const LoginView = ({ onAuthed, showError, T, theme, toggleTheme }) => {
+const LoginView = ({ onAuthed, showSuccess, showError, T, theme, toggleTheme }) => {
   const [creds, setCreds] = useState({ username: '', password: '' });
   const [loading, setLoading] = useState(false);
+  const [forgot, setForgot] = useState(false);
 
   const login = async (e) => {
     e.preventDefault();
@@ -117,7 +125,10 @@ const LoginView = ({ onAuthed, showError, T, theme, toggleTheme }) => {
         <label className={`block text-xs font-semibold ${T.label} mb-1`}>Username</label>
         <input className={`w-full rounded-lg border px-3 py-2.5 mb-3 focus:outline-none focus:ring-2 focus:ring-amber-300/50 ${T.input}`} value={creds.username} onChange={(e) => setCreds({ ...creds, username: e.target.value })} />
         <label className={`block text-xs font-semibold ${T.label} mb-1`}>Password</label>
-        <input type="password" className={`w-full rounded-lg border px-3 py-2.5 mb-5 focus:outline-none focus:ring-2 focus:ring-amber-300/50 ${T.input}`} value={creds.password} onChange={(e) => setCreds({ ...creds, password: e.target.value })} />
+        <input type="password" className={`w-full rounded-lg border px-3 py-2.5 mb-2 focus:outline-none focus:ring-2 focus:ring-amber-300/50 ${T.input}`} value={creds.password} onChange={(e) => setCreds({ ...creds, password: e.target.value })} />
+        <div className="text-right mb-4">
+          <button type="button" onClick={() => setForgot(true)} className="text-xs font-semibold text-amber-400 hover:text-amber-300">Forgot password?</button>
+        </div>
         <button disabled={loading} className="w-full rounded-full bg-gradient-to-b from-amber-400 to-amber-500 px-6 py-2.5 text-sm font-bold text-slate-900 hover:-translate-y-0.5 transition disabled:opacity-50">
           {loading ? 'Signing in…' : 'Sign In'}
         </button>
@@ -125,6 +136,91 @@ const LoginView = ({ onAuthed, showError, T, theme, toggleTheme }) => {
           {theme === 'dark' ? '☀️ Light theme' : '🌙 Dark theme'}
         </button>
       </form>
+      {forgot && <ForgotPasswordModal onClose={() => setForgot(false)} showSuccess={showSuccess} showError={showError} T={T} />}
+    </div>
+  );
+};
+
+// ---------------- Forgot password ----------------
+const ForgotPasswordModal = ({ onClose, showSuccess, showError, T }) => {
+  const [form, setForm] = useState({ username: '', email: '' });
+  const [busy, setBusy] = useState(false);
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!form.username && !form.email) return showError('Enter your username or registered email');
+    setBusy(true);
+    try {
+      const res = await api.post('/api/auth/forgot-password', form);
+      showSuccess(res.data.message || 'Request sent');
+      onClose();
+    } catch (err) { showError(err.response?.data?.error || 'Could not send request'); }
+    finally { setBusy(false); }
+  };
+  return (
+    <ModalShell onClose={onClose} T={T} title="Forgot password">
+      <p className={`text-xs mb-3 ${T.sub}`}>Send a reset request to the admin. Once approved, you'll get a new password to sign in with.</p>
+      <form onSubmit={submit}>
+        <input placeholder="Username" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} className={`w-full rounded-lg border px-3 py-2.5 mb-2 ${T.input}`} />
+        <input placeholder="Registered email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className={`w-full rounded-lg border px-3 py-2.5 mb-4 ${T.input}`} />
+        <div className="flex justify-end gap-2">
+          <button type="button" onClick={onClose} className={`rounded-full border px-4 py-2 text-sm font-semibold ${T.chip}`}>Cancel</button>
+          <button disabled={busy} className="rounded-full bg-amber-500 text-slate-900 px-5 py-2 text-sm font-bold hover:bg-amber-400 disabled:opacity-50">{busy ? 'Sending…' : 'Send request'}</button>
+        </div>
+      </form>
+    </ModalShell>
+  );
+};
+
+// ---------------- Modal shell ----------------
+const ModalShell = ({ onClose, title, children, T }) => (
+  <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
+    <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
+    <div className={`relative w-full max-w-sm ${T.card} p-6`}>
+      <h3 className={`text-lg font-bold mb-4 ${T.heading}`}>{title}</h3>
+      {children}
+    </div>
+  </div>
+);
+
+// ---------------- Profile dropdown menu ----------------
+const ProfileMenu = ({ auth, theme, toggleTheme, onChangePassword, onProfile, onLogout, T }) => {
+  const [open, setOpen] = useState(false);
+  const ref = useRef(null);
+  useEffect(() => {
+    const onDoc = (e) => { if (ref.current && !ref.current.contains(e.target)) setOpen(false); };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, []);
+  const Item = ({ icon, label, onClick }) => (
+    <button onClick={() => { setOpen(false); onClick(); }} className={`flex w-full items-center gap-3 px-4 py-2.5 text-sm font-medium ${T.tabIdle} ${T.itemHover} text-left`}>
+      <span className="w-5 text-center">{icon}</span>{label}
+    </button>
+  );
+  return (
+    <div className="relative" ref={ref}>
+      <button onClick={() => setOpen((v) => !v)} className={`flex items-center gap-2 rounded-full border pl-1 pr-3 py-1 ${T.chip}`}>
+        <span className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-xs font-black text-slate-900">{initials(auth.user.name || auth.user.username)}</span>
+        <span className="hidden sm:inline text-sm font-semibold">{auth.user.username}</span>
+        <span className="text-xs opacity-70">▾</span>
+      </button>
+      {open && (
+        <div className={`absolute right-0 mt-2 w-60 overflow-hidden rounded-2xl ${T.menu} z-50`}>
+          <div className={`px-4 py-3 border-b ${T.divide}`}>
+            <p className={`text-sm font-bold ${T.heading}`}>{auth.user.name || auth.user.username}</p>
+            <p className={`text-xs capitalize ${T.sub}`}>{String(auth.user.role).replace('-', ' ')}</p>
+          </div>
+          <div className="py-1">
+            <Item icon="👤" label="Profile" onClick={onProfile} />
+            <Item icon="🔑" label="Change password" onClick={onChangePassword} />
+            <Item icon={theme === 'dark' ? '☀️' : '🌙'} label={theme === 'dark' ? 'Light theme' : 'Dark theme'} onClick={toggleTheme} />
+          </div>
+          <div className={`border-t ${T.divide} py-1`}>
+            <button onClick={() => { setOpen(false); onLogout(); }} className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-semibold text-rose-400 hover:bg-rose-500/10 text-left">
+              <span className="w-5 text-center">⏻</span>Sign out
+            </button>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
@@ -132,11 +228,16 @@ const LoginView = ({ onAuthed, showError, T, theme, toggleTheme }) => {
 // ---------------- Console ----------------
 const Console = ({ auth, onLogout, showSuccess, showError, T, theme, toggleTheme }) => {
   const isSuper = auth.user.role === 'super-admin';
+  const isOrganizer = auth.user.role === 'organizer';
   const canImport = ['super-admin', 'admin'].includes(auth.user.role);
+  const canManageEvents = isSuper || isOrganizer || auth.user.role === 'admin';
+  const canAssignOrganizer = isSuper || auth.user.role === 'admin';
+
+  const [view, setView] = useState('events'); // 'events' | 'organizers'
   const [events, setEvents] = useState([]);
   const [organizers, setOrganizers] = useState([]);
   const [selected, setSelected] = useState(null);
-  const [showPwd, setShowPwd] = useState(false);
+  const [modal, setModal] = useState(null); // 'password' | 'profile'
 
   const loadEvents = useCallback(async () => {
     try {
@@ -159,41 +260,71 @@ const Console = ({ auth, onLogout, showSuccess, showError, T, theme, toggleTheme
 
   return (
     <div className={`min-h-screen ${T.pageCls}`} style={T.pageStyle}>
-      <header className={`border-b px-4 sm:px-6 py-3 flex items-center justify-between ${T.header}`}>
+      <header className={`sticky top-0 z-40 border-b px-4 sm:px-6 py-3 flex items-center justify-between ${T.header}`}>
         <div className="flex items-center gap-3">
           <img src="/auction-logo.png" alt="" className="w-9 h-9 rounded-lg" />
           <div>
             <h1 className={`text-lg font-bold tracking-tight ${T.heading}`}>Registration Console</h1>
-            <p className={`text-xs ${T.sub}`}>{auth.user.username} · {auth.user.role}</p>
+            {isSuper && (
+              <nav className="mt-1 flex gap-1">
+                {[['events', 'Events'], ['organizers', 'Organizers']].map(([k, label]) => (
+                  <button key={k} onClick={() => setView(k)} className={`rounded-full px-3 py-0.5 text-xs font-semibold ${view === k ? 'bg-amber-400 text-slate-900' : T.tabIdle}`}>{label}</button>
+                ))}
+              </nav>
+            )}
           </div>
         </div>
-        <div className="flex items-center gap-2">
-          <button onClick={toggleTheme} className={`rounded-full border px-3 py-1.5 text-sm font-semibold ${T.chip}`} title="Toggle theme">
-            {theme === 'dark' ? '☀️' : '🌙'}
-          </button>
-          <button onClick={() => setShowPwd(true)} className={`rounded-full border px-3 py-1.5 text-sm font-semibold ${T.chip}`}>Password</button>
-          <button onClick={onLogout} className={`rounded-full border px-4 py-1.5 text-sm font-semibold ${T.chip}`}>Logout</button>
-        </div>
+        <ProfileMenu auth={auth} theme={theme} toggleTheme={toggleTheme} onChangePassword={() => setModal('password')} onProfile={() => setModal('profile')} onLogout={onLogout} T={T} />
       </header>
 
-      <div className="max-w-6xl mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-1 space-y-6">
-          <EventsPanel isSuper={isSuper} events={events} organizers={organizers} selected={selected} onSelect={setSelected} reload={loadEvents} showSuccess={showSuccess} showError={showError} T={T} />
-          {isSuper && <OrganizersPanel events={events} organizers={organizers} reload={loadOrganizers} showSuccess={showSuccess} showError={showError} T={T} />}
+      {view === 'organizers' && isSuper ? (
+        <div className="max-w-5xl mx-auto p-4 sm:p-6">
+          <OrganizersPanel events={events} organizers={organizers} reload={loadOrganizers} showSuccess={showSuccess} showError={showError} T={T} />
         </div>
-        <div className="lg:col-span-2">
-          {selected ? (
-            <RegistrationsPanel event={selected} canImport={canImport} showSuccess={showSuccess} showError={showError} T={T} />
-          ) : (
-            <div className={`${T.card} p-10 text-center ${T.sub}`}>
-              {isSuper ? 'Create an event to start collecting registrations.' : 'No event assigned to you yet.'}
-            </div>
-          )}
+      ) : (
+        <div className="max-w-6xl mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-1">
+            <EventsPanel canManageEvents={canManageEvents} canAssignOrganizer={canAssignOrganizer} events={events} organizers={organizers} selected={selected} onSelect={setSelected} reload={loadEvents} showSuccess={showSuccess} showError={showError} T={T} />
+          </div>
+          <div className="lg:col-span-2">
+            {selected ? (
+              <RegistrationsPanel event={selected} canImport={canImport} showSuccess={showSuccess} showError={showError} T={T} />
+            ) : (
+              <div className={`${T.card} p-10 text-center ${T.sub}`}>
+                {canManageEvents ? 'Create an event to start collecting registrations.' : 'No event assigned to you yet.'}
+              </div>
+            )}
+          </div>
         </div>
-      </div>
+      )}
 
-      {showPwd && <ChangePasswordModal onClose={() => setShowPwd(false)} showSuccess={showSuccess} showError={showError} T={T} />}
+      {modal === 'password' && <ChangePasswordModal onClose={() => setModal(null)} showSuccess={showSuccess} showError={showError} T={T} />}
+      {modal === 'profile' && <ProfileModal auth={auth} onClose={() => setModal(null)} T={T} />}
     </div>
+  );
+};
+
+// ---------------- Profile (read-only) ----------------
+const ProfileModal = ({ auth, onClose, T }) => {
+  const rows = [
+    ['Username', auth.user.username],
+    ['Name', auth.user.name || '—'],
+    ['Role', String(auth.user.role).replace('-', ' ')],
+  ];
+  return (
+    <ModalShell onClose={onClose} T={T} title="Profile">
+      <div className="space-y-2">
+        {rows.map(([k, v]) => (
+          <div key={k} className={`flex justify-between gap-4 text-sm border-b pb-2 ${T.divide}`}>
+            <span className={T.sub}>{k}</span>
+            <span className={`font-semibold capitalize ${T.heading}`}>{v}</span>
+          </div>
+        ))}
+      </div>
+      <div className="mt-5 text-right">
+        <button onClick={onClose} className={`rounded-full border px-4 py-2 text-sm font-semibold ${T.chip}`}>Close</button>
+      </div>
+    </ModalShell>
   );
 };
 
@@ -213,10 +344,8 @@ const ChangePasswordModal = ({ onClose, showSuccess, showError, T }) => {
     finally { setBusy(false); }
   };
   return (
-    <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={onClose} />
-      <form onSubmit={submit} className={`relative w-full max-w-sm ${T.card} p-6`}>
-        <h3 className={`text-lg font-bold mb-4 ${T.heading}`}>Change Password</h3>
+    <ModalShell onClose={onClose} T={T} title="Change password">
+      <form onSubmit={submit}>
         <input type="password" placeholder="Current password" value={cur} onChange={(e) => setCur(e.target.value)} className={`w-full rounded-lg border px-3 py-2.5 mb-2 ${T.input}`} />
         <input type="password" placeholder="New password (min 6)" value={next} onChange={(e) => setNext(e.target.value)} className={`w-full rounded-lg border px-3 py-2.5 mb-4 ${T.input}`} />
         <div className="flex justify-end gap-2">
@@ -224,23 +353,26 @@ const ChangePasswordModal = ({ onClose, showSuccess, showError, T }) => {
           <button disabled={busy} className="rounded-full bg-indigo-600 text-white px-5 py-2 text-sm font-semibold hover:bg-indigo-500 disabled:opacity-50">{busy ? 'Saving…' : 'Save'}</button>
         </div>
       </form>
-    </div>
+    </ModalShell>
   );
 };
 
 // ---------------- Events panel ----------------
 const emptyForm = { name: '', paymentRequired: true, regFee: '', upiId: '', organizerId: '' };
-const EventsPanel = ({ isSuper, events, organizers, selected, onSelect, reload, showSuccess, showError, T }) => {
+const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, selected, onSelect, reload, showSuccess, showError, T }) => {
   const [creating, setCreating] = useState(false);
-  const [editing, setEditing] = useState(null); // event id being edited
+  const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [qr, setQr] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [q, setQ] = useState('');
 
+  const startCreate = () => { setCreating(true); setEditing(null); setForm(emptyForm); setQr(null); };
   const startEdit = (ev) => {
     setEditing(ev.id); setCreating(false); setQr(null);
     setForm({ name: ev.name, paymentRequired: ev.payment_required, regFee: ev.reg_fee || '', upiId: ev.upi_id || '', organizerId: ev.organizer_id || '' });
   };
+  const closeForm = () => { setCreating(false); setEditing(null); setForm(emptyForm); setQr(null); };
 
   const submit = async (e) => {
     e.preventDefault();
@@ -252,16 +384,11 @@ const EventsPanel = ({ isSuper, events, organizers, selected, onSelect, reload, 
       fd.append('paymentRequired', form.paymentRequired);
       fd.append('regFee', form.regFee || 0);
       fd.append('upiId', form.upiId);
-      if (form.organizerId) fd.append('organizerId', form.organizerId);
+      if (canAssignOrganizer && form.organizerId) fd.append('organizerId', form.organizerId);
       if (qr) fd.append('qr', qr);
-      if (editing) {
-        await api.put(`/api/registrations/events/${editing}`, fd);
-        showSuccess('Event updated');
-      } else {
-        await api.post('/api/registrations/events', fd);
-        showSuccess('Event created');
-      }
-      setForm(emptyForm); setQr(null); setCreating(false); setEditing(null);
+      if (editing) { await api.put(`/api/registrations/events/${editing}`, fd); showSuccess('Event updated'); }
+      else { await api.post('/api/registrations/events', fd); showSuccess('Event created'); }
+      closeForm();
       reload();
     } catch (err) {
       showError(err.response?.data?.error || 'Could not save event');
@@ -272,57 +399,61 @@ const EventsPanel = ({ isSuper, events, organizers, selected, onSelect, reload, 
     try { await api.put(`/api/registrations/events/${ev.id}`, { registrationOpen: !ev.registration_open }); reload(); }
     catch (err) { showError(err.response?.data?.error || 'Update failed'); }
   };
-
   const remove = async (ev) => {
     if (!window.confirm(`Delete event "${ev.name}" and all its registrations?`)) return;
     try { await api.delete(`/api/registrations/events/${ev.id}`); showSuccess('Event deleted'); reload(); }
     catch (err) { showError(err.response?.data?.error || 'Delete failed'); }
   };
-
   const copyLink = (ev) => {
     navigator.clipboard?.writeText(`${window.location.origin}/register/${ev.slug}`);
     showSuccess('Registration link copied');
   };
 
-  const EventForm = (
-    <form onSubmit={submit} className={`space-y-2 mb-4 rounded-xl border p-3 ${T.soft}`}>
-      <input className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} placeholder="Event name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-      <label className={`flex items-center gap-2 text-sm ${T.label}`}>
-        <input type="checkbox" checked={form.paymentRequired} onChange={(e) => setForm({ ...form, paymentRequired: e.target.checked })} />
-        Paid registration
-      </label>
-      {form.paymentRequired && (
-        <>
-          <input className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} placeholder="Registration fee (₹)" value={form.regFee} onChange={(e) => setForm({ ...form, regFee: e.target.value })} inputMode="numeric" />
-          <input className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} placeholder="UPI ID" value={form.upiId} onChange={(e) => setForm({ ...form, upiId: e.target.value })} />
-          <label className={`block text-xs ${T.sub}`}>Payment QR image{editing ? ' (upload to replace)' : ''}
-            <input type="file" accept="image/*" onChange={(e) => setQr(e.target.files?.[0] || null)} className="mt-1 block w-full text-xs" />
-          </label>
-        </>
-      )}
-      <select className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} value={form.organizerId} onChange={(e) => setForm({ ...form, organizerId: e.target.value })}>
-        <option value="">Assign organizer (optional)…</option>
-        {organizers.map((o) => <option key={o.id} value={o.id}>{o.name || o.username}</option>)}
-      </select>
-      <div className="flex gap-2">
-        <button disabled={busy} className="flex-1 rounded-full bg-indigo-600 text-white px-4 py-2 text-sm font-semibold hover:bg-indigo-500 disabled:opacity-50">{busy ? 'Saving…' : editing ? 'Update Event' : 'Create Event'}</button>
-        <button type="button" onClick={() => { setCreating(false); setEditing(null); setForm(emptyForm); }} className={`rounded-full border px-4 py-2 text-sm font-semibold ${T.chip}`}>Cancel</button>
-      </div>
-    </form>
-  );
+  const filtered = q ? events.filter((e) => e.name.toLowerCase().includes(q.toLowerCase()) || (e.organizer_name || '').toLowerCase().includes(q.toLowerCase())) : events;
 
   return (
     <div className={`${T.card} p-5`}>
       <div className="flex items-center justify-between mb-3">
-        <h2 className={`font-bold ${T.heading}`}>Events</h2>
-        {isSuper && !editing && <button onClick={() => { setCreating((v) => !v); setForm(emptyForm); }} className="text-sm font-semibold text-indigo-400 hover:text-indigo-300">{creating ? 'Cancel' : '+ New'}</button>}
+        <h2 className={`font-bold ${T.heading}`}>Events <span className={`text-xs font-normal ${T.sub}`}>({events.length})</span></h2>
+        {canManageEvents && !editing && <button onClick={creating ? closeForm : startCreate} className="rounded-full bg-amber-400 text-slate-900 px-3 py-1 text-xs font-bold hover:bg-amber-300">{creating ? 'Cancel' : '+ New event'}</button>}
       </div>
 
-      {isSuper && (creating || editing) && EventForm}
+      {events.length > 4 && (
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search events…" className={`w-full rounded-lg border px-3 py-2 text-sm mb-3 ${T.input}`} />
+      )}
+
+      {canManageEvents && (creating || editing) && (
+        <form onSubmit={submit} className={`space-y-2 mb-4 rounded-xl border p-3 ${T.soft}`}>
+          <input className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} placeholder="Event name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          <label className={`flex items-center gap-2 text-sm ${T.label}`}>
+            <input type="checkbox" checked={form.paymentRequired} onChange={(e) => setForm({ ...form, paymentRequired: e.target.checked })} />
+            Paid registration
+          </label>
+          {form.paymentRequired && (
+            <>
+              <input className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} placeholder="Registration fee (₹)" value={form.regFee} onChange={(e) => setForm({ ...form, regFee: e.target.value })} inputMode="numeric" />
+              <input className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} placeholder="UPI ID" value={form.upiId} onChange={(e) => setForm({ ...form, upiId: e.target.value })} />
+              <label className={`block text-xs ${T.sub}`}>Payment QR image{editing ? ' (upload to replace)' : ''}
+                <input type="file" accept="image/*" onChange={(e) => setQr(e.target.files?.[0] || null)} className="mt-1 block w-full text-xs" />
+              </label>
+            </>
+          )}
+          {canAssignOrganizer && (
+            <select className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} value={form.organizerId} onChange={(e) => setForm({ ...form, organizerId: e.target.value })}>
+              <option value="">Assign organizer (optional)…</option>
+              {organizers.map((o) => <option key={o.id} value={o.id}>{o.name || o.username}</option>)}
+            </select>
+          )}
+          <div className="flex gap-2">
+            <button disabled={busy} className="flex-1 rounded-full bg-indigo-600 text-white px-4 py-2 text-sm font-semibold hover:bg-indigo-500 disabled:opacity-50">{busy ? 'Saving…' : editing ? 'Update event' : 'Create event'}</button>
+            <button type="button" onClick={closeForm} className={`rounded-full border px-4 py-2 text-sm font-semibold ${T.chip}`}>Cancel</button>
+          </div>
+        </form>
+      )}
 
       <div className="space-y-2">
-        {events.length === 0 && <p className={`text-sm ${T.sub}`}>No events yet.</p>}
-        {events.map((ev) => (
+        {filtered.length === 0 && <p className={`text-sm ${T.sub}`}>{events.length === 0 ? 'No events yet.' : 'No events match your search.'}</p>}
+        {filtered.map((ev) => (
           <div key={ev.id} className={`rounded-xl border p-3 cursor-pointer transition ${selected?.id === ev.id ? T.cardSel : T.cardIdle}`} onClick={() => onSelect(ev)}>
             <div className="flex items-center justify-between gap-2">
               <span className={`font-semibold truncate ${T.heading}`}>{ev.name}</span>
@@ -330,14 +461,19 @@ const EventsPanel = ({ isSuper, events, organizers, selected, onSelect, reload, 
             </div>
             <div className={`mt-1 text-xs ${T.sub}`}>
               {ev.payment_required ? `Paid · ${money(ev.reg_fee)}` : 'Free entry'}
-              {ev.organizer_name ? ` · 👤 ${ev.organizer_name}` : (isSuper ? ' · 👤 unassigned' : '')}
+              {ev.organizer_name ? ` · 👤 ${ev.organizer_name}` : (canAssignOrganizer ? ' · 👤 unassigned' : '')}
             </div>
-            <div className="mt-2 flex flex-wrap gap-2">
-              <button onClick={(e) => { e.stopPropagation(); copyLink(ev); }} className={`rounded-full border px-3 py-1 text-xs font-semibold ${T.chip}`}>🔗 Copy link</button>
-              {isSuper && <button onClick={(e) => { e.stopPropagation(); startEdit(ev); }} className={`rounded-full border px-3 py-1 text-xs font-semibold ${T.chip}`}>✏️ Edit</button>}
-              {isSuper && <button onClick={(e) => { e.stopPropagation(); toggleOpen(ev); }} className={`rounded-full border px-3 py-1 text-xs font-semibold ${T.chip}`}>{ev.registration_open ? 'Close' : 'Open'}</button>}
-              {isSuper && <button onClick={(e) => { e.stopPropagation(); remove(ev); }} className="rounded-full border border-rose-300/40 bg-rose-500/10 text-rose-300 px-3 py-1 text-xs font-semibold hover:bg-rose-500/20">Delete</button>}
-            </div>
+            {canManageEvents && (
+              <div className="mt-2 flex flex-wrap gap-2">
+                <button onClick={(e) => { e.stopPropagation(); copyLink(ev); }} className={`rounded-full border px-3 py-1 text-xs font-semibold ${T.chip}`}>🔗 Copy link</button>
+                <button onClick={(e) => { e.stopPropagation(); startEdit(ev); }} className={`rounded-full border px-3 py-1 text-xs font-semibold ${T.chip}`}>✏️ Edit</button>
+                <button onClick={(e) => { e.stopPropagation(); toggleOpen(ev); }} className={`rounded-full border px-3 py-1 text-xs font-semibold ${T.chip}`}>{ev.registration_open ? 'Close' : 'Open'}</button>
+                <button onClick={(e) => { e.stopPropagation(); remove(ev); }} className="rounded-full border border-rose-300/40 bg-rose-500/10 text-rose-300 px-3 py-1 text-xs font-semibold hover:bg-rose-500/20">Delete</button>
+              </div>
+            )}
+            {!canManageEvents && (
+              <button onClick={(e) => { e.stopPropagation(); copyLink(ev); }} className={`mt-2 rounded-full border px-3 py-1 text-xs font-semibold ${T.chip}`}>🔗 Copy link</button>
+            )}
           </div>
         ))}
       </div>
@@ -345,10 +481,11 @@ const EventsPanel = ({ isSuper, events, organizers, selected, onSelect, reload, 
   );
 };
 
-// ---------------- Organizers panel ----------------
+// ---------------- Organizers panel (super-admin, own view) ----------------
 const OrganizersPanel = ({ events, organizers, reload, showSuccess, showError, T }) => {
-  const [form, setForm] = useState({ username: '', password: '', name: '', eventId: '' });
+  const [form, setForm] = useState({ username: '', password: '', name: '', email: '', phone: '', eventId: '' });
   const [busy, setBusy] = useState(false);
+  const [q, setQ] = useState('');
 
   const create = async (e) => {
     e.preventDefault();
@@ -357,7 +494,7 @@ const OrganizersPanel = ({ events, organizers, reload, showSuccess, showError, T
     try {
       await api.post('/api/auth/organizer', form);
       showSuccess('Organizer created');
-      setForm({ username: '', password: '', name: '', eventId: '' });
+      setForm({ username: '', password: '', name: '', email: '', phone: '', eventId: '' });
       reload();
     } catch (err) { showError(err.response?.data?.error || 'Could not create organizer'); }
     finally { setBusy(false); }
@@ -367,40 +504,65 @@ const OrganizersPanel = ({ events, organizers, reload, showSuccess, showError, T
     const pw = window.prompt(`New password for ${o.username} (min 6 chars):`);
     if (pw === null) return;
     if (pw.length < 6) return showError('Password must be at least 6 characters');
-    try { await api.post(`/api/auth/users/${o.id}/reset-password`, { newPassword: pw }); showSuccess(`Password reset for ${o.username}`); }
+    try { await api.post(`/api/auth/users/${o.id}/reset-password`, { newPassword: pw }); showSuccess(`Password reset for ${o.username}`); reload(); }
     catch (err) { showError(err.response?.data?.error || 'Reset failed'); }
   };
 
-  const eventsFor = (oid) => events.filter((e) => e.organizer_id === oid).map((e) => e.name).join(', ') || '—';
+  const eventsFor = (oid) => events.filter((e) => e.organizer_id === oid).map((e) => e.name);
+  const filtered = q
+    ? organizers.filter((o) => [o.username, o.name, o.email, o.phone].some((v) => (v || '').toLowerCase().includes(q.toLowerCase())))
+    : organizers;
 
   return (
-    <div className={`${T.card} p-5`}>
-      <h2 className={`font-bold mb-3 ${T.heading}`}>Organizers</h2>
-      <form onSubmit={create} className="space-y-2 mb-3">
-        <div className="grid grid-cols-2 gap-2">
-          <input className={`rounded-lg border px-3 py-2 text-sm ${T.input}`} placeholder="Username" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
-          <input type="password" className={`rounded-lg border px-3 py-2 text-sm ${T.input}`} placeholder="Password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
-        </div>
-        <input className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} placeholder="Name (optional)" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
-        <select className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} value={form.eventId} onChange={(e) => setForm({ ...form, eventId: e.target.value })}>
-          <option value="">Assign to event (optional)…</option>
-          {events.map((ev) => <option key={ev.id} value={ev.id}>{ev.name}</option>)}
-        </select>
-        <button disabled={busy} className="w-full rounded-full bg-slate-700 text-white px-4 py-2 text-sm font-semibold hover:bg-slate-600 disabled:opacity-50">{busy ? 'Creating…' : 'Create Organizer'}</button>
-      </form>
-      <div className="space-y-1">
-        {organizers.map((o) => (
-          <div key={o.id} className={`flex items-center justify-between gap-2 text-sm border-t pt-1.5 ${T.divide}`}>
-            <div className="min-w-0">
-              <span className={`font-medium ${T.heading}`}>{o.username}</span>
-              <span className={`block text-[11px] truncate ${T.sub}`}>{eventsFor(o.id)}</span>
-            </div>
-            <button onClick={() => resetPassword(o)} className={`shrink-0 rounded-full border px-2.5 py-1 text-[11px] font-semibold ${T.chip}`}>Reset PW</button>
-          </div>
-        ))}
-        {organizers.length === 0 && <p className={`text-xs ${T.sub}`}>No organizers yet.</p>}
+    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div className={`${T.card} p-5 md:col-span-1 h-fit`}>
+        <h2 className={`font-bold mb-3 ${T.heading}`}>Add organizer</h2>
+        <form onSubmit={create} className="space-y-2">
+          <input className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} placeholder="Username *" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
+          <input className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} placeholder="Full name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          <input className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} placeholder="Email" type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} />
+          <input className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} placeholder="Phone (10 digits)" inputMode="numeric" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })} />
+          <input type="password" className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} placeholder="Password *" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+          <select className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} value={form.eventId} onChange={(e) => setForm({ ...form, eventId: e.target.value })}>
+            <option value="">Assign to event (optional)…</option>
+            {events.map((ev) => <option key={ev.id} value={ev.id}>{ev.name}</option>)}
+          </select>
+          <button disabled={busy} className="w-full rounded-full bg-amber-400 text-slate-900 px-4 py-2 text-sm font-bold hover:bg-amber-300 disabled:opacity-50">{busy ? 'Creating…' : 'Create organizer'}</button>
+        </form>
+        <p className={`mt-3 text-[11px] ${T.sub}`}>Email/phone help avoid duplicates and power the forgot-password request.</p>
       </div>
-      <p className={`mt-2 text-[11px] ${T.sub}`}>Tip: assign one organizer to multiple events (season 1, 2…) by editing each event's organizer.</p>
+
+      <div className={`${T.card} p-5 md:col-span-2`}>
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <h2 className={`font-bold ${T.heading}`}>Organizers <span className={`text-xs font-normal ${T.sub}`}>({organizers.length})</span></h2>
+          {organizers.length > 4 && <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search…" className={`rounded-lg border px-3 py-1.5 text-sm w-40 ${T.input}`} />}
+        </div>
+        <div className="space-y-2">
+          {filtered.length === 0 && <p className={`text-sm ${T.sub}`}>{organizers.length === 0 ? 'No organizers yet.' : 'No matches.'}</p>}
+          {filtered.map((o) => {
+            const evs = eventsFor(o.id);
+            return (
+              <div key={o.id} className={`rounded-xl border p-3 ${T.cardIdle}`}>
+                <div className="flex items-start justify-between gap-3">
+                  <div className="min-w-0">
+                    <div className="flex items-center gap-2 flex-wrap">
+                      <span className={`font-semibold ${T.heading}`}>{o.name || o.username}</span>
+                      <span className={`text-xs ${T.sub}`}>@{o.username}</span>
+                      {o.reset_requested_at && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">🔒 Reset requested</span>}
+                    </div>
+                    <div className={`text-xs mt-0.5 ${T.sub}`}>
+                      {o.email || 'no email'}{o.phone ? ` · 📱 ${o.phone}` : ''}
+                    </div>
+                    <div className={`text-[11px] mt-1 ${T.sub}`}>Events: {evs.length ? evs.join(', ') : '—'}</div>
+                  </div>
+                  <button onClick={() => resetPassword(o)} className={`shrink-0 rounded-full border px-3 py-1 text-xs font-semibold ${o.reset_requested_at ? 'bg-amber-400 text-slate-900 border-amber-400 hover:bg-amber-300' : T.chip}`}>Reset password</button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <p className={`mt-3 text-[11px] ${T.sub}`}>Tip: assign one organizer to multiple events (season 1, 2…) via each event's Edit → organizer.</p>
+      </div>
     </div>
   );
 };
@@ -416,7 +578,6 @@ const RegistrationsPanel = ({ event, canImport, showSuccess, showError, T }) => 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      // Fetch the full list once so tab counts are always correct.
       const res = await api.get(`/api/registrations/events/${event.id}/registrations`);
       setAll(res.data.registrations || []);
     } catch (err) { showError(err.response?.data?.error || 'Could not load registrations'); }

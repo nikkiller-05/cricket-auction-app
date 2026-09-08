@@ -20,10 +20,19 @@ const findUserByUsername = async (username) => {
   return data;
 };
 
+// Look up a row by a unique field (email lowercased / phone). Returns first match or null.
+const findUserByField = async (field, value) => {
+  if (!supabase || !value) return null;
+  const { data } = await supabase.from(TABLE).select('id, username').eq(field, value).limit(1);
+  return (data && data[0]) || null;
+};
+
 const publicUser = (u) => ({
   id: u.id,
   username: u.username,
   name: u.name,
+  email: u.email,
+  phone: u.phone,
   role: u.role,
   permissions: u.permissions,
   createdAt: u.created_at,
@@ -166,16 +175,29 @@ const authController = {
   createOrganizer: async (req, res, next) => {
     try {
       const { username, password, name, eventId } = req.body;
+      const email = (req.body.email || '').trim().toLowerCase() || null;
+      const phone = (req.body.phone || '').trim() || null;
       if (!username || !password) {
         return res.status(400).json({ error: 'Username and password are required' });
+      }
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return res.status(400).json({ error: 'Invalid email address' });
+      }
+      if (phone && !/^\d{10}$/.test(phone)) {
+        return res.status(400).json({ error: 'Phone must be a 10-digit number' });
       }
       if (!supabase) {
         return res.status(503).json({ error: 'Authentication service unavailable' });
       }
 
-      const existing = await findUserByUsername(username);
-      if (existing) {
+      if (await findUserByUsername(username)) {
         return res.status(400).json({ error: 'Username already exists' });
+      }
+      if (email && await findUserByField('email', email)) {
+        return res.status(400).json({ error: 'An account with this email already exists' });
+      }
+      if (phone && await findUserByField('phone', phone)) {
+        return res.status(400).json({ error: 'An account with this phone already exists' });
       }
 
       const password_hash = await bcrypt.hash(password, 10);
@@ -185,6 +207,8 @@ const authController = {
           username,
           password_hash,
           name: name || username,
+          email,
+          phone,
           role: 'organizer',
           permissions: ['registrations'],
           event_id: eventId || null,
@@ -208,7 +232,7 @@ const authController = {
       if (!supabase) return res.json({ organizers: [] });
       const { data, error } = await supabase
         .from(TABLE)
-        .select('id, username, name, role, event_id, created_at')
+        .select('id, username, name, email, phone, role, event_id, reset_requested_at, created_at')
         .eq('role', 'organizer')
         .order('created_at', { ascending: false });
       if (error) {
@@ -261,13 +285,40 @@ const authController = {
       const password_hash = await bcrypt.hash(newPassword, 10);
       const { data, error } = await supabase
         .from(TABLE)
-        .update({ password_hash })
+        .update({ password_hash, reset_requested_at: null })
         .eq('id', id)
         .select()
         .maybeSingle();
       if (error) return res.status(500).json({ error: 'Could not reset password' });
       if (!data) return res.status(404).json({ error: 'User not found' });
       res.json({ message: 'Password reset successfully', username: data.username });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // Public: a user who forgot their password flags a reset request for the super-admin.
+  // Responds generically to avoid revealing which accounts exist.
+  forgotPassword: async (req, res, next) => {
+    try {
+      const username = (req.body.username || '').trim();
+      const email = (req.body.email || '').trim().toLowerCase();
+      const generic = { message: 'If the account exists, your reset request has been sent to the admin.' };
+      if (!username && !email) {
+        return res.status(400).json({ error: 'Enter your username or registered email' });
+      }
+      if (!supabase) return res.json(generic);
+
+      let user = username ? await findUserByUsername(username) : null;
+      if (!user && email) user = await findUserByField('email', email);
+      // If both provided, require them to match the same account.
+      if (user && username && email && user.email && user.email.toLowerCase() !== email) {
+        return res.json(generic);
+      }
+      if (user) {
+        await supabase.from(TABLE).update({ reset_requested_at: new Date().toISOString() }).eq('id', user.id);
+      }
+      res.json(generic);
     } catch (error) {
       next(error);
     }

@@ -73,10 +73,14 @@ const registrationController = {
         upi_qr_url = await registrationService.uploadImage(req.file.buffer, req.file.mimetype, `qr/${slug}`);
       }
 
+      // Organizers can only create events under their own id; higher roles may assign anyone.
+      const isOrganizer = req.user?.role === 'organizer';
+      const organizer_id = isOrganizer ? req.user.id : (organizerId ? parseInt(organizerId, 10) : null);
+
       const event = await registrationService.createEvent({
         slug,
         name: name.trim(),
-        organizer_id: organizerId ? parseInt(organizerId, 10) : null,
+        organizer_id,
         payment_required: paymentRequired === 'false' ? false : paymentRequired !== undefined ? !!paymentRequired : true,
         reg_fee: regFee ? Number(regFee) : 0,
         upi_id: upiId || null,
@@ -93,10 +97,19 @@ const registrationController = {
   async updateEvent(req, res) {
     try {
       const { id } = req.params;
+      const isOrganizer = req.user?.role === 'organizer';
+      if (isOrganizer) {
+        const ev = await registrationService.getEventById(id);
+        if (!ev || ev.organizer_id !== req.user.id) {
+          return res.status(403).json({ error: 'Not authorized for this event' });
+        }
+      }
       const body = req.body || {};
       const payload = {};
-      ['name', 'upi_id'].forEach((k) => { if (body[k] !== undefined) payload[k] = body[k]; });
-      if (body.organizerId !== undefined) payload.organizer_id = body.organizerId ? parseInt(body.organizerId, 10) : null;
+      if (body.name !== undefined) payload.name = body.name;
+      if (body.upiId !== undefined) payload.upi_id = body.upiId || null;
+      // Only higher roles may reassign an event's organizer.
+      if (!isOrganizer && body.organizerId !== undefined) payload.organizer_id = body.organizerId ? parseInt(body.organizerId, 10) : null;
       if (body.paymentRequired !== undefined) payload.payment_required = body.paymentRequired === 'false' ? false : !!body.paymentRequired;
       if (body.regFee !== undefined) payload.reg_fee = Number(body.regFee) || 0;
       if (body.registrationOpen !== undefined) payload.registration_open = body.registrationOpen === 'false' ? false : !!body.registrationOpen;
@@ -110,6 +123,13 @@ const registrationController = {
 
   async deleteEvent(req, res) {
     try {
+      const isOrganizer = req.user?.role === 'organizer';
+      if (isOrganizer) {
+        const ev = await registrationService.getEventById(req.params.id);
+        if (!ev || ev.organizer_id !== req.user.id) {
+          return res.status(403).json({ error: 'Not authorized for this event' });
+        }
+      }
       await registrationService.deleteEvent(req.params.id);
       res.json({ message: 'Event deleted' });
     } catch (e) {
