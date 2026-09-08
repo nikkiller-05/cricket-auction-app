@@ -1,9 +1,14 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
+const crypto = require('crypto');
 const supabase = require('../config/supabase');
+const mailer = require('../services/mailer');
+const registrationService = require('../services/registrationService');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 const TABLE = 'admin_users';
+const APP_URL = process.env.PUBLIC_APP_URL || process.env.FRONTEND_URL || '';
+const hashToken = (t) => crypto.createHash('sha256').update(t).digest('hex');
 
 // Look up a single admin/sub-admin row by username.
 const findUserByUsername = async (username) => {
@@ -245,6 +250,26 @@ const authController = {
     }
   },
 
+  // Super-admin deletes an organizer; their events are unassigned first.
+  deleteOrganizer: async (req, res, next) => {
+    try {
+      const { id } = req.params;
+      if (!supabase) return res.status(503).json({ error: 'Authentication service unavailable' });
+      try { await registrationService.unassignOrganizerEvents(id); } catch (e) { /* events table optional */ }
+      const { data, error } = await supabase
+        .from(TABLE)
+        .delete()
+        .eq('id', id)
+        .eq('role', 'organizer')
+        .select()
+        .maybeSingle();
+      if (error) return res.status(500).json({ error: 'Could not delete organizer' });
+      if (!data) return res.status(404).json({ error: 'Organizer not found' });
+      res.json({ message: 'Organizer deleted', username: data.username });
+    } catch (error) {
+      next(error);
+    }
+  },
   // Change your own password (any logged-in manager: super-admin/admin/organizer).
   changePassword: async (req, res, next) => {
     try {
@@ -297,13 +322,14 @@ const authController = {
     }
   },
 
-  // Public: a user who forgot their password flags a reset request for the super-admin.
-  // Responds generically to avoid revealing which accounts exist.
+  // Public: a user who forgot their password. When SMTP is configured and the
+  // account has an email, we send a tokenized reset link; otherwise we fall back
+  // to flagging a reset request for the super-admin. Always responds generically.
   forgotPassword: async (req, res, next) => {
     try {
       const username = (req.body.username || '').trim();
       const email = (req.body.email || '').trim().toLowerCase();
-      const generic = { message: 'If the account exists, your reset request has been sent to the admin.' };
+      const generic = { message: 'If the account exists, a reset link (or admin request) has been sent.' };
       if (!username && !email) {
         return res.status(400).json({ error: 'Enter your username or registered email' });
       }
@@ -315,10 +341,57 @@ const authController = {
       if (user && username && email && user.email && user.email.toLowerCase() !== email) {
         return res.json(generic);
       }
-      if (user) {
-        await supabase.from(TABLE).update({ reset_requested_at: new Date().toISOString() }).eq('id', user.id);
+      if (!user) return res.json(generic);
+
+      // Preferred path: email a tokenized reset link.
+      if (mailer.isConfigured && user.email && APP_URL) {
+        const rawToken = crypto.randomBytes(32).toString('hex');
+        const expires = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour
+        await supabase.from(TABLE).update({
+          reset_token: hashToken(rawToken),
+          reset_token_expires: expires,
+          reset_requested_at: new Date().toISOString(),
+        }).eq('id', user.id);
+        const resetUrl = `${APP_URL.replace(/\/$/, '')}/reset-password?token=${rawToken}`;
+        try { await mailer.sendPasswordReset(user.email, resetUrl, user.username); }
+        catch (e) { console.error('reset email failed:', e.message); }
+        return res.json(generic);
       }
+
+      // Fallback: flag the request for the super-admin to reset manually.
+      await supabase.from(TABLE).update({ reset_requested_at: new Date().toISOString() }).eq('id', user.id);
       res.json(generic);
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // Public: complete a reset using the emailed token.
+  resetPasswordWithToken: async (req, res, next) => {
+    try {
+      const { token, newPassword } = req.body;
+      if (!token || !newPassword) return res.status(400).json({ error: 'Token and new password are required' });
+      if (newPassword.length < 6) return res.status(400).json({ error: 'New password must be at least 6 characters' });
+      if (!supabase) return res.status(503).json({ error: 'Authentication service unavailable' });
+
+      const { data: user, error } = await supabase
+        .from(TABLE)
+        .select('id, reset_token_expires')
+        .eq('reset_token', hashToken(token))
+        .maybeSingle();
+      if (error || !user) return res.status(400).json({ error: 'Invalid or expired reset link' });
+      if (!user.reset_token_expires || new Date(user.reset_token_expires) < new Date()) {
+        return res.status(400).json({ error: 'This reset link has expired' });
+      }
+
+      const password_hash = await bcrypt.hash(newPassword, 10);
+      await supabase.from(TABLE).update({
+        password_hash,
+        reset_token: null,
+        reset_token_expires: null,
+        reset_requested_at: null,
+      }).eq('id', user.id);
+      res.json({ message: 'Password updated. You can now sign in.' });
     } catch (error) {
       next(error);
     }

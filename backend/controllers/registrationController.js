@@ -52,7 +52,12 @@ const registrationController = {
       // Attach organizer display name for the admin view.
       const organizers = await registrationService.listOrganizers();
       const nameById = new Map(organizers.map((o) => [String(o.id), o.name || o.username]));
-      events = events.map((e) => ({ ...e, organizer_name: e.organizer_id ? nameById.get(String(e.organizer_id)) || null : null }));
+      const counts = await registrationService.getRegistrationCounts();
+      events = events.map((e) => ({
+        ...e,
+        organizer_name: e.organizer_id ? nameById.get(String(e.organizer_id)) || null : null,
+        counts: counts[e.id] || { total: 0, pending: 0, verified: 0, rejected: 0 },
+      }));
       res.json({ events });
     } catch (e) {
       res.status(500).json({ error: e.message });
@@ -252,6 +257,14 @@ const registrationController = {
 
   async deleteRegistration(req, res) {
     try {
+      const reg = await registrationService.getRegistration(req.params.id);
+      if (!reg) return res.status(404).json({ error: 'Registration not found' });
+      if (req.user?.role === 'organizer') {
+        const ev = await registrationService.getEventById(reg.event_id);
+        if (!ev || String(ev.organizer_id) !== String(req.user.id)) {
+          return res.status(403).json({ error: 'Not authorized for this event' });
+        }
+      }
       await registrationService.deleteRegistration(req.params.id);
       res.json({ message: 'Registration deleted' });
     } catch (e) {

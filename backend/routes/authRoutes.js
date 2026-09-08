@@ -5,8 +5,10 @@ const { verifySuperAdmin, verifyAdmin, verifyRegistrationManager } = require('..
 
 // Login route (public)
 router.post('/login', authController.login);
-// Forgot password request (public) — flags a reset request for the super-admin.
+// Forgot password request (public) — emails a reset link or flags a request for the super-admin.
 router.post('/forgot-password', authController.forgotPassword);
+// Complete a password reset via emailed token (public).
+router.post('/reset-password/confirm', authController.resetPasswordWithToken);
 
 // Sub-admin management (super-admin and admin only)
 router.post('/sub-admin', verifyAdmin, authController.createSubAdmin);
@@ -16,6 +18,7 @@ router.delete('/sub-admin/:id', verifySuperAdmin, authController.deleteSubAdmin)
 // Organizer accounts (super-admin only)
 router.post('/organizer', verifySuperAdmin, authController.createOrganizer);
 router.get('/organizers', verifySuperAdmin, authController.getOrganizers);
+router.delete('/organizer/:id', verifySuperAdmin, authController.deleteOrganizer);
 
 // Password management
 router.post('/change-password', verifyRegistrationManager, authController.changePassword);

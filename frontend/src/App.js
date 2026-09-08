@@ -11,6 +11,7 @@ const AuctionSetup = lazy(() => import('./components/AuctionSetup'));
 const UnifiedDashboard = lazy(() => import('./components/UnifiedDashboard'));
 const RegisterPage = lazy(() => import('./components/RegisterPage'));
 const RegistrationsAdmin = lazy(() => import('./components/RegistrationsAdmin'));
+const ResetPasswordPage = lazy(() => import('./components/ResetPasswordPage'));
 
 // Loading component for suspense fallback
 const LoadingSpinner = () => (
@@ -43,6 +44,9 @@ function App() {
               
               {/* Registration management console (super-admin / admin / organizer) */}
               <Route path="/registrations" element={<RegistrationsAdmin />} />
+
+              {/* Public password reset via emailed token */}
+              <Route path="/reset-password" element={<ResetPasswordPage />} />
               
               {/* Fallback route */}
               <Route path="*" element={<Navigate to="/" replace />} />

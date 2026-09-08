@@ -118,6 +118,28 @@ const registrationService = {
     return true;
   },
 
+  // Registration counts per event, grouped by status (aggregated in Node).
+  async getRegistrationCounts() {
+    ensure();
+    const { data, error } = await supabase.from(REGS).select('event_id, payment_status');
+    if (error) throw new Error(error.message);
+    const map = {};
+    (data || []).forEach((r) => {
+      const c = (map[r.event_id] = map[r.event_id] || { total: 0, pending: 0, verified: 0, rejected: 0 });
+      c.total += 1;
+      if (c[r.payment_status] !== undefined) c[r.payment_status] += 1;
+    });
+    return map;
+  },
+
+  // Clear organizer assignment from any events before deleting that organizer.
+  async unassignOrganizerEvents(organizerId) {
+    ensure();
+    const { error } = await supabase.from(EVENTS).update({ organizer_id: null }).eq('organizer_id', organizerId);
+    if (error) throw new Error(error.message);
+    return true;
+  },
+
   // Organizer accounts (id -> username/name) for display + scoping.
   async listOrganizers() {
     ensure();

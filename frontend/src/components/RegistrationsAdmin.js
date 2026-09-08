@@ -160,7 +160,7 @@ const ForgotPasswordModal = ({ onClose, showSuccess, showError, T }) => {
   };
   return (
     <ModalShell onClose={onClose} T={T} title="Forgot password">
-      <p className={`text-xs mb-3 ${T.sub}`}>Send a reset request to the admin. Once approved, you'll get a new password to sign in with.</p>
+      <p className={`text-xs mb-3 ${T.sub}`}>If your account has a registered email, we'll send a reset link. Otherwise a reset request goes to the admin, who will set a new password for you.</p>
       <form onSubmit={submit}>
         <input placeholder="Username" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} className={`w-full rounded-lg border px-3 py-2.5 mb-2 ${T.input}`} />
         <input placeholder="Registered email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className={`w-full rounded-lg border px-3 py-2.5 mb-4 ${T.input}`} />
@@ -286,7 +286,7 @@ const Console = ({ auth, onLogout, showSuccess, showError, showConfirm, T, theme
 
       {view === 'organizers' && isSuper ? (
         <div className="max-w-5xl mx-auto p-4 sm:p-6">
-          <OrganizersPanel events={events} organizers={organizers} reload={loadOrganizers} showSuccess={showSuccess} showError={showError} T={T} />
+          <OrganizersPanel events={events} organizers={organizers} reload={loadOrganizers} showSuccess={showSuccess} showError={showError} showConfirm={showConfirm} T={T} />
         </div>
       ) : (
         <div className="max-w-6xl mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
@@ -295,7 +295,7 @@ const Console = ({ auth, onLogout, showSuccess, showError, showConfirm, T, theme
           </div>
           <div className="lg:col-span-2">
             {selected ? (
-              <RegistrationsPanel event={selected} canImport={canImport} showSuccess={showSuccess} showError={showError} T={T} />
+              <RegistrationsPanel event={selected} canImport={canImport} reloadEvents={loadEvents} showSuccess={showSuccess} showError={showError} showConfirm={showConfirm} T={T} />
             ) : (
               <div className={`${T.card} p-10 text-center ${T.sub}`}>
                 {canManageEvents ? 'Create an event to start collecting registrations.' : 'No event assigned to you yet.'}
@@ -495,6 +495,13 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
               {ev.payment_required ? `Paid · ${money(ev.reg_fee)}` : 'Free entry'}
               {ev.organizer_name ? ` · 👤 ${ev.organizer_name}` : (canAssignOrganizer ? ' · 👤 unassigned' : '')}
             </div>
+            {ev.counts && ev.counts.total > 0 && (
+              <div className="mt-1.5 flex flex-wrap gap-1.5">
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-500/15 text-slate-300">{ev.counts.total} total</span>
+                {ev.counts.pending > 0 && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">{ev.counts.pending} pending</span>}
+                {ev.counts.verified > 0 && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">{ev.counts.verified} approved</span>}
+              </div>
+            )}
             {canManageEvents && (
               <div className="mt-2 flex flex-wrap gap-2">
                 <button onClick={(e) => { e.stopPropagation(); copyLink(ev); }} className={`rounded-full border px-3 py-1 text-xs font-semibold ${T.chip}`}>🔗 Copy link</button>
@@ -551,7 +558,7 @@ const ResetPasswordModal = ({ user, onClose, showSuccess, showError, reload, T }
 };
 
 // ---------------- Organizers panel (super-admin, own view) ----------------
-const OrganizersPanel = ({ events, organizers, reload, showSuccess, showError, T }) => {
+const OrganizersPanel = ({ events, organizers, reload, showSuccess, showError, showConfirm, T }) => {
   const [form, setForm] = useState({ username: '', password: '', name: '', email: '', phone: '', eventId: '' });
   const [busy, setBusy] = useState(false);
   const [q, setQ] = useState('');
@@ -571,6 +578,17 @@ const OrganizersPanel = ({ events, organizers, reload, showSuccess, showError, T
   };
 
   const resetPassword = (o) => setResetting(o);
+
+  const removeOrganizer = (o) => {
+    showConfirm(
+      `Delete organizer “${o.name || o.username}”? Their events will be unassigned (not deleted).`,
+      'Delete organizer?',
+      async () => {
+        try { await api.delete(`/api/auth/organizer/${o.id}`); showSuccess('Organizer deleted'); reload(); }
+        catch (err) { showError(err.response?.data?.error || 'Delete failed'); }
+      }
+    );
+  };
 
   const eventsFor = (oid) => events.filter((e) => e.organizer_id === oid).map((e) => e.name);
   const filtered = q
@@ -619,9 +637,11 @@ const OrganizersPanel = ({ events, organizers, reload, showSuccess, showError, T
                     </div>
                     <div className={`text-[11px] mt-1 ${T.sub}`}>Events: {evs.length ? evs.join(', ') : '—'}</div>
                   </div>
-                  <button onClick={() => resetPassword(o)} className={`shrink-0 rounded-full border px-3 py-1 text-xs font-semibold ${o.reset_requested_at ? 'bg-amber-400 text-slate-900 border-amber-400 hover:bg-amber-300' : T.chip}`}>Reset password</button>
-                </div>
-              </div>
+                  <div className="flex flex-col items-end gap-1.5 shrink-0">
+                    <button onClick={() => resetPassword(o)} className={`rounded-full border px-3 py-1 text-xs font-semibold ${o.reset_requested_at ? 'bg-amber-400 text-slate-900 border-amber-400 hover:bg-amber-300' : T.chip}`}>Reset password</button>
+                    <button onClick={() => removeOrganizer(o)} className="rounded-full border border-rose-300/40 bg-rose-500/10 text-rose-300 px-3 py-1 text-xs font-semibold hover:bg-rose-500/20">Delete</button>
+                  </div>
+                </div>              </div>
             );
           })}
         </div>
@@ -633,9 +653,11 @@ const OrganizersPanel = ({ events, organizers, reload, showSuccess, showError, T
 };
 
 // ---------------- Registrations panel ----------------
-const RegistrationsPanel = ({ event, canImport, showSuccess, showError, T }) => {
+const RegistrationsPanel = ({ event, canImport, reloadEvents, showSuccess, showError, showConfirm, T }) => {
   const [all, setAll] = useState([]);
   const [filter, setFilter] = useState('');
+  const [q, setQ] = useState('');
+  const [sort, setSort] = useState('new');
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -651,8 +673,19 @@ const RegistrationsPanel = ({ event, canImport, showSuccess, showError, T }) => 
   useEffect(() => { load(); }, [load]);
 
   const setStatus = async (id, status) => {
-    try { await api.patch(`/api/registrations/registrations/${id}/status`, { status }); load(); }
+    try { await api.patch(`/api/registrations/registrations/${id}/status`, { status }); load(); reloadEvents?.(); }
     catch (err) { showError(err.response?.data?.error || 'Update failed'); }
+  };
+
+  const deleteReg = (r) => {
+    showConfirm(
+      `Delete “${r.name}” from this event? This cannot be undone.`,
+      'Delete registration?',
+      async () => {
+        try { await api.delete(`/api/registrations/registrations/${r.id}`); showSuccess('Registration deleted'); load(); reloadEvents?.(); }
+        catch (err) { showError(err.response?.data?.error || 'Delete failed'); }
+      }
+    );
   };
 
   const importToAuction = async () => {
@@ -675,7 +708,12 @@ const RegistrationsPanel = ({ event, canImport, showSuccess, showError, T }) => 
   };
 
   const counts = all.reduce((a, r) => { a[r.payment_status] = (a[r.payment_status] || 0) + 1; return a; }, {});
-  const regs = filter ? all.filter((r) => r.payment_status === filter) : all;
+  const regs = all
+    .filter((r) => (filter ? r.payment_status === filter : true))
+    .filter((r) => (q ? (r.name || '').toLowerCase().includes(q.toLowerCase()) || (r.mobile || '').includes(q) : true))
+    .sort((a, b) => sort === 'new'
+      ? new Date(b.created_at) - new Date(a.created_at)
+      : new Date(a.created_at) - new Date(b.created_at));
 
   return (
     <div className={`${T.card} p-5`}>
@@ -704,6 +742,13 @@ const RegistrationsPanel = ({ event, canImport, showSuccess, showError, T }) => 
         ))}
       </div>
 
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name or mobile…" className={`flex-1 min-w-[10rem] rounded-lg border px-3 py-2 text-sm ${T.input}`} />
+        <button onClick={() => setSort((s) => (s === 'new' ? 'old' : 'new'))} className={`rounded-lg border px-3 py-2 text-xs font-semibold ${T.chip}`}>
+          {sort === 'new' ? '↓ Newest first' : '↑ Oldest first'}
+        </button>
+      </div>
+
       {loading ? (
         <p className={`text-sm py-8 text-center ${T.sub}`}>Loading…</p>
       ) : regs.length === 0 ? (
@@ -725,6 +770,7 @@ const RegistrationsPanel = ({ event, canImport, showSuccess, showError, T }) => 
                   </div>
                   <div className={`text-xs mt-0.5 ${T.sub}`}>📱 {r.mobile}{r.profile_link ? ' · ' : ''}{r.profile_link && <a href={r.profile_link} target="_blank" rel="noreferrer" className="text-indigo-400 hover:underline">profile</a>}</div>
                   {r.payment_txn_id && <div className={`text-xs mt-0.5 ${T.sub}`}>UTR: {r.payment_txn_id} {r.payment_screenshot_url && <a href={r.payment_screenshot_url} target="_blank" rel="noreferrer" className="text-indigo-400 hover:underline ml-1">view proof</a>}</div>}
+                  {r.created_at && <div className={`text-[11px] mt-0.5 ${T.sub}`}>🕒 {new Date(r.created_at).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</div>}
                 </div>
                 <div className="flex gap-2 shrink-0">
                   {decided ? (
@@ -737,6 +783,7 @@ const RegistrationsPanel = ({ event, canImport, showSuccess, showError, T }) => 
                       <button onClick={() => setStatus(r.id, 'rejected')} className="rounded-full bg-rose-100 text-rose-700 px-3 py-1.5 text-xs font-semibold hover:bg-rose-200">Reject</button>
                     </>
                   )}
+                  <button onClick={() => deleteReg(r)} title="Delete registration" className={`rounded-full border px-2.5 py-1.5 text-xs font-semibold ${T.chip}`}>🗑️</button>
                 </div>
               </div>
             );
