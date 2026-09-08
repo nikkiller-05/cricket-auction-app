@@ -47,12 +47,12 @@ const registrationController = {
       let events = await registrationService.listEvents();
       // Organizers only see the events assigned to them.
       if (req.user?.role === 'organizer') {
-        events = events.filter((e) => e.organizer_id === req.user.id);
+        events = events.filter((e) => String(e.organizer_id) === String(req.user.id));
       }
       // Attach organizer display name for the admin view.
       const organizers = await registrationService.listOrganizers();
-      const nameById = new Map(organizers.map((o) => [o.id, o.name || o.username]));
-      events = events.map((e) => ({ ...e, organizer_name: e.organizer_id ? nameById.get(e.organizer_id) || null : null }));
+      const nameById = new Map(organizers.map((o) => [String(o.id), o.name || o.username]));
+      events = events.map((e) => ({ ...e, organizer_name: e.organizer_id ? nameById.get(String(e.organizer_id)) || null : null }));
       res.json({ events });
     } catch (e) {
       res.status(500).json({ error: e.message });
@@ -100,7 +100,7 @@ const registrationController = {
       const isOrganizer = req.user?.role === 'organizer';
       if (isOrganizer) {
         const ev = await registrationService.getEventById(id);
-        if (!ev || ev.organizer_id !== req.user.id) {
+        if (!ev || String(ev.organizer_id) !== String(req.user.id)) {
           return res.status(403).json({ error: 'Not authorized for this event' });
         }
       }
@@ -126,7 +126,7 @@ const registrationController = {
       const isOrganizer = req.user?.role === 'organizer';
       if (isOrganizer) {
         const ev = await registrationService.getEventById(req.params.id);
-        if (!ev || ev.organizer_id !== req.user.id) {
+        if (!ev || String(ev.organizer_id) !== String(req.user.id)) {
           return res.status(403).json({ error: 'Not authorized for this event' });
         }
       }
@@ -214,7 +214,7 @@ const registrationController = {
       // Organizers may only view events assigned to them.
       if (req.user?.role === 'organizer') {
         const ev = await registrationService.getEventById(eventId);
-        if (!ev || ev.organizer_id !== req.user.id) {
+        if (!ev || String(ev.organizer_id) !== String(req.user.id)) {
           return res.status(403).json({ error: 'Not authorized for this event' });
         }
       }
@@ -234,7 +234,7 @@ const registrationController = {
       if (!reg) return res.status(404).json({ error: 'Registration not found' });
       if (req.user?.role === 'organizer') {
         const ev = await registrationService.getEventById(reg.event_id);
-        if (!ev || ev.organizer_id !== req.user.id) {
+        if (!ev || String(ev.organizer_id) !== String(req.user.id)) {
           return res.status(403).json({ error: 'Not authorized for this event' });
         }
       }

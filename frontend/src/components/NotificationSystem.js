@@ -210,7 +210,7 @@ export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
   const [confirmCallbacks, setConfirmCallbacks] = useState({});
 
-  const addNotification = (type, message, title = null, options = {}) => {
+  const addNotification = useCallback((type, message, title = null, options = {}) => {
     const id = Date.now() + Math.random();
     const notification = {
       id,
@@ -224,9 +224,9 @@ export const NotificationProvider = ({ children }) => {
 
     setNotifications(prev => [...prev, notification]);
     return id;
-  };
+  }, []);
 
-  const removeNotification = (id) => {
+  const removeNotification = useCallback((id) => {
     setNotifications(prev => prev.filter(n => n.id !== id));
     // Clean up confirm callbacks
     setConfirmCallbacks(prev => {
@@ -234,7 +234,7 @@ export const NotificationProvider = ({ children }) => {
       delete newCallbacks[id];
       return newCallbacks;
     });
-  };
+  }, []);
 
   const confirmNotification = (id) => {
     const callback = confirmCallbacks[id];
@@ -253,23 +253,23 @@ export const NotificationProvider = ({ children }) => {
   };
 
   // Modern replacements for alert, confirm, etc.
-  const showSuccess = (message, title = 'Success', options = {}) => {
+  const showSuccess = useCallback((message, title = 'Success', options = {}) => {
     return addNotification(NOTIFICATION_TYPES.SUCCESS, message, title, options);
-  };
+  }, [addNotification]);
 
-  const showError = (message, title = 'Error', options = {}) => {
+  const showError = useCallback((message, title = 'Error', options = {}) => {
     return addNotification(NOTIFICATION_TYPES.ERROR, message, title, options);
-  };
+  }, [addNotification]);
 
-  const showWarning = (message, title = 'Warning', options = {}) => {
+  const showWarning = useCallback((message, title = 'Warning', options = {}) => {
     return addNotification(NOTIFICATION_TYPES.WARNING, message, title, options);
-  };
+  }, [addNotification]);
 
-  const showInfo = (message, title = 'Information', options = {}) => {
+  const showInfo = useCallback((message, title = 'Information', options = {}) => {
     return addNotification(NOTIFICATION_TYPES.INFO, message, title, options);
-  };
+  }, [addNotification]);
 
-  const showConfirm = (message, title = 'Confirm Action', onConfirm, onCancel) => {
+  const showConfirm = useCallback((message, title = 'Confirm Action', onConfirm, onCancel) => {
     const id = Date.now() + Math.random();
     
     // Store callbacks
@@ -289,7 +289,7 @@ export const NotificationProvider = ({ children }) => {
 
     setNotifications(prev => [...prev, notification]);
     return id;
-  };
+  }, []);
 
   // Convenience methods that match old alert/confirm patterns
   const alert = (message, title = 'Alert') => {

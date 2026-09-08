@@ -54,7 +54,7 @@ const STATUS_STYLES = {
 };
 
 const RegistrationsAdmin = () => {
-  const { showSuccess, showError } = useNotification();
+  const { showSuccess, showError, showConfirm } = useNotification();
   const [auth, setAuth] = useState(null);
   const [booting, setBooting] = useState(true);
   const [theme, setTheme] = useState(() => localStorage.getItem('regTheme') || 'dark');
@@ -85,7 +85,7 @@ const RegistrationsAdmin = () => {
 
   if (booting) return <div className="min-h-screen" style={DARK_BG} />;
   if (!auth) return <LoginView onAuthed={setAuth} showSuccess={showSuccess} showError={showError} theme={theme} toggleTheme={toggleTheme} T={T} />;
-  return <Console auth={auth} onLogout={onLogout} showSuccess={showSuccess} showError={showError} T={T} theme={theme} toggleTheme={toggleTheme} />;
+  return <Console auth={auth} onLogout={onLogout} showSuccess={showSuccess} showError={showError} showConfirm={showConfirm} T={T} theme={theme} toggleTheme={toggleTheme} />;
 };
 
 // ---------------- Login ----------------
@@ -183,7 +183,7 @@ const ModalShell = ({ onClose, title, children, T }) => (
 );
 
 // ---------------- Profile dropdown menu ----------------
-const ProfileMenu = ({ auth, theme, toggleTheme, onChangePassword, onProfile, onLogout, T }) => {
+const ProfileMenu = ({ auth, onChangePassword, onProfile, onLogout, T }) => {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   useEffect(() => {
@@ -212,7 +212,6 @@ const ProfileMenu = ({ auth, theme, toggleTheme, onChangePassword, onProfile, on
           <div className="py-1">
             <Item icon="👤" label="Profile" onClick={onProfile} />
             <Item icon="🔑" label="Change password" onClick={onChangePassword} />
-            <Item icon={theme === 'dark' ? '☀️' : '🌙'} label={theme === 'dark' ? 'Light theme' : 'Dark theme'} onClick={toggleTheme} />
           </div>
           <div className={`border-t ${T.divide} py-1`}>
             <button onClick={() => { setOpen(false); onLogout(); }} className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-semibold text-rose-400 hover:bg-rose-500/10 text-left">
@@ -226,7 +225,7 @@ const ProfileMenu = ({ auth, theme, toggleTheme, onChangePassword, onProfile, on
 };
 
 // ---------------- Console ----------------
-const Console = ({ auth, onLogout, showSuccess, showError, T, theme, toggleTheme }) => {
+const Console = ({ auth, onLogout, showSuccess, showError, showConfirm, T, theme, toggleTheme }) => {
   const isSuper = auth.user.role === 'super-admin';
   const isOrganizer = auth.user.role === 'organizer';
   const canImport = ['super-admin', 'admin'].includes(auth.user.role);
@@ -244,7 +243,8 @@ const Console = ({ auth, onLogout, showSuccess, showError, T, theme, toggleTheme
       const res = await api.get('/api/registrations/events');
       const list = res.data.events || [];
       setEvents(list);
-      setSelected((cur) => list.find((e) => e.id === cur?.id) || cur || list[0] || null);
+      // Keep the current selection only if it still exists; otherwise fall back to the first event.
+      setSelected((cur) => list.find((e) => e.id === cur?.id) || list[0] || null);
     } catch (err) {
       showError(err.response?.data?.error || 'Could not load events');
     }
@@ -274,7 +274,12 @@ const Console = ({ auth, onLogout, showSuccess, showError, T, theme, toggleTheme
             )}
           </div>
         </div>
-        <ProfileMenu auth={auth} theme={theme} toggleTheme={toggleTheme} onChangePassword={() => setModal('password')} onProfile={() => setModal('profile')} onLogout={onLogout} T={T} />
+        <div className="flex items-center gap-2">
+          <button onClick={toggleTheme} title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} className={`grid h-9 w-9 place-items-center rounded-full border text-base ${T.chip}`}>
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
+          <ProfileMenu auth={auth} onChangePassword={() => setModal('password')} onProfile={() => setModal('profile')} onLogout={onLogout} T={T} />
+        </div>
       </header>
 
       {view === 'organizers' && isSuper ? (
@@ -284,7 +289,7 @@ const Console = ({ auth, onLogout, showSuccess, showError, T, theme, toggleTheme
       ) : (
         <div className="max-w-6xl mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
           <div className="lg:col-span-1">
-            <EventsPanel canManageEvents={canManageEvents} canAssignOrganizer={canAssignOrganizer} events={events} organizers={organizers} selected={selected} onSelect={setSelected} reload={loadEvents} showSuccess={showSuccess} showError={showError} T={T} />
+            <EventsPanel canManageEvents={canManageEvents} canAssignOrganizer={canAssignOrganizer} events={events} organizers={organizers} selected={selected} onSelect={setSelected} reload={loadEvents} showSuccess={showSuccess} showError={showError} showConfirm={showConfirm} T={T} />
           </div>
           <div className="lg:col-span-2">
             {selected ? (
@@ -359,7 +364,7 @@ const ChangePasswordModal = ({ onClose, showSuccess, showError, T }) => {
 
 // ---------------- Events panel ----------------
 const emptyForm = { name: '', paymentRequired: true, regFee: '', upiId: '', organizerId: '' };
-const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, selected, onSelect, reload, showSuccess, showError, T }) => {
+const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, selected, onSelect, reload, showSuccess, showError, showConfirm, T }) => {
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm);
@@ -399,10 +404,15 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
     try { await api.put(`/api/registrations/events/${ev.id}`, { registrationOpen: !ev.registration_open }); reload(); }
     catch (err) { showError(err.response?.data?.error || 'Update failed'); }
   };
-  const remove = async (ev) => {
-    if (!window.confirm(`Delete event "${ev.name}" and all its registrations?`)) return;
-    try { await api.delete(`/api/registrations/events/${ev.id}`); showSuccess('Event deleted'); reload(); }
-    catch (err) { showError(err.response?.data?.error || 'Delete failed'); }
+  const remove = (ev) => {
+    showConfirm(
+      `“${ev.name}” and all of its registrations will be permanently deleted. This cannot be undone.`,
+      'Delete this event?',
+      async () => {
+        try { await api.delete(`/api/registrations/events/${ev.id}`); showSuccess('Event deleted'); reload(); }
+        catch (err) { showError(err.response?.data?.error || 'Delete failed'); }
+      }
+    );
   };
   const copyLink = (ev) => {
     navigator.clipboard?.writeText(`${window.location.origin}/register/${ev.slug}`);
