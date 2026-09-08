@@ -13,13 +13,21 @@ if (!process.env.JWT_SECRET) {
 // Create HTTP server
 const server = http.createServer(app);
 
+// Allowed browser origins for websockets — override with ALLOWED_ORIGINS (comma-separated).
+const defaultOrigins = [
+  'http://localhost:3000',
+  'https://cricket-auction-live-awer.onrender.com',
+  'https://goldenbidx.com',
+  'https://www.goldenbidx.com',
+];
+const allowedOrigins = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(',').map((s) => s.trim()).filter(Boolean)
+  : defaultOrigins;
+
 // Socket.io setup
 const io = socketIo(server, {
   cors: {
-    origin: [
-      "http://localhost:3000",
-      "https://cricket-auction-live-awer.onrender.com"
-    ],
+    origin: allowedOrigins,
     methods: ["GET", "POST"]
   }
 });
