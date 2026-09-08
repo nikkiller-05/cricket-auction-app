@@ -24,6 +24,7 @@ const THEMES = {
     heading: 'text-white', sub: 'text-indigo-200/60', label: 'text-indigo-200/80',
     input: 'bg-white/10 border-white/20 text-white placeholder-white/40 [&>option]:text-slate-900',
     chip: 'bg-white/10 text-white border-white/20 hover:bg-white/20',
+    toggleBtn: 'bg-white/10 text-amber-300 border-white/20 hover:bg-white/20',
     tabIdle: 'text-indigo-200/60 hover:text-white',
     itemHover: 'hover:bg-white/5',
     soft: 'bg-white/[0.06] border-white/10',
@@ -40,6 +41,7 @@ const THEMES = {
     heading: 'text-slate-900', sub: 'text-slate-500', label: 'text-slate-600',
     input: 'bg-white border-slate-300 text-slate-900 placeholder-slate-400',
     chip: 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200',
+    toggleBtn: 'bg-slate-800 text-amber-300 border-slate-800 hover:bg-slate-700',
     tabIdle: 'text-slate-500 hover:text-slate-900',
     itemHover: 'hover:bg-slate-50',
     soft: 'bg-slate-50 border-slate-200',
@@ -275,7 +277,7 @@ const Console = ({ auth, onLogout, showSuccess, showError, showConfirm, T, theme
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <button onClick={toggleTheme} title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} className={`grid h-9 w-9 place-items-center rounded-full border text-base ${T.chip}`}>
+          <button onClick={toggleTheme} title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} className={`grid h-9 w-9 place-items-center rounded-full border text-base shadow-sm ${T.toggleBtn}`}>
             {theme === 'dark' ? '☀️' : '🌙'}
           </button>
           <ProfileMenu auth={auth} onChangePassword={() => setModal('password')} onProfile={() => setModal('profile')} onLogout={onLogout} T={T} />
@@ -371,6 +373,7 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
   const [qr, setQr] = useState(null);
   const [busy, setBusy] = useState(false);
   const [q, setQ] = useState('');
+  const [orgFilter, setOrgFilter] = useState('');
 
   const startCreate = () => { setCreating(true); setEditing(null); setForm(emptyForm); setQr(null); };
   const startEdit = (ev) => {
@@ -419,7 +422,15 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
     showSuccess('Registration link copied');
   };
 
-  const filtered = q ? events.filter((e) => e.name.toLowerCase().includes(q.toLowerCase()) || (e.organizer_name || '').toLowerCase().includes(q.toLowerCase())) : events;
+  const filtered = events.filter((e) => {
+    if (orgFilter === '__none' && e.organizer_id) return false;
+    if (orgFilter && orgFilter !== '__none' && String(e.organizer_id) !== orgFilter) return false;
+    if (q) {
+      const s = q.toLowerCase();
+      if (!e.name.toLowerCase().includes(s) && !(e.organizer_name || '').toLowerCase().includes(s)) return false;
+    }
+    return true;
+  });
 
   return (
     <div className={`${T.card} p-5`}>
@@ -428,8 +439,19 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
         {canManageEvents && !editing && <button onClick={creating ? closeForm : startCreate} className="rounded-full bg-amber-400 text-slate-900 px-3 py-1 text-xs font-bold hover:bg-amber-300">{creating ? 'Cancel' : '+ New event'}</button>}
       </div>
 
-      {events.length > 4 && (
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search events…" className={`w-full rounded-lg border px-3 py-2 text-sm mb-3 ${T.input}`} />
+      {(events.length > 4 || (canAssignOrganizer && organizers.length > 0)) && (
+        <div className="flex gap-2 mb-3">
+          {events.length > 4 && (
+            <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search events…" className={`flex-1 min-w-0 rounded-lg border px-3 py-2 text-sm ${T.input}`} />
+          )}
+          {canAssignOrganizer && organizers.length > 0 && (
+            <select value={orgFilter} onChange={(e) => setOrgFilter(e.target.value)} className={`rounded-lg border px-3 py-2 text-sm ${T.input} ${events.length > 4 ? 'w-40 shrink-0' : 'w-full'}`}>
+              <option value="">All organizers</option>
+              <option value="__none">Unassigned</option>
+              {organizers.map((o) => <option key={o.id} value={String(o.id)}>{o.name || o.username}</option>)}
+            </select>
+          )}
+        </div>
       )}
 
       {canManageEvents && (creating || editing) && (
@@ -462,7 +484,7 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
       )}
 
       <div className="space-y-2">
-        {filtered.length === 0 && <p className={`text-sm ${T.sub}`}>{events.length === 0 ? 'No events yet.' : 'No events match your search.'}</p>}
+        {filtered.length === 0 && <p className={`text-sm ${T.sub}`}>{events.length === 0 ? 'No events yet.' : 'No events match your filters.'}</p>}
         {filtered.map((ev) => (
           <div key={ev.id} className={`rounded-xl border p-3 cursor-pointer transition ${selected?.id === ev.id ? T.cardSel : T.cardIdle}`} onClick={() => onSelect(ev)}>
             <div className="flex items-center justify-between gap-2">
@@ -491,11 +513,49 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
   );
 };
 
+// ---------------- Reset a user's password (super-admin) ----------------
+const ResetPasswordModal = ({ user, onClose, showSuccess, showError, reload, T }) => {
+  const [pw, setPw] = useState('');
+  const [busy, setBusy] = useState(false);
+  const generate = () => {
+    const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZabcdefghijkmnpqrstuvwxyz23456789';
+    setPw(Array.from({ length: 10 }, () => chars[Math.floor(Math.random() * chars.length)]).join(''));
+  };
+  const submit = async (e) => {
+    e.preventDefault();
+    if (pw.length < 6) return showError('Password must be at least 6 characters');
+    setBusy(true);
+    try {
+      await api.post(`/api/auth/users/${user.id}/reset-password`, { newPassword: pw });
+      showSuccess(`Password reset for @${user.username}`);
+      onClose();
+      reload();
+    } catch (err) { showError(err.response?.data?.error || 'Reset failed'); }
+    finally { setBusy(false); }
+  };
+  return (
+    <ModalShell onClose={onClose} T={T} title="Reset password">
+      <p className={`text-xs mb-3 ${T.sub}`}>Set a new password for <span className={`font-semibold ${T.heading}`}>@{user.username}</span>, then share it with them securely.</p>
+      <form onSubmit={submit}>
+        <div className="flex gap-2 mb-4">
+          <input value={pw} onChange={(e) => setPw(e.target.value)} placeholder="New password (min 6)" className={`flex-1 min-w-0 rounded-lg border px-3 py-2.5 ${T.input}`} />
+          <button type="button" onClick={generate} className={`shrink-0 rounded-lg border px-3 text-xs font-semibold ${T.chip}`}>Generate</button>
+        </div>
+        <div className="flex justify-end gap-2">
+          <button type="button" onClick={onClose} className={`rounded-full border px-4 py-2 text-sm font-semibold ${T.chip}`}>Cancel</button>
+          <button disabled={busy} className="rounded-full bg-indigo-600 text-white px-5 py-2 text-sm font-semibold hover:bg-indigo-500 disabled:opacity-50">{busy ? 'Saving…' : 'Reset password'}</button>
+        </div>
+      </form>
+    </ModalShell>
+  );
+};
+
 // ---------------- Organizers panel (super-admin, own view) ----------------
 const OrganizersPanel = ({ events, organizers, reload, showSuccess, showError, T }) => {
   const [form, setForm] = useState({ username: '', password: '', name: '', email: '', phone: '', eventId: '' });
   const [busy, setBusy] = useState(false);
   const [q, setQ] = useState('');
+  const [resetting, setResetting] = useState(null);
 
   const create = async (e) => {
     e.preventDefault();
@@ -510,13 +570,7 @@ const OrganizersPanel = ({ events, organizers, reload, showSuccess, showError, T
     finally { setBusy(false); }
   };
 
-  const resetPassword = async (o) => {
-    const pw = window.prompt(`New password for ${o.username} (min 6 chars):`);
-    if (pw === null) return;
-    if (pw.length < 6) return showError('Password must be at least 6 characters');
-    try { await api.post(`/api/auth/users/${o.id}/reset-password`, { newPassword: pw }); showSuccess(`Password reset for ${o.username}`); reload(); }
-    catch (err) { showError(err.response?.data?.error || 'Reset failed'); }
-  };
+  const resetPassword = (o) => setResetting(o);
 
   const eventsFor = (oid) => events.filter((e) => e.organizer_id === oid).map((e) => e.name);
   const filtered = q
@@ -573,6 +627,7 @@ const OrganizersPanel = ({ events, organizers, reload, showSuccess, showError, T
         </div>
         <p className={`mt-3 text-[11px] ${T.sub}`}>Tip: assign one organizer to multiple events (season 1, 2…) via each event's Edit → organizer.</p>
       </div>
+      {resetting && <ResetPasswordModal user={resetting} onClose={() => setResetting(null)} showSuccess={showSuccess} showError={showError} reload={reload} T={T} />}
     </div>
   );
 };
@@ -630,7 +685,7 @@ const RegistrationsPanel = ({ event, canImport, showSuccess, showError, T }) => 
           <p className={`text-xs ${T.sub} break-all`}>Link: {window.location.origin}/register/{event.slug}</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={exportExcel} disabled={exporting} className={`rounded-full border px-4 py-2 text-sm font-semibold ${T.chip} disabled:opacity-50`}>
+          <button onClick={exportExcel} disabled={exporting} className="rounded-full bg-gradient-to-b from-sky-500 to-blue-600 text-white px-4 py-2 text-sm font-semibold shadow hover:-translate-y-0.5 transition disabled:opacity-50">
             {exporting ? 'Exporting…' : '⬇ Export Excel'}
           </button>
           {canImport && (
