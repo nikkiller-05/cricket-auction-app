@@ -5,6 +5,86 @@ import Button from './Button';
 import BrandFooter from './BrandFooter';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
+const authInputCls = 'w-full rounded-lg border border-white/20 bg-white/10 text-white placeholder-white/40 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-300/50';
+
+// Sign in / sign up (self-serve organizer) — opens over the landing page.
+const AuthModal = ({ onClose }) => {
+  const navigate = useNavigate();
+  const [mode, setMode] = useState('signin');
+  const [form, setForm] = useState({ username: '', password: '', name: '', email: '', phone: '', website: '' });
+  const [busy, setBusy] = useState(false);
+  const [err, setErr] = useState('');
+  const set = (k) => (e) => setForm({ ...form, [k]: k === 'phone' ? e.target.value.replace(/\D/g, '').slice(0, 10) : e.target.value });
+
+  const finish = (data) => {
+    localStorage.setItem('regToken', data.token);
+    localStorage.setItem('regUser', JSON.stringify(data.user));
+    navigate('/registrations');
+  };
+
+  const submit = async (e) => {
+    e.preventDefault();
+    setErr(''); setBusy(true);
+    try {
+      if (mode === 'signin') {
+        const res = await axios.post(`${API_BASE_URL}/api/auth/login`, { username: form.username.trim(), password: form.password });
+        if (!['super-admin', 'admin', 'organizer'].includes(res.data.user.role)) {
+          setErr('This account cannot access the console.'); setBusy(false); return;
+        }
+        finish(res.data);
+      } else {
+        const res = await axios.post(`${API_BASE_URL}/api/auth/signup-organizer`, {
+          username: form.username.trim(), password: form.password, name: form.name.trim(),
+          email: form.email.trim(), phone: form.phone, website: form.website,
+        });
+        finish(res.data);
+      }
+    } catch (e2) {
+      setErr(e2.response?.data?.error || 'Something went wrong');
+      setBusy(false);
+    }
+  };
+
+  return (
+    <div className="fixed inset-0 z-[3000] flex items-center justify-center p-4">
+      <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={onClose} />
+      <div className="relative w-full max-w-md rounded-2xl border border-white/12 bg-[#12101b] p-6 shadow-2xl max-h-[92vh] overflow-y-auto">
+        <button onClick={onClose} aria-label="Close" className="absolute right-4 top-3 text-white/50 hover:text-white text-2xl leading-none">×</button>
+        <div className="text-center mb-5">
+          <img src="/logo-full.png" alt="GoldenBidX" className="w-40 mx-auto mb-2" />
+          <p className="text-indigo-200/70 text-sm">Welcome to GoldenBidX!</p>
+          <h2 className="text-2xl font-extrabold text-white">{mode === 'signin' ? 'Sign In' : 'Create your account'}</h2>
+        </div>
+        <div className="grid grid-cols-2 gap-1 rounded-full bg-white/5 p-1 mb-5 text-sm font-semibold">
+          <button type="button" onClick={() => { setMode('signin'); setErr(''); }} className={`rounded-full py-1.5 ${mode === 'signin' ? 'bg-amber-400 text-slate-900' : 'text-indigo-200/70'}`}>Sign In</button>
+          <button type="button" onClick={() => { setMode('signup'); setErr(''); }} className={`rounded-full py-1.5 ${mode === 'signup' ? 'bg-amber-400 text-slate-900' : 'text-indigo-200/70'}`}>Sign Up</button>
+        </div>
+        <form onSubmit={submit} className="space-y-3">
+          <input type="text" name="website" tabIndex={-1} autoComplete="off" value={form.website} onChange={set('website')} className="absolute -left-[9999px] h-0 w-0 opacity-0" aria-hidden="true" />
+          {mode === 'signup' && <input placeholder="Full name" value={form.name} onChange={set('name')} className={authInputCls} />}
+          <input placeholder={mode === 'signin' ? 'Username or email' : 'Username *'} value={form.username} onChange={set('username')} className={authInputCls} />
+          {mode === 'signup' && (
+            <>
+              <input type="email" placeholder="Email" value={form.email} onChange={set('email')} className={authInputCls} />
+              <input inputMode="numeric" placeholder="Phone (10 digits)" value={form.phone} onChange={set('phone')} className={authInputCls} />
+            </>
+          )}
+          <input type="password" placeholder="Password" value={form.password} onChange={set('password')} className={authInputCls} />
+          {err && <p className="text-rose-300 text-sm bg-rose-500/10 rounded-lg px-3 py-2">{err}</p>}
+          <button disabled={busy} className="w-full rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 font-bold py-2.5 hover:-translate-y-0.5 transition disabled:opacity-50">
+            {busy ? 'Please wait…' : mode === 'signin' ? 'Sign In' : 'Create account'}
+          </button>
+        </form>
+        <p className="mt-4 text-center text-xs text-indigo-200/60">
+          {mode === 'signin'
+            ? (<>New here? <button type="button" onClick={() => setMode('signup')} className="text-amber-300 font-semibold">Create an organizer account</button></>)
+            : (<>Already have an account? <button type="button" onClick={() => setMode('signin')} className="text-amber-300 font-semibold">Sign in</button></>)}
+        </p>
+      </div>
+    </div>
+  );
+};
+
 const HomePage = () => {
   const navigate = useNavigate();
   const [showAdminLogin, setShowAdminLogin] = useState(false);
@@ -109,6 +189,8 @@ const HomePage = () => {
   const scrollToEnter = () => {
     document.getElementById('enter')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   };
+  const scrollToId = (id) => document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  const [showAuth, setShowAuth] = useState(false);
 
   return (
     <div className="min-h-screen relative overflow-hidden" style={{background: 'radial-gradient(58rem 40rem at -8% -18%, rgba(232,184,75,0.16) 0%, transparent 60%), radial-gradient(54rem 40rem at 112% 116%, rgba(176,120,32,0.18) 0%, transparent 60%), radial-gradient(42rem 30rem at 50% 32%, rgba(99,102,241,0.12) 0%, transparent 62%), linear-gradient(160deg, #0a0a0f 0%, #12101b 46%, #0b0b11 100%)'}}>
@@ -125,15 +207,21 @@ const HomePage = () => {
         <nav className="sticky top-0 z-30 backdrop-blur-xl bg-black/25 border-b border-white/10">
           <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <img src="/auction-logo.png" alt="" className="h-9 w-auto drop-shadow-[0_2px_8px_rgba(232,184,75,0.45)]" />
+              <img src="/auction-logo.png" alt="" className="h-10 w-auto drop-shadow-[0_1px_3px_rgba(0,0,0,0.55)]" />
               <span className="font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-400">GoldenBidX</span>
             </div>
-            <div className="flex items-center gap-2">
-              <a href="/registrations" className="hidden sm:inline text-sm font-semibold text-indigo-200/80 hover:text-white px-3 py-1.5">Organizer console</a>
-              <button onClick={scrollToEnter} className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 text-sm font-bold px-4 py-1.5 hover:-translate-y-0.5 transition">Get started</button>
+            <div className="flex items-center gap-4 sm:gap-6">
+              <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-indigo-100/80">
+                <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-white transition">Home</button>
+                <button onClick={() => scrollToId('features')} className="hover:text-white transition">Features</button>
+                <button onClick={() => scrollToId('contact')} className="hover:text-white transition">Contact</button>
+              </nav>
+              <button onClick={() => setShowAuth(true)} className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 text-sm font-bold px-5 py-1.5 hover:-translate-y-0.5 transition">Sign In</button>
             </div>
           </div>
         </nav>
+
+        {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
 
         {/* Hero */}
         <header className="pt-10 pb-4">
@@ -141,7 +229,7 @@ const HomePage = () => {
             <img
               src="/logo-full.png"
               alt="GoldenBidX"
-              className="w-64 sm:w-80 md:w-96 mb-3 drop-shadow-[0_12px_44px_rgba(232,184,75,0.4)]"
+              className="w-64 sm:w-80 md:w-96 mb-3 drop-shadow-[0_8px_24px_rgba(232,184,75,0.22)]"
             />
             <h1 className="text-2xl md:text-4xl font-extrabold text-white tracking-tight max-w-2xl">Run live player auctions like a pro</h1>
             <p className="mt-3 text-base md:text-lg text-indigo-200/90 font-light max-w-xl">
@@ -298,7 +386,7 @@ const HomePage = () => {
         </main>
 
         {/* How it works */}
-        <section className="px-4 py-10">
+        <section id="features" className="px-4 py-10 scroll-mt-16">
           <div className="max-w-5xl mx-auto">
             <h2 className="text-center text-2xl md:text-3xl font-extrabold text-white mb-2">How it works</h2>
             <p className="text-center text-indigo-200/70 mb-8">From setup to sold in three simple steps.</p>
@@ -331,7 +419,7 @@ const HomePage = () => {
         </section>
 
         {/* Closing CTA */}
-        <section className="px-4 py-12">
+        <section id="contact" className="px-4 py-12 scroll-mt-16">
           <div className="max-w-3xl mx-auto rounded-3xl border border-amber-300/20 bg-gradient-to-b from-amber-400/10 to-transparent p-8 text-center">
             <h2 className="text-2xl md:text-3xl font-extrabold text-white">Ready to run your next auction?</h2>
             <p className="mt-2 text-indigo-200/80">Set it up in minutes. Your players and teams will love it.</p>

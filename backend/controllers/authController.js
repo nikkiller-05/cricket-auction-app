@@ -74,6 +74,16 @@ const publicUser = (u) => ({
   createdBy: u.created_by,
 });
 
+// Email every super-admin that has an address on file about a new organizer signup.
+const notifySuperAdminsOfSignup = async (org) => {
+  if (!supabase || !mailer.isConfigured) return;
+  const { data } = await supabase.from(TABLE).select('email').eq('role', 'super-admin');
+  const emails = (data || []).map((r) => r.email).filter(Boolean);
+  for (const to of emails) {
+    try { await mailer.sendNewOrganizerNotice(to, org); } catch (e) { console.error('notice to', to, 'failed:', e.message); }
+  }
+};
+
 const authController = {
   login: async (req, res, next) => {
     try {
@@ -86,7 +96,9 @@ const authController = {
         return res.status(503).json({ error: 'Authentication service unavailable' });
       }
 
-      const user = await findUserByUsername(username);
+      // Allow signing in with either the username or the registered email.
+      let user = await findUserByUsername(username);
+      if (!user && username.includes('@')) user = await findUserByField('email', username.trim().toLowerCase());
       if (!user || !user.password_hash) {
         return res.status(401).json({ error: 'Invalid credentials' });
       }
@@ -95,7 +107,6 @@ const authController = {
       if (!match) {
         return res.status(401).json({ error: 'Invalid credentials' });
       }
-
       const token = jwt.sign(
         { id: user.id, username: user.username, role: user.role, eventId: user.event_id || null },
         JWT_SECRET,
@@ -283,6 +294,71 @@ const authController = {
       }
 
       res.json({ message: 'Organizer created successfully', organizer: publicUser(data) });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // Public self-serve organizer signup (no auth). Honeypot-protected. Auto signs in.
+  signupOrganizer: async (req, res, next) => {
+    try {
+      // Honeypot: real users never fill 'website'; bots do. Pretend success, create nothing.
+      if ((req.body.website || '').trim()) {
+        return res.json({ message: 'ok' });
+      }
+      const { username, password, name } = req.body;
+      const email = (req.body.email || '').trim().toLowerCase() || null;
+      const phone = (req.body.phone || '').trim() || null;
+
+      if (!username || !password) return res.status(400).json({ error: 'Username and password are required' });
+      if (String(username).length < 3) return res.status(400).json({ error: 'Username must be at least 3 characters' });
+      if (password.length < 6) return res.status(400).json({ error: 'Password must be at least 6 characters' });
+      if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return res.status(400).json({ error: 'Invalid email address' });
+      if (phone && !/^\d{10}$/.test(phone)) return res.status(400).json({ error: 'Phone must be a 10-digit number' });
+      if (!supabase) return res.status(503).json({ error: 'Authentication service unavailable' });
+
+      if (await findUserByUsername(username)) return res.status(400).json({ error: 'Username already exists' });
+      if (email && await findUserByField('email', email)) return res.status(400).json({ error: 'An account with this email already exists' });
+      if (phone && await findUserByField('phone', phone)) return res.status(400).json({ error: 'An account with this phone already exists' });
+
+      const password_hash = await bcrypt.hash(password, 10);
+      const { data, error } = await supabase
+        .from(TABLE)
+        .insert({
+          username,
+          password_hash,
+          name: name || username,
+          email,
+          phone,
+          role: 'organizer',
+          permissions: ['registrations'],
+          created_by: 'self-signup',
+        })
+        .select()
+        .single();
+      if (error) {
+        console.error('signupOrganizer error:', error.message);
+        return res.status(500).json({ error: 'Could not create account' });
+      }
+
+      const appUrl = (APP_URL || req.headers.origin || '').replace(/\/$/, '');
+      // Welcome the new organizer (best-effort).
+      if (email && mailer.isConfigured) {
+        mailer.sendSignupWelcome(email, username, appUrl ? `${appUrl}/registrations` : null).catch((e) => console.error('signup welcome failed:', e.message));
+      }
+      // Notify super-admins of the new signup (best-effort).
+      notifySuperAdminsOfSignup(publicUser(data)).catch((e) => console.error('signup notice failed:', e.message));
+
+      const token = jwt.sign(
+        { id: data.id, username: data.username, role: data.role, eventId: null },
+        JWT_SECRET,
+        { expiresIn: '24h' }
+      );
+      res.json({
+        message: 'Account created',
+        token,
+        user: { id: data.id, username: data.username, name: data.name, email: data.email, phone: data.phone, role: data.role, eventId: null },
+      });
     } catch (error) {
       next(error);
     }

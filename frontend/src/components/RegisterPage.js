@@ -157,7 +157,7 @@ const RegisterPage = () => {
     <div className="min-h-screen py-8 px-4" style={bg}>
       <div className="max-w-lg mx-auto">
         <div className="text-center mb-6">
-          <img src="/logo-full.png" alt="GoldenBidX" className="w-44 sm:w-52 mx-auto mb-2 drop-shadow-[0_8px_30px_rgba(232,184,75,0.35)]" />
+          <img src="/logo-full.png" alt="GoldenBidX" className="w-44 sm:w-52 mx-auto mb-2 drop-shadow-[0_6px_20px_rgba(232,184,75,0.2)]" />
           <p className="text-[11px] uppercase tracking-[0.3em] text-amber-300/90 font-bold">Player Registration</p>
           <h1 className="text-2xl font-extrabold text-white mt-1">{event.name}</h1>
         </div>

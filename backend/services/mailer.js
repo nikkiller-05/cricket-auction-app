@@ -112,6 +112,39 @@ const mailer = {
     }
   },
 
+  async sendSignupWelcome(to, username, loginUrl) {
+    if (!provider) return false;
+    try {
+      const linkBlock = loginUrl
+        ? `<p><a href="${loginUrl}" style="display:inline-block;background:#e8b84b;color:#111;padding:10px 18px;border-radius:9999px;font-weight:700;text-decoration:none">Go to GoldenBidX</a></p>`
+        : '';
+      await deliver({
+        to,
+        subject: 'Welcome to GoldenBidX 🎉',
+        text: `Hi ${username},\n\nYour GoldenBidX organizer account is ready. You can sign in anytime and start creating events.\n\nUsername: ${username}${loginUrl ? `\n\n${loginUrl}` : ''}\n\nSee you inside!`,
+        html: `<p>Hi ${username},</p><p>Your <b>GoldenBidX</b> organizer account is ready. Sign in anytime to create events and collect player registrations.</p><p><b>Username:</b> ${username}</p>${linkBlock}<p style="color:#888;font-size:12px">If you didn't create this account, please contact us.</p>`,
+      });
+      return true;
+    } catch (e) {
+      throw new Error(cleanError(e));
+    }
+  },
+
+  async sendNewOrganizerNotice(to, org) {
+    if (!provider) return false;
+    try {
+      await deliver({
+        to,
+        subject: `New GoldenBidX organizer signup: ${org.username}`,
+        text: `A new organizer just signed up.\n\nUsername: ${org.username}\nName: ${org.name || '-'}\nEmail: ${org.email || '-'}\nPhone: ${org.phone || '-'}`,
+        html: `<p>A new organizer just signed up on GoldenBidX.</p><ul><li><b>Username:</b> ${org.username}</li><li><b>Name:</b> ${org.name || '-'}</li><li><b>Email:</b> ${org.email || '-'}</li><li><b>Phone:</b> ${org.phone || '-'}</li></ul>`,
+      });
+      return true;
+    } catch (e) {
+      throw new Error(cleanError(e));
+    }
+  },
+
   async sendTest(to) {
     if (!provider) throw new Error('No email provider configured (set RESEND_API_KEY, BREVO_API_KEY or SMTP_*).');
     try {

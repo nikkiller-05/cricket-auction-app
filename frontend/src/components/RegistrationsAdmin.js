@@ -126,7 +126,7 @@ const LoginView = ({ onAuthed, showSuccess, showError, T, theme, toggleTheme }) 
     <div className={`min-h-screen flex items-center justify-center px-4 ${T.pageCls}`} style={T.pageStyle}>
       <form onSubmit={login} className={`w-full max-w-sm ${T.card} p-7`}>
         <div className="text-center mb-6">
-          <img src="/logo-full.png" alt="GoldenBidX" className="w-40 mx-auto mb-2 drop-shadow-[0_8px_30px_rgba(232,184,75,0.35)]" />
+          <img src="/logo-full.png" alt="GoldenBidX" className="w-40 mx-auto mb-2 drop-shadow-[0_6px_20px_rgba(232,184,75,0.2)]" />
           <p className="text-[11px] uppercase tracking-[0.3em] text-amber-400/90 font-bold">Registration Console</p>
         </div>
         <label className={`block text-xs font-semibold ${T.label} mb-1`}>Username</label>

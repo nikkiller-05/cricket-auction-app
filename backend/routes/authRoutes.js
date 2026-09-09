@@ -5,6 +5,8 @@ const { verifySuperAdmin, verifyAdmin, verifyRegistrationManager } = require('..
 
 // Login route (public)
 router.post('/login', authController.login);
+// Public organizer self-signup
+router.post('/signup-organizer', authController.signupOrganizer);
 // Forgot password request (public) — emails a reset link or flags a request for the super-admin.
 router.post('/forgot-password', authController.forgotPassword);
 // Complete a password reset via emailed token (public).
