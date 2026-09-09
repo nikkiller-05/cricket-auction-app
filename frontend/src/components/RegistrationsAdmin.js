@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import axios from 'axios';
 import { useNotification } from './NotificationSystem';
+import BrandFooter from './BrandFooter';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
@@ -361,6 +362,8 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
           <OrganizersPanel events={events} organizers={organizers} reload={loadOrganizers} showSuccess={showSuccess} showError={showError} showConfirm={showConfirm} T={T} />
         )}
       </div>
+
+      <BrandFooter theme={theme} compact />
 
       {modal === 'password' && <ChangePasswordModal onClose={() => setModal(null)} showSuccess={showSuccess} showError={showError} T={T} />}
       {modal === 'profile' && <ProfileModal auth={auth} onClose={() => setModal(null)} updateAuthUser={updateAuthUser} showSuccess={showSuccess} showError={showError} T={T} />}

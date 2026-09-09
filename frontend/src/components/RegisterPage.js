@@ -1,9 +1,14 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useParams } from 'react-router-dom';
 import axios from 'axios';
+import BrandFooter from './BrandFooter';
 
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 const ROLES = ['Batter', 'Bowler', 'WK', 'Batting AR', 'Bowling AR'];
+
+const IcoWhatsApp = (p) => (<svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15" {...p}><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51l-.57-.01c-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.71.306 1.263.489 1.694.625.712.227 1.36.195 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884M20.463 3.488A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>);
+const IcoMail = (p) => (<svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15" {...p}><path d="M1.5 8.67v8.58a3 3 0 003 3h15a3 3 0 003-3V8.67l-8.928 5.493a3 3 0 01-3.144 0L1.5 8.67z"/><path d="M22.5 6.908V6.75a3 3 0 00-3-3h-15a3 3 0 00-3 3v.158l9.714 5.978a1.5 1.5 0 001.572 0L22.5 6.908z"/></svg>);
+const IcoPhone = (p) => (<svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15" {...p}><path fillRule="evenodd" clipRule="evenodd" d="M1.5 4.5a3 3 0 013-3h1.372c.86 0 1.61.586 1.819 1.42l1.105 4.423a1.875 1.875 0 01-.694 1.955l-1.293.97c-.135.101-.164.249-.126.352a11.285 11.285 0 006.697 6.697c.103.038.25.009.352-.126l.97-1.293a1.875 1.875 0 011.955-.694l4.423 1.105c.834.209 1.42.959 1.42 1.82V19.5a3 3 0 01-3 3h-2.25C8.552 22.5 1.5 15.448 1.5 6.75V4.5z"/></svg>);
 
 // Downscale + compress an image file to keep storage small (~1000px, JPEG q0.7).
 const compressImage = (file, maxDim = 1000, quality = 0.7) =>
@@ -233,7 +238,7 @@ const RegisterPage = () => {
             className="w-full rounded-full bg-gradient-to-b from-amber-400 to-amber-500 px-6 py-3 text-sm font-bold text-slate-900 shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition disabled:opacity-50">
             {submitting ? 'Submitting…' : 'Submit Registration'}
           </button>
-          <p className="text-center text-[11px] text-indigo-200/50">Crafted by The Vernekar Brothers</p>
+          <p className="text-center text-[11px] text-indigo-200/50">Have a great auction!</p>
         </form>
 
         {event.show_contact && (event.contact_phone || event.contact_email || event.contact_note) && (
@@ -241,14 +246,15 @@ const RegisterPage = () => {
             <p className="text-amber-200 font-bold text-sm">Questions about this event?</p>
             <p className="text-indigo-200/70 text-xs mb-3">Contact the organizer directly.</p>
             <div className="flex flex-wrap items-center justify-center gap-2">
-              {event.contact_phone && <a href={`tel:${event.contact_phone}`} className="rounded-full border border-white/20 bg-white/10 text-white text-xs font-semibold px-3 py-1.5 hover:bg-white/20">📞 {event.contact_phone}</a>}
-              {event.contact_phone && <a href={`https://wa.me/${event.contact_phone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="rounded-full border border-white/20 bg-white/10 text-white text-xs font-semibold px-3 py-1.5 hover:bg-white/20">💬 WhatsApp</a>}
-              {event.contact_email && <a href={`mailto:${event.contact_email}`} className="rounded-full border border-white/20 bg-white/10 text-white text-xs font-semibold px-3 py-1.5 hover:bg-white/20">✉️ {event.contact_email}</a>}
+              {event.contact_phone && <a href={`tel:${event.contact_phone}`} className="inline-flex items-center gap-1.5 rounded-full bg-slate-700 text-white text-xs font-semibold px-3.5 py-2 hover:brightness-110 transition"><IcoPhone /> {event.contact_phone}</a>}
+              {event.contact_phone && <a href={`https://wa.me/${event.contact_phone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1.5 rounded-full bg-[#25D366] text-white text-xs font-semibold px-3.5 py-2 hover:brightness-110 transition"><IcoWhatsApp /> WhatsApp</a>}
+              {event.contact_email && <a href={`mailto:${event.contact_email}`} className="inline-flex items-center gap-1.5 rounded-full bg-[#2563eb] text-white text-xs font-semibold px-3.5 py-2 hover:brightness-110 transition"><IcoMail /> Email</a>}
             </div>
             {event.contact_note && <p className="text-indigo-200/60 text-xs mt-2">{event.contact_note}</p>}
           </div>
         )}
       </div>
+      <BrandFooter theme="dark" compact />
     </div>
   );
 };

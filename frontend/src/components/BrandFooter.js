@@ -32,7 +32,7 @@ const BrandFooter = ({ theme = 'light', compact = false }) => {
           Nikhil &amp; Shripad
         </p>
         <p className={`text-xs mt-3 ${isDark ? 'text-blue-300/50' : 'text-slate-400'}`}>
-          © 2025 Auction · Bid · Discover · Own
+          © 2025 GoldenBidX · Bid · Discover · Own
         </p>
       </div>
     </footer>
