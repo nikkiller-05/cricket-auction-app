@@ -2,6 +2,26 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Shared animated gold-on-dark background (GoldenBidX). ~30% warm gold in the
+   corners over dark, with a slow drift. Motion is disabled for reduced-motion. */
+.gbx-bg {
+  background:
+    radial-gradient(60% 55% at 12% -8%, rgba(232, 184, 75, 0.30) 0%, rgba(232, 184, 75, 0.06) 34%, transparent 60%),
+    radial-gradient(55% 55% at 108% 8%, rgba(206, 158, 52, 0.24) 0%, transparent 52%),
+    radial-gradient(60% 60% at 50% 118%, rgba(232, 184, 75, 0.14) 0%, transparent 60%),
+    linear-gradient(160deg, #0a0a0f 0%, #110f18 48%, #0b0b11 100%);
+  background-size: 180% 180%, 170% 170%, 180% 180%, 100% 100%;
+  background-position: 0% 0%, 100% 0%, 50% 100%, 0 0;
+  animation: gbxDrift 26s ease-in-out infinite alternate;
+}
+@keyframes gbxDrift {
+  0%   { background-position: 0% 0%, 100% 0%, 50% 100%, 0 0; }
+  100% { background-position: 18% 12%, 82% 14%, 42% 86%, 0 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gbx-bg { animation: none; }
+}
+
 /* ------------------------------------------------------------------
    Design tokens — single source of truth for the modern palette.
    The whole app skews toward an "obsidian → indigo → fuchsia" twilight

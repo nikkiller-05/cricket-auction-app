@@ -44,11 +44,10 @@ const compressLogo = (file, maxDim = 320, quality = 0.85) => new Promise((resolv
 });
 
 // ---- Theme tokens (dark default, matching the project; light optional) ----
-const DARK_BG = { background: 'radial-gradient(58rem 40rem at -8% -18%, rgba(232,184,75,0.16) 0%, transparent 60%), radial-gradient(54rem 40rem at 112% 116%, rgba(176,120,32,0.18) 0%, transparent 60%), linear-gradient(160deg, #0a0a0f 0%, #12101b 46%, #0b0b11 100%)' };
 const THEMES = {
   dark: {
     isDark: true,
-    pageStyle: DARK_BG, pageCls: 'text-white',
+    pageStyle: undefined, pageCls: 'text-white gbx-bg',
     header: 'bg-white/[0.04] border-white/10 backdrop-blur-xl',
     card: 'rounded-2xl border border-white/12 bg-white/[0.05] backdrop-blur-xl',
     menu: 'bg-[#15131f] border border-white/12 shadow-2xl',
@@ -127,7 +126,7 @@ const RegistrationsAdmin = () => {
     localStorage.setItem('regUser', JSON.stringify(user));
   };
 
-  if (booting) return <div className="min-h-screen" style={DARK_BG} />;
+  if (booting) return <div className="min-h-screen gbx-bg" />;
   if (!auth) return <LoginView onAuthed={setAuth} showSuccess={showSuccess} showError={showError} theme={theme} toggleTheme={toggleTheme} T={T} />;
   return <Console auth={auth} onLogout={onLogout} updateAuthUser={updateAuthUser} showSuccess={showSuccess} showError={showError} showConfirm={showConfirm} T={T} theme={theme} toggleTheme={toggleTheme} />;
 };

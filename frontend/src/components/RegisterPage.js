@@ -117,16 +117,14 @@ const RegisterPage = () => {
     }
   };
 
-  const bg = { background: 'radial-gradient(58rem 40rem at -8% -18%, rgba(232,184,75,0.16) 0%, transparent 60%), radial-gradient(54rem 40rem at 112% 116%, rgba(176,120,32,0.18) 0%, transparent 60%), linear-gradient(160deg, #0a0a0f 0%, #12101b 46%, #0b0b11 100%)' };
-
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center text-white" style={bg}>
+    return <div className="min-h-screen flex items-center justify-center text-white gbx-bg">
       <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-amber-300" />
     </div>;
   }
 
   if (notFound) {
-    return <div className="min-h-screen flex items-center justify-center text-center px-4" style={bg}>
+    return <div className="min-h-screen flex items-center justify-center text-center px-4 gbx-bg">
       <div className="text-white">
         <div className="text-5xl mb-4">🏏</div>
         <h1 className="text-xl font-bold mb-1">Registration link not found</h1>
@@ -136,7 +134,7 @@ const RegisterPage = () => {
   }
 
   if (done) {
-    return <div className="min-h-screen flex items-center justify-center text-center px-4" style={bg}>
+    return <div className="min-h-screen flex items-center justify-center text-center px-4 gbx-bg">
       <div className="max-w-md w-full rounded-2xl border border-white/15 bg-white/[0.06] backdrop-blur-2xl p-8 text-white">
         <div className="text-5xl mb-4">✅</div>
         <h1 className="text-2xl font-bold mb-2">Registration submitted!</h1>
@@ -149,7 +147,7 @@ const RegisterPage = () => {
   }
 
   if (!event.registration_open) {
-    return <div className="min-h-screen flex items-center justify-center text-center px-4" style={bg}>
+    return <div className="min-h-screen flex items-center justify-center text-center px-4 gbx-bg">
       <div className="text-white">
         <div className="text-5xl mb-4">🔒</div>
         <h1 className="text-xl font-bold mb-1">Registration is closed</h1>
@@ -159,7 +157,7 @@ const RegisterPage = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col" style={bg}>
+    <div className="min-h-screen flex flex-col gbx-bg">
       {/* Branding header (static, full-width like the console) */}
       <header className="border-b border-white/10 bg-white/[0.04] backdrop-blur-xl">
         <div className="px-4 sm:px-6 h-14 flex items-center justify-between gap-3">

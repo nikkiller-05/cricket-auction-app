@@ -196,7 +196,7 @@ const HomePage = () => {
   const [showAuth, setShowAuth] = useState(false);
 
   return (
-    <div className="min-h-screen relative overflow-hidden" style={{background: 'radial-gradient(58rem 40rem at -8% -18%, rgba(232,184,75,0.16) 0%, transparent 60%), radial-gradient(54rem 40rem at 112% 116%, rgba(176,120,32,0.18) 0%, transparent 60%), radial-gradient(42rem 30rem at 50% 32%, rgba(99,102,241,0.12) 0%, transparent 62%), linear-gradient(160deg, #0a0a0f 0%, #12101b 46%, #0b0b11 100%)'}}>
+    <div className="min-h-screen relative overflow-hidden gbx-bg">
       {/* Background Pattern */}
       <div 
         className="absolute inset-0 opacity-[0.07] pointer-events-none"
