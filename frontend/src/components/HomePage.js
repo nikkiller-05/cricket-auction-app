@@ -106,6 +106,10 @@ const HomePage = () => {
     });
   };
 
+  const scrollToEnter = () => {
+    document.getElementById('enter')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+
   return (
     <div className="min-h-screen relative overflow-hidden" style={{background: 'radial-gradient(58rem 40rem at -8% -18%, rgba(232,184,75,0.16) 0%, transparent 60%), radial-gradient(54rem 40rem at 112% 116%, rgba(176,120,32,0.18) 0%, transparent 60%), radial-gradient(42rem 30rem at 50% 32%, rgba(99,102,241,0.12) 0%, transparent 62%), linear-gradient(160deg, #0a0a0f 0%, #12101b 46%, #0b0b11 100%)'}}>
       {/* Background Pattern */}
@@ -117,23 +121,42 @@ const HomePage = () => {
       ></div>
 
       <div className="relative z-10 min-h-screen flex flex-col">
-        {/* Header */}
-        <header className="pt-6 pb-2">
+        {/* Top nav */}
+        <nav className="sticky top-0 z-30 backdrop-blur-xl bg-black/25 border-b border-white/10">
+          <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <img src="/auction-logo.png" alt="" className="h-9 w-auto drop-shadow-[0_2px_8px_rgba(232,184,75,0.45)]" />
+              <span className="font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-400">GoldenBidX</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <a href="/registrations" className="hidden sm:inline text-sm font-semibold text-indigo-200/80 hover:text-white px-3 py-1.5">Organizer console</a>
+              <button onClick={scrollToEnter} className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 text-sm font-bold px-4 py-1.5 hover:-translate-y-0.5 transition">Get started</button>
+            </div>
+          </div>
+        </nav>
+
+        {/* Hero */}
+        <header className="pt-10 pb-4">
           <div className="max-w-6xl mx-auto px-4 flex flex-col items-center text-center">
             <img
               src="/logo-full.png"
               alt="GoldenBidX"
-              className="w-60 sm:w-72 md:w-80 mb-2 drop-shadow-[0_12px_44px_rgba(232,184,75,0.4)]"
+              className="w-64 sm:w-80 md:w-96 mb-3 drop-shadow-[0_12px_44px_rgba(232,184,75,0.4)]"
             />
-            <p className="text-base md:text-lg text-indigo-200/90 font-light">
-              Experience the thrill of live player auctions
+            <h1 className="text-2xl md:text-4xl font-extrabold text-white tracking-tight max-w-2xl">Run live player auctions like a pro</h1>
+            <p className="mt-3 text-base md:text-lg text-indigo-200/90 font-light max-w-xl">
+              Real-time bidding, self-serve player registration, automatic team budgets and live stats — for cricket and every sport.
             </p>
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+              <button onClick={scrollToEnter} className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 font-bold px-6 py-3 hover:-translate-y-0.5 transition shadow-lg">Get started</button>
+              <button onClick={handleViewerAccess} className="rounded-full border border-white/25 bg-white/5 text-white font-semibold px-6 py-3 hover:bg-white/10 transition">Watch a live auction</button>
+            </div>
           </div>
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 flex items-center justify-center px-4 py-4">
-          <div className="max-w-lg w-full">
+        <main id="enter" className="px-4 py-8 scroll-mt-16">
+          <div className="max-w-lg w-full mx-auto">
             <div className="rounded-2xl p-6 border border-white/15 bg-white/[0.06] backdrop-blur-2xl shadow-[0_1px_0_rgba(255,255,255,0.15)_inset,0_30px_80px_-30px_rgba(0,0,0,0.6)]">
               <div className="text-center mb-5">
                 <h2 className="text-2xl font-bold text-white mb-2">Welcome to the Auction</h2>
@@ -273,6 +296,51 @@ const HomePage = () => {
             </div>
           </div>
         </main>
+
+        {/* How it works */}
+        <section className="px-4 py-10">
+          <div className="max-w-5xl mx-auto">
+            <h2 className="text-center text-2xl md:text-3xl font-extrabold text-white mb-2">How it works</h2>
+            <p className="text-center text-indigo-200/70 mb-8">From setup to sold in three simple steps.</p>
+            <div className="grid gap-5 sm:grid-cols-3">
+              {[
+                { n: '1', t: 'Create your event', d: 'Set your budget, teams and rules in minutes — free or paid registration.' },
+                { n: '2', t: 'Players register', d: 'Share a link; players self-register with photo, role and stats — no manual entry.' },
+                { n: '3', t: 'Go live', d: 'Run real-time bidding while teams and spectators follow every bid live.' },
+              ].map((s) => (
+                <div key={s.n} className="rounded-2xl border border-white/10 bg-white/[0.04] p-6 text-center">
+                  <div className="mx-auto mb-3 grid h-11 w-11 place-items-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-slate-900 font-black">{s.n}</div>
+                  <h3 className="text-white font-bold mb-1">{s.t}</h3>
+                  <p className="text-indigo-200/70 text-sm">{s.d}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Who it's for */}
+        <section className="px-4 py-6">
+          <div className="max-w-4xl mx-auto text-center">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-white mb-4">Built for every auction</h2>
+            <div className="flex flex-wrap justify-center gap-2.5">
+              {['🏏 Box cricket', '🏢 Corporate leagues', '🏆 Gully tournaments', '⚽ Football', '🎾 Tennis', '🏸 Badminton', '👥 Community clubs'].map((c) => (
+                <span key={c} className="rounded-full border border-white/15 bg-white/[0.05] px-4 py-2 text-sm font-medium text-indigo-100/90">{c}</span>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* Closing CTA */}
+        <section className="px-4 py-12">
+          <div className="max-w-3xl mx-auto rounded-3xl border border-amber-300/20 bg-gradient-to-b from-amber-400/10 to-transparent p-8 text-center">
+            <h2 className="text-2xl md:text-3xl font-extrabold text-white">Ready to run your next auction?</h2>
+            <p className="mt-2 text-indigo-200/80">Set it up in minutes. Your players and teams will love it.</p>
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+              <button onClick={scrollToEnter} className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 font-bold px-6 py-3 hover:-translate-y-0.5 transition shadow-lg">Get started</button>
+              <a href="mailto:hello@goldenbidx.com" className="rounded-full border border-white/25 bg-white/5 text-white font-semibold px-6 py-3 hover:bg-white/10 transition">Contact us</a>
+            </div>
+          </div>
+        </section>
 
         {/* Footer */}
         <BrandFooter theme="dark" compact />
