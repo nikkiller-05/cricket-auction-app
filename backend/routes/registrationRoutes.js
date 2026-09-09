@@ -12,8 +12,8 @@ router.post('/public/:slug/submit', ctrl.uploadFields, ctrl.submitRegistration);
 
 // ---- Events (super-admin / admin manage all; organizers manage their own) ----
 router.get('/events', verifyRegistrationManager, ctrl.listEvents);
-router.post('/events', verifyRegistrationManager, ctrl.uploadQr, ctrl.createEvent);
-router.put('/events/:id', verifyRegistrationManager, ctrl.uploadQr, ctrl.updateEvent);
+router.post('/events', verifyRegistrationManager, ctrl.uploadEventFiles, ctrl.createEvent);
+router.put('/events/:id', verifyRegistrationManager, ctrl.uploadEventFiles, ctrl.updateEvent);
 router.delete('/events/:id', verifyRegistrationManager, ctrl.deleteEvent);
 
 // ---- Registrations review (super-admin / admin / organizer) ----

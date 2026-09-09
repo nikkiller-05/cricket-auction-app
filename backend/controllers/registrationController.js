@@ -32,6 +32,7 @@ const publicEvent = (e) => ({
   reg_fee: e.reg_fee,
   upi_id: e.payment_required ? e.upi_id : null,
   upi_qr_url: e.payment_required ? e.upi_qr_url : null,
+  logo_url: e.logo_url || null,
   show_contact: !!e.show_contact,
   contact_phone: e.show_contact ? e.contact_phone : null,
   contact_email: e.show_contact ? e.contact_email : null,
@@ -44,6 +45,7 @@ const registrationController = {
     { name: 'screenshot', maxCount: 1 },
   ]),
   uploadQr: upload.single('qr'),
+  uploadEventFiles: upload.fields([{ name: 'qr', maxCount: 1 }, { name: 'logo', maxCount: 1 }]),
 
   // ---------- Events (super-admin) ----------
   async listEvents(req, res) {
@@ -78,8 +80,14 @@ const registrationController = {
       if (await registrationService.getEventBySlug(slug)) slug = `${slug}-${uuidv4().slice(0, 4)}`;
 
       let upi_qr_url = null;
-      if (req.file) {
-        upi_qr_url = await registrationService.uploadImage(req.file.buffer, req.file.mimetype, `qr/${slug}`);
+      if (req.files?.qr?.[0]) {
+        const f = req.files.qr[0];
+        upi_qr_url = await registrationService.uploadImage(f.buffer, f.mimetype, `qr/${slug}`);
+      }
+      let logo_url = null;
+      if (req.files?.logo?.[0]) {
+        const f = req.files.logo[0];
+        logo_url = await registrationService.uploadImage(f.buffer, f.mimetype, `logos/${slug}`);
       }
 
       // Organizers can only create events under their own id; higher roles may assign anyone.
@@ -95,6 +103,7 @@ const registrationController = {
         reg_fee: regFee ? Number(regFee) : 0,
         upi_id: upiId || null,
         upi_qr_url,
+        logo_url,
         show_contact,
         contact_phone: show_contact ? (contactPhone || null) : null,
         contact_email: show_contact ? (contactEmail || null) : null,
@@ -134,7 +143,8 @@ const registrationController = {
         payload.contact_email = on ? (body.contactEmail || null) : null;
         payload.contact_note = on ? (body.contactNote || null) : null;
       }
-      if (req.file) payload.upi_qr_url = await registrationService.uploadImage(req.file.buffer, req.file.mimetype, `qr/${id}`);
+      if (req.files?.qr?.[0]) { const f = req.files.qr[0]; payload.upi_qr_url = await registrationService.uploadImage(f.buffer, f.mimetype, `qr/${id}`); }
+      if (req.files?.logo?.[0]) { const f = req.files.logo[0]; payload.logo_url = await registrationService.uploadImage(f.buffer, f.mimetype, `logos/${id}`); }
 
       res.json({ event: await registrationService.updateEvent(id, payload) });
     } catch (e) {

@@ -11,6 +11,26 @@ const api = axios.create({ baseURL: API_BASE_URL, timeout: 25000 });
 const money = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
 const initials = (s = '') => s.trim().slice(0, 2).toUpperCase() || '?';
 
+const IcoCopy = (p) => (<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14" {...p}><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15V5a2 2 0 012-2h10" /></svg>);
+
+// Downscale an event logo before upload so storage stays light (~320px JPEG).
+const compressLogo = (file, maxDim = 320, quality = 0.85) => new Promise((resolve) => {
+  try {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      let { width, height } = img;
+      if (Math.max(width, height) > maxDim) { const s = maxDim / Math.max(width, height); width = Math.round(width * s); height = Math.round(height * s); }
+      const c = document.createElement('canvas'); c.width = width; c.height = height;
+      c.getContext('2d').drawImage(img, 0, 0, width, height);
+      c.toBlob((b) => resolve(b ? new File([b], 'logo.jpg', { type: 'image/jpeg' }) : file), 'image/jpeg', quality);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); resolve(file); };
+    img.src = url;
+  } catch { resolve(file); }
+});
+
 // ---- Theme tokens (dark default, matching the project; light optional) ----
 const DARK_BG = { background: 'radial-gradient(58rem 40rem at -8% -18%, rgba(232,184,75,0.16) 0%, transparent 60%), radial-gradient(54rem 40rem at 112% 116%, rgba(176,120,32,0.18) 0%, transparent 60%), linear-gradient(160deg, #0a0a0f 0%, #12101b 46%, #0b0b11 100%)' };
 const THEMES = {
@@ -470,16 +490,19 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [qr, setQr] = useState(null);
+  const [logo, setLogo] = useState(null);
   const [busy, setBusy] = useState(false);
   const [q, setQ] = useState('');
   const [orgFilter, setOrgFilter] = useState('');
+  const [layout, setLayout] = useState(() => localStorage.getItem('evLayout') || 'cards');
+  const setLayoutPersist = (v) => { setLayout(v); localStorage.setItem('evLayout', v); };
 
-  const startCreate = () => { setCreating(true); setEditing(null); setForm(emptyForm); setQr(null); };
+  const startCreate = () => { setCreating(true); setEditing(null); setForm(emptyForm); setQr(null); setLogo(null); };
   const startEdit = (ev) => {
-    setEditing(ev.id); setCreating(false); setQr(null);
+    setEditing(ev.id); setCreating(false); setQr(null); setLogo(null);
     setForm({ name: ev.name, paymentRequired: ev.payment_required, regFee: ev.reg_fee || '', upiId: ev.upi_id || '', organizerId: ev.organizer_id || '', showContact: !!ev.show_contact, contactPhone: ev.contact_phone || '', contactEmail: ev.contact_email || '', contactNote: ev.contact_note || '' });
   };
-  const closeForm = () => { setCreating(false); setEditing(null); setForm(emptyForm); setQr(null); };
+  const closeForm = () => { setCreating(false); setEditing(null); setForm(emptyForm); setQr(null); setLogo(null); };
 
   const submit = async (e) => {
     e.preventDefault();
@@ -499,6 +522,7 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
         fd.append('contactNote', form.contactNote);
       }
       if (qr) fd.append('qr', qr);
+      if (logo) fd.append('logo', logo);
       if (editing) { await api.put(`/api/registrations/events/${editing}`, fd); showSuccess('Event updated'); }
       else { await api.post('/api/registrations/events', fd); showSuccess('Event created'); }
       closeForm();
@@ -537,6 +561,30 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
     return true;
   });
 
+  const iconBtn = `grid place-items-center h-7 w-7 rounded-full border text-sm ${T.chip}`;
+  const logoThumb = (ev, size = 'w-10 h-10') => ev.logo_url
+    ? <img src={ev.logo_url} alt="" className={`${size} rounded-lg object-cover shrink-0 bg-white/10`} />
+    : <div className={`${size} rounded-lg bg-white/10 grid place-items-center text-base shrink-0`}>🏆</div>;
+  const statusBadge = (ev) => <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${ev.registration_open ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>{ev.registration_open ? 'OPEN' : 'CLOSED'}</span>;
+  const metaText = (ev) => <>{ev.payment_required ? `Paid · ${money(ev.reg_fee)}` : 'Free entry'}{ev.organizer_name ? ` · 👤 ${ev.organizer_name}` : (canAssignOrganizer ? ' · 👤 unassigned' : '')}</>;
+  const countChips = (ev) => (ev.counts && ev.counts.total > 0) ? (
+    <div className="mt-1.5 flex flex-wrap gap-1.5">
+      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-500/15 text-slate-300">{ev.counts.total} total</span>
+      {ev.counts.pending > 0 && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">{ev.counts.pending} pending</span>}
+      {ev.counts.verified > 0 && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">{ev.counts.verified} approved</span>}
+    </div>
+  ) : null;
+  const actions = (ev) => canManageEvents ? (
+    <div className="flex items-center gap-1.5 flex-wrap">
+      <button title="Copy registration link" onClick={(e) => { e.stopPropagation(); copyLink(ev); }} className={iconBtn}>🔗</button>
+      <button title="Edit event" onClick={(e) => { e.stopPropagation(); startEdit(ev); }} className={iconBtn}>✏️</button>
+      <button title={ev.registration_open ? 'Stop accepting registrations' : 'Reopen registrations'} onClick={(e) => { e.stopPropagation(); toggleOpen(ev); }} className={`rounded-full border px-3 py-1 text-xs font-semibold ${T.chip}`}>{ev.registration_open ? 'End Event' : 'Reopen'}</button>
+      <button title="Delete event" onClick={(e) => { e.stopPropagation(); remove(ev); }} className="grid place-items-center h-7 w-7 rounded-full border border-rose-300/40 bg-rose-500/10 text-rose-300 text-sm hover:bg-rose-500/20">🗑️</button>
+    </div>
+  ) : (
+    <button title="Copy registration link" onClick={(e) => { e.stopPropagation(); copyLink(ev); }} className={iconBtn}>🔗</button>
+  );
+
   return (
     <div className={`${T.card} p-5`}>
       <div className="flex items-center justify-between mb-3">
@@ -562,6 +610,12 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
       {canManageEvents && (creating || editing) && (
         <form onSubmit={submit} className={`space-y-2 mb-4 rounded-xl border p-3 ${T.soft}`}>
           <input className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} placeholder="Event name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
+          <label className={`flex items-center gap-3 text-xs ${T.sub}`}>
+            {logo ? <img src={URL.createObjectURL(logo)} alt="" className="w-9 h-9 rounded-lg object-cover" /> : <span className="w-9 h-9 rounded-lg bg-white/10 grid place-items-center">🏆</span>}
+            <span>Event logo (optional){editing ? ' — upload to replace' : ''}
+              <input type="file" accept="image/*" onChange={async (e) => { const f = e.target.files?.[0]; if (f) setLogo(await compressLogo(f)); }} className="mt-1 block w-full text-xs" />
+            </span>
+          </label>
           <label className={`flex items-center gap-2 text-sm ${T.label}`}>
             <input type="checkbox" checked={form.paymentRequired} onChange={(e) => setForm({ ...form, paymentRequired: e.target.checked })} />
             Paid registration
@@ -599,39 +653,48 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
         </form>
       )}
 
-      <div className="space-y-2">
-        {filtered.length === 0 && <p className={`text-sm ${T.sub}`}>{events.length === 0 ? 'No events yet.' : 'No events match your filters.'}</p>}
-        {filtered.map((ev) => (
-          <div key={ev.id} className={`rounded-xl border p-3 cursor-pointer transition ${selected?.id === ev.id ? T.cardSel : T.cardIdle}`} onClick={() => onSelect(ev)}>
-            <div className="flex items-center justify-between gap-2">
-              <span className={`font-semibold truncate ${T.heading}`}>{ev.name}</span>
-              <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${ev.registration_open ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>{ev.registration_open ? 'OPEN' : 'CLOSED'}</span>
-            </div>
-            <div className={`mt-1 text-xs ${T.sub}`}>
-              {ev.payment_required ? `Paid · ${money(ev.reg_fee)}` : 'Free entry'}
-              {ev.organizer_name ? ` · 👤 ${ev.organizer_name}` : (canAssignOrganizer ? ' · 👤 unassigned' : '')}
-            </div>
-            {ev.counts && ev.counts.total > 0 && (
-              <div className="mt-1.5 flex flex-wrap gap-1.5">
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-500/15 text-slate-300">{ev.counts.total} total</span>
-                {ev.counts.pending > 0 && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">{ev.counts.pending} pending</span>}
-                {ev.counts.verified > 0 && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">{ev.counts.verified} approved</span>}
-              </div>
-            )}
-            {canManageEvents && (
-              <div className="mt-2 flex flex-wrap gap-2">
-                <button onClick={(e) => { e.stopPropagation(); copyLink(ev); }} className={`rounded-full border px-3 py-1 text-xs font-semibold ${T.chip}`}>🔗 Copy link</button>
-                <button onClick={(e) => { e.stopPropagation(); startEdit(ev); }} className={`rounded-full border px-3 py-1 text-xs font-semibold ${T.chip}`}>✏️ Edit</button>
-                <button onClick={(e) => { e.stopPropagation(); toggleOpen(ev); }} className={`rounded-full border px-3 py-1 text-xs font-semibold ${T.chip}`}>{ev.registration_open ? 'Close' : 'Open'}</button>
-                <button onClick={(e) => { e.stopPropagation(); remove(ev); }} className="rounded-full border border-rose-300/40 bg-rose-500/10 text-rose-300 px-3 py-1 text-xs font-semibold hover:bg-rose-500/20">Delete</button>
-              </div>
-            )}
-            {!canManageEvents && (
-              <button onClick={(e) => { e.stopPropagation(); copyLink(ev); }} className={`mt-2 rounded-full border px-3 py-1 text-xs font-semibold ${T.chip}`}>🔗 Copy link</button>
-            )}
-          </div>
-        ))}
+      <div className="flex items-center justify-between mb-2">
+        <span className={`text-xs ${T.sub}`}>{filtered.length} shown</span>
+        <div className={`inline-flex rounded-lg border p-0.5 ${T.soft}`}>
+          <button onClick={() => setLayoutPersist('cards')} title="Card view" className={`px-2.5 py-0.5 rounded-md text-sm ${layout === 'cards' ? 'bg-amber-400 text-slate-900' : T.tabIdle}`}>▦</button>
+          <button onClick={() => setLayoutPersist('list')} title="List view" className={`px-2.5 py-0.5 rounded-md text-sm ${layout === 'list' ? 'bg-amber-400 text-slate-900' : T.tabIdle}`}>☰</button>
+        </div>
       </div>
+
+      {filtered.length === 0 ? (
+        <p className={`text-sm ${T.sub}`}>{events.length === 0 ? 'No events yet.' : 'No events match your filters.'}</p>
+      ) : layout === 'cards' ? (
+        <div className="grid gap-3 sm:grid-cols-2">
+          {filtered.map((ev) => (
+            <div key={ev.id} className={`rounded-xl border p-3 transition ${selected?.id === ev.id ? T.cardSel : T.cardIdle}`}>
+              <div className="flex items-start gap-3 cursor-pointer" onClick={() => onSelect(ev)}>
+                {logoThumb(ev)}
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2"><span className={`font-semibold truncate ${T.heading}`}>{ev.name}</span>{statusBadge(ev)}</div>
+                  <div className={`mt-0.5 text-xs ${T.sub}`}>{metaText(ev)}</div>
+                  {countChips(ev)}
+                </div>
+              </div>
+              <div className="mt-2">{actions(ev)}</div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className={`rounded-xl border overflow-hidden ${T.cardIdle}`}>
+          {filtered.map((ev, i) => (
+            <div key={ev.id} className={`flex items-center gap-3 p-2.5 ${i > 0 ? `border-t ${T.divide}` : ''} ${selected?.id === ev.id ? T.cardSel : ''}`}>
+              <button onClick={() => onSelect(ev)} className="flex items-center gap-3 flex-1 min-w-0 text-left">
+                {logoThumb(ev, 'w-9 h-9')}
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2"><span className={`font-semibold truncate ${T.heading}`}>{ev.name}</span>{statusBadge(ev)}</div>
+                  <div className={`text-xs ${T.sub} truncate`}>{metaText(ev)}{ev.counts?.total ? ` · ${ev.counts.total} regs` : ''}</div>
+                </div>
+              </button>
+              <div className="shrink-0">{actions(ev)}</div>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 };
@@ -859,6 +922,11 @@ const RegistrationsPanel = ({ event, canImport, reloadEvents, showSuccess, showE
     finally { setExporting(false); }
   };
 
+  const copyLink = () => {
+    navigator.clipboard?.writeText(`${window.location.origin}/register/${event.slug}`);
+    showSuccess('Registration link copied');
+  };
+
   const counts = all.reduce((a, r) => { a[r.payment_status] = (a[r.payment_status] || 0) + 1; return a; }, {});
   const regs = all
     .filter((r) => (filter ? r.payment_status === filter : true))
@@ -872,7 +940,10 @@ const RegistrationsPanel = ({ event, canImport, reloadEvents, showSuccess, showE
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div className="min-w-0">
           <h2 className={`font-bold ${T.heading}`}>{event.name} — Registrations</h2>
-          <p className={`text-xs ${T.sub} break-all`}>Link: {window.location.origin}/register/{event.slug}</p>
+          <div className="flex items-center gap-1.5">
+            <p className={`text-xs ${T.sub} break-all`}>Link: {window.location.origin}/register/{event.slug}</p>
+            <button onClick={copyLink} title="Copy registration link" className={`shrink-0 grid place-items-center h-6 w-6 rounded-md border ${T.chip}`}><IcoCopy /></button>
+          </div>
         </div>
         <div className="flex gap-2">
           <button onClick={exportExcel} disabled={exporting} className="rounded-full bg-gradient-to-b from-sky-500 to-blue-600 text-white px-4 py-2 text-sm font-semibold shadow hover:-translate-y-0.5 transition disabled:opacity-50">
