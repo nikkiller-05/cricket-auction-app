@@ -23,5 +23,6 @@ router.delete('/organizer/:id', verifySuperAdmin, authController.deleteOrganizer
 // Password management
 router.post('/change-password', verifyRegistrationManager, authController.changePassword);
 router.post('/users/:id/reset-password', verifySuperAdmin, authController.resetUserPassword);
+router.post('/test-email', verifySuperAdmin, authController.sendTestEmail);
 
 module.exports = router;

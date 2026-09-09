@@ -184,8 +184,37 @@ const ModalShell = ({ onClose, title, children, T }) => (
   </div>
 );
 
+// ---------------- Send test email (super-admin) ----------------
+const TestEmailModal = ({ defaultTo, onClose, showSuccess, showError, T }) => {
+  const [to, setTo] = useState(defaultTo || '');
+  const [busy, setBusy] = useState(false);
+  const submit = async (e) => {
+    e.preventDefault();
+    if (!to.trim()) return showError('Enter a recipient email');
+    setBusy(true);
+    try {
+      const res = await api.post('/api/auth/test-email', { to: to.trim() });
+      showSuccess(res.data.message || 'Test email sent');
+      onClose();
+    } catch (err) { showError(err.response?.data?.error || 'Failed to send test email'); }
+    finally { setBusy(false); }
+  };
+  return (
+    <ModalShell onClose={onClose} T={T} title="Send test email">
+      <p className={`text-xs mb-3 ${T.sub}`}>Verifies your SMTP settings. If it fails, the exact error is shown so you can fix the credentials.</p>
+      <form onSubmit={submit}>
+        <input type="email" value={to} onChange={(e) => setTo(e.target.value)} placeholder="you@example.com" className={`w-full rounded-lg border px-3 py-2.5 mb-4 ${T.input}`} />
+        <div className="flex justify-end gap-2">
+          <button type="button" onClick={onClose} className={`rounded-full border px-4 py-2 text-sm font-semibold ${T.chip}`}>Cancel</button>
+          <button disabled={busy} className="rounded-full bg-indigo-600 text-white px-5 py-2 text-sm font-semibold hover:bg-indigo-500 disabled:opacity-50">{busy ? 'Sending…' : 'Send test'}</button>
+        </div>
+      </form>
+    </ModalShell>
+  );
+};
+
 // ---------------- Profile dropdown menu ----------------
-const ProfileMenu = ({ auth, onChangePassword, onProfile, onLogout, T }) => {
+const ProfileMenu = ({ auth, onChangePassword, onProfile, onLogout, onTestEmail, T }) => {
   const [open, setOpen] = useState(false);
   const ref = useRef(null);
   useEffect(() => {
@@ -214,6 +243,7 @@ const ProfileMenu = ({ auth, onChangePassword, onProfile, onLogout, T }) => {
           <div className="py-1">
             <Item icon="👤" label="Profile" onClick={onProfile} />
             <Item icon="🔑" label="Change password" onClick={onChangePassword} />
+            {onTestEmail && <Item icon="✉️" label="Send test email" onClick={onTestEmail} />}
           </div>
           <div className={`border-t ${T.divide} py-1`}>
             <button onClick={() => { setOpen(false); onLogout(); }} className="flex w-full items-center gap-3 px-4 py-2.5 text-sm font-semibold text-rose-400 hover:bg-rose-500/10 text-left">
@@ -280,7 +310,7 @@ const Console = ({ auth, onLogout, showSuccess, showError, showConfirm, T, theme
           <button onClick={toggleTheme} title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} className={`grid h-9 w-9 place-items-center rounded-full border text-base shadow-sm ${T.toggleBtn}`}>
             {theme === 'dark' ? '☀️' : '🌙'}
           </button>
-          <ProfileMenu auth={auth} onChangePassword={() => setModal('password')} onProfile={() => setModal('profile')} onLogout={onLogout} T={T} />
+          <ProfileMenu auth={auth} onChangePassword={() => setModal('password')} onProfile={() => setModal('profile')} onTestEmail={isSuper ? () => setModal('testemail') : undefined} onLogout={onLogout} T={T} />
         </div>
       </header>
 
@@ -307,6 +337,7 @@ const Console = ({ auth, onLogout, showSuccess, showError, showConfirm, T, theme
 
       {modal === 'password' && <ChangePasswordModal onClose={() => setModal(null)} showSuccess={showSuccess} showError={showError} T={T} />}
       {modal === 'profile' && <ProfileModal auth={auth} onClose={() => setModal(null)} T={T} />}
+      {modal === 'testemail' && <TestEmailModal defaultTo={auth.user.email || ''} onClose={() => setModal(null)} showSuccess={showSuccess} showError={showError} T={T} />}
     </div>
   );
 };

@@ -366,6 +366,22 @@ const authController = {
     }
   },
 
+  // Super-admin: send a test email to verify SMTP configuration.
+  sendTestEmail: async (req, res, next) => {
+    try {
+      const to = (req.body.to || '').trim();
+      if (!to) return res.status(400).json({ error: 'Recipient email is required' });
+      if (!mailer.isConfigured) {
+        return res.status(400).json({ error: 'SMTP is not configured. Set SMTP_HOST, SMTP_USER and SMTP_PASS on the server.' });
+      }
+      await mailer.sendTest(to);
+      res.json({ message: `Test email sent to ${to}. Check the inbox (and spam).` });
+    } catch (error) {
+      // Surface the SMTP error so the admin can debug credentials/host.
+      res.status(500).json({ error: error.message || 'Failed to send test email' });
+    }
+  },
+
   // Public: complete a reset using the emailed token.
   resetPasswordWithToken: async (req, res, next) => {
     try {

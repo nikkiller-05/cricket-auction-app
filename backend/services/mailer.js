@@ -37,6 +37,19 @@ const mailer = {
     });
     return true;
   },
+
+  async sendTest(to) {
+    if (!transporter) throw new Error('SMTP is not configured (missing SMTP_HOST/USER/PASS)');
+    const from = SMTP_FROM || SMTP_USER;
+    await transporter.sendMail({
+      from,
+      to,
+      subject: 'GoldenBidX SMTP test',
+      text: 'This is a test email from GoldenBidX. If you received this, your SMTP settings are working correctly.',
+      html: '<p>This is a test email from <b>GoldenBidX</b>.</p><p>If you received this, your SMTP settings are working correctly. 🎉</p>',
+    });
+    return true;
+  },
 };
 
 module.exports = mailer;
