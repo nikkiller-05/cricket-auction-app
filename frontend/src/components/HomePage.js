@@ -337,8 +337,12 @@ const HomePage = () => {
             <p className="mt-2 text-indigo-200/80">Set it up in minutes. Your players and teams will love it.</p>
             <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
               <button onClick={scrollToEnter} className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 font-bold px-6 py-3 hover:-translate-y-0.5 transition shadow-lg">Get started</button>
-              <a href="mailto:hello@goldenbidx.com" className="rounded-full border border-white/25 bg-white/5 text-white font-semibold px-6 py-3 hover:bg-white/10 transition">Contact us</a>
+              <a href="https://wa.me/918867976531" target="_blank" rel="noreferrer" className="rounded-full border border-white/25 bg-white/5 text-white font-semibold px-6 py-3 hover:bg-white/10 transition">💬 WhatsApp us</a>
+              <a href="mailto:contactus@goldenbidx.com" className="rounded-full border border-white/25 bg-white/5 text-white font-semibold px-6 py-3 hover:bg-white/10 transition">✉️ Email us</a>
             </div>
+            <p className="mt-4 text-sm text-indigo-200/70">
+              Call or WhatsApp <a href="tel:+918867976531" className="font-semibold text-amber-300 hover:text-amber-200">+91 88679 76531</a> · <a href="mailto:contactus@goldenbidx.com" className="font-semibold text-amber-300 hover:text-amber-200">contactus@goldenbidx.com</a>
+            </p>
           </div>
         </section>
 
