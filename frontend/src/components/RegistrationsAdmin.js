@@ -303,7 +303,6 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
           <img src="/auction-logo.png" alt="" className="w-9 h-9 object-contain" />
           <div>
             <h1 className={`text-lg font-bold tracking-tight ${T.heading}`}>GoldenBidX <span className={`font-normal ${T.sub}`}>· Registrations</span></h1>
-            <p className={`text-xs ${T.sub}`}>{auth.user.username} · {String(auth.user.role).replace('-', ' ')}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
