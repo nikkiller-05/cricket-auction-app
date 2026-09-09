@@ -162,10 +162,17 @@ const RegisterPage = () => {
     <div className="min-h-screen py-8 px-4" style={bg}>
       <div className="max-w-lg mx-auto">
         <div className="text-center mb-6">
-          <img src="/logo-full.png" alt="GoldenBidX" className="w-44 sm:w-52 mx-auto mb-2 drop-shadow-[0_6px_20px_rgba(232,184,75,0.2)]" />
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-white/12 bg-white/[0.05] px-3 py-1 mb-5">
+            <img src="/auction-logo.png" alt="" className="h-4 w-auto" />
+            <span className="text-[10px] font-semibold tracking-wide text-indigo-200/70">Powered by GoldenBidX</span>
+          </div>
+          {event.logo_url ? (
+            <img src={event.logo_url} alt="" className="w-24 h-24 rounded-2xl object-cover mx-auto mb-3 ring-2 ring-amber-300/40 shadow-[0_10px_34px_-8px_rgba(232,184,75,0.5)]" />
+          ) : (
+            <div className="w-20 h-20 rounded-2xl bg-white/10 grid place-items-center text-4xl mx-auto mb-3">🏆</div>
+          )}
           <p className="text-[11px] uppercase tracking-[0.3em] text-amber-300/90 font-bold">Player Registration</p>
-          {event.logo_url && <img src={event.logo_url} alt="" className="w-16 h-16 rounded-xl object-cover mx-auto mt-2 ring-1 ring-white/15" />}
-          <h1 className="text-2xl font-extrabold text-white mt-1">{event.name}</h1>
+          <h1 className="mt-1 text-3xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-400 drop-shadow-[0_2px_12px_rgba(232,184,75,0.45)]">{event.name}</h1>
         </div>
 
         <form onSubmit={submit} className="rounded-2xl border border-white/15 bg-white/[0.06] backdrop-blur-2xl p-6 space-y-4 shadow-2xl">

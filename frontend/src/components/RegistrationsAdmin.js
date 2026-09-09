@@ -12,6 +12,10 @@ const money = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
 const initials = (s = '') => s.trim().slice(0, 2).toUpperCase() || '?';
 
 const IcoCopy = (p) => (<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" width="14" height="14" {...p}><rect x="9" y="9" width="11" height="11" rx="2" /><path d="M5 15V5a2 2 0 012-2h10" /></svg>);
+const IcoPencil = (p) => (<svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15" {...p}><path d="M21.731 2.269a2.625 2.625 0 00-3.712 0l-1.157 1.157 3.712 3.712 1.157-1.157a2.625 2.625 0 000-3.712zM19.513 8.199l-3.712-3.712-12.15 12.15a5.25 5.25 0 00-1.32 2.214l-.8 2.685a.75.75 0 00.933.933l2.685-.8a5.25 5.25 0 002.214-1.32L19.513 8.2z" /></svg>);
+const IcoTrash = (p) => (<svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15" {...p}><path fillRule="evenodd" clipRule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.347-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z" /></svg>);
+const IcoLock = (p) => (<svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15" {...p}><path fillRule="evenodd" clipRule="evenodd" d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3c0-2.9-2.35-5.25-5.25-5.25zm3.75 8.25v-3a3.75 3.75 0 10-7.5 0v3h7.5z" /></svg>);
+const IcoUnlock = (p) => (<svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15" {...p}><path d="M18 1.5c2.9 0 5.25 2.35 5.25 5.25v3.75a.75.75 0 01-1.5 0V6.75a3.75 3.75 0 10-7.5 0v3h.75a3 3 0 013 3v6.75a3 3 0 01-3 3H3.75a3 3 0 01-3-3v-6.75a3 3 0 013-3h9v-3c0-2.9 2.35-5.25 5.25-5.25z" /></svg>);
 
 // Downscale an event logo before upload so storage stays light (~320px JPEG).
 const compressLogo = (file, maxDim = 320, quality = 0.85) => new Promise((resolve) => {
@@ -45,6 +49,7 @@ const THEMES = {
     heading: 'text-white', sub: 'text-indigo-200/60', label: 'text-indigo-200/80',
     input: 'bg-white/10 border-white/20 text-white placeholder-white/40 [&>option]:text-slate-900',
     chip: 'bg-white/10 text-white border-white/20 hover:bg-white/20',
+    ghost: 'text-white/80 hover:bg-white/12',
     toggleBtn: 'bg-white/10 text-amber-300 border-white/20 hover:bg-white/20',
     tabIdle: 'text-indigo-200/60 hover:text-white',
     itemHover: 'hover:bg-white/5',
@@ -62,6 +67,7 @@ const THEMES = {
     heading: 'text-slate-900', sub: 'text-slate-500', label: 'text-slate-600',
     input: 'bg-white border-slate-300 text-slate-900 placeholder-slate-400',
     chip: 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200',
+    ghost: 'text-slate-600 hover:bg-slate-100',
     toggleBtn: 'bg-slate-800 text-amber-300 border-slate-800 hover:bg-slate-700',
     tabIdle: 'text-slate-500 hover:text-slate-900',
     itemHover: 'hover:bg-slate-50',
@@ -318,7 +324,7 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
   useEffect(() => { loadEvents(); loadOrganizers(); }, [loadEvents, loadOrganizers]);
 
   return (
-    <div className={`min-h-screen ${T.pageCls}`} style={T.pageStyle}>
+    <div className={`min-h-screen flex flex-col ${T.pageCls}`} style={T.pageStyle}>
       <header className={`sticky top-0 z-40 border-b px-4 sm:px-6 py-3 flex items-center justify-between ${T.header}`}>
         <a href="/" className="flex items-center gap-3 group" title="Back to home">
           <img src="/auction-logo.png" alt="" className="w-9 h-9 object-contain" />
@@ -335,6 +341,7 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
         </div>
       </header>
 
+      <div className="flex-1">
       {/* Dashboard tabs */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-5">
         <div className={`inline-flex flex-wrap gap-1 rounded-2xl border p-1 ${T.soft}`}>
@@ -382,8 +389,9 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
           <OrganizersPanel events={events} organizers={organizers} reload={loadOrganizers} showSuccess={showSuccess} showError={showError} showConfirm={showConfirm} T={T} />
         )}
       </div>
+      </div>
 
-      <BrandFooter theme={theme} compact />
+      <BrandFooter theme={theme} />
 
       {modal === 'password' && <ChangePasswordModal onClose={() => setModal(null)} showSuccess={showSuccess} showError={showError} T={T} />}
       {modal === 'profile' && <ProfileModal auth={auth} onClose={() => setModal(null)} updateAuthUser={updateAuthUser} showSuccess={showSuccess} showError={showError} T={T} />}
@@ -561,7 +569,7 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
     return true;
   });
 
-  const iconBtn = `grid place-items-center h-7 w-7 rounded-full border text-sm ${T.chip}`;
+  const iconBtn = `grid place-items-center h-8 w-8 rounded-full transition ${T.ghost}`;
   const logoThumb = (ev, size = 'w-10 h-10') => ev.logo_url
     ? <img src={ev.logo_url} alt="" className={`${size} rounded-lg object-cover shrink-0 bg-white/10`} />
     : <div className={`${size} rounded-lg bg-white/10 grid place-items-center text-base shrink-0`}>🏆</div>;
@@ -575,14 +583,14 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
     </div>
   ) : null;
   const actions = (ev) => canManageEvents ? (
-    <div className="flex items-center gap-1.5 flex-wrap">
-      <button title="Copy registration link" onClick={(e) => { e.stopPropagation(); copyLink(ev); }} className={iconBtn}>🔗</button>
-      <button title="Edit event" onClick={(e) => { e.stopPropagation(); startEdit(ev); }} className={iconBtn}>✏️</button>
-      <button title={ev.registration_open ? 'Stop accepting registrations' : 'Reopen registrations'} onClick={(e) => { e.stopPropagation(); toggleOpen(ev); }} className={`rounded-full border px-3 py-1 text-xs font-semibold ${T.chip}`}>{ev.registration_open ? 'End Event' : 'Reopen'}</button>
-      <button title="Delete event" onClick={(e) => { e.stopPropagation(); remove(ev); }} className="grid place-items-center h-7 w-7 rounded-full border border-rose-300/40 bg-rose-500/10 text-rose-300 text-sm hover:bg-rose-500/20">🗑️</button>
+    <div className="flex items-center gap-0.5 flex-wrap">
+      <button title="Copy registration link" onClick={(e) => { e.stopPropagation(); copyLink(ev); }} className={iconBtn}><IcoCopy /></button>
+      <button title="Edit event" onClick={(e) => { e.stopPropagation(); startEdit(ev); }} className={iconBtn}><IcoPencil /></button>
+      <button title={ev.registration_open ? 'End event (stop registrations)' : 'Reopen registrations'} onClick={(e) => { e.stopPropagation(); toggleOpen(ev); }} className={iconBtn}>{ev.registration_open ? <IcoLock /> : <IcoUnlock />}</button>
+      <button title="Delete event" onClick={(e) => { e.stopPropagation(); remove(ev); }} className={`${iconBtn} hover:text-rose-500`}><IcoTrash /></button>
     </div>
   ) : (
-    <button title="Copy registration link" onClick={(e) => { e.stopPropagation(); copyLink(ev); }} className={iconBtn}>🔗</button>
+    <button title="Copy registration link" onClick={(e) => { e.stopPropagation(); copyLink(ev); }} className={iconBtn}><IcoCopy /></button>
   );
 
   return (
@@ -942,7 +950,7 @@ const RegistrationsPanel = ({ event, canImport, reloadEvents, showSuccess, showE
           <h2 className={`font-bold ${T.heading}`}>{event.name} — Registrations</h2>
           <div className="flex items-center gap-1.5">
             <p className={`text-xs ${T.sub} break-all`}>Link: {window.location.origin}/register/{event.slug}</p>
-            <button onClick={copyLink} title="Copy registration link" className={`shrink-0 grid place-items-center h-6 w-6 rounded-md border ${T.chip}`}><IcoCopy /></button>
+            <button onClick={copyLink} title="Copy registration link" className={`shrink-0 grid place-items-center h-6 w-6 rounded-md ${T.ghost}`}><IcoCopy /></button>
           </div>
         </div>
         <div className="flex gap-2">
