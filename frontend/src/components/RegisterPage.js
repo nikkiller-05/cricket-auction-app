@@ -159,21 +159,30 @@ const RegisterPage = () => {
   }
 
   return (
-    <div className="min-h-screen py-8 px-4" style={bg}>
-      <div className="max-w-lg mx-auto">
-        <div className="text-center mb-6">
-          <div className="inline-flex items-center gap-1.5 rounded-full border border-white/12 bg-white/[0.05] px-3 py-1 mb-5">
-            <img src="/auction-logo.png" alt="" className="h-4 w-auto" />
-            <span className="text-[10px] font-semibold tracking-wide text-indigo-200/70">Powered by GoldenBidX</span>
+    <div className="min-h-screen flex flex-col" style={bg}>
+      {/* Branding header (static) */}
+      <header className="border-b border-white/10 bg-white/[0.04] backdrop-blur-xl">
+        <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <img src="/auction-logo.png" alt="" className="h-8 w-auto drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]" />
+            <span className="font-extrabold tracking-tight text-lg">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-400">Golden</span><span className="text-white">Bid</span><span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-400">X</span>
+            </span>
           </div>
-          {event.logo_url ? (
-            <img src={event.logo_url} alt="" className="w-24 h-24 rounded-2xl object-cover mx-auto mb-3 ring-2 ring-amber-300/40 shadow-[0_10px_34px_-8px_rgba(232,184,75,0.5)]" />
-          ) : (
-            <div className="w-20 h-20 rounded-2xl bg-white/10 grid place-items-center text-4xl mx-auto mb-3">🏆</div>
-          )}
-          <p className="text-[11px] uppercase tracking-[0.3em] text-amber-300/90 font-bold">Player Registration</p>
-          <h1 className="mt-1 text-3xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-400 drop-shadow-[0_2px_12px_rgba(232,184,75,0.45)]">{event.name}</h1>
+          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300/90 rounded-full border border-amber-300/25 bg-amber-400/10 px-3 py-1">Player Registration</span>
         </div>
+      </header>
+
+      <div className="flex-1 py-8 px-4">
+        <div className="max-w-lg mx-auto">
+          <div className="text-center mb-6">
+            {event.logo_url ? (
+              <img src={event.logo_url} alt="" className="w-28 h-28 rounded-2xl object-cover mx-auto mb-4 ring-2 ring-amber-300/40 shadow-[0_12px_38px_-8px_rgba(232,184,75,0.55)]" />
+            ) : (
+              <div className="w-28 h-28 rounded-2xl bg-white/10 grid place-items-center text-5xl mx-auto mb-4">🏆</div>
+            )}
+            <h1 className="text-3xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-400 drop-shadow-[0_2px_14px_rgba(232,184,75,0.5)]">{event.name}</h1>
+          </div>
 
         <form onSubmit={submit} className="rounded-2xl border border-white/15 bg-white/[0.06] backdrop-blur-2xl p-6 space-y-4 shadow-2xl">
           {/* Honeypot */}
@@ -261,8 +270,9 @@ const RegisterPage = () => {
             {event.contact_note && <p className="text-indigo-200/60 text-xs mt-2">{event.contact_note}</p>}
           </div>
         )}
+        </div>
       </div>
-      <BrandFooter theme="dark" compact />
+      <BrandFooter theme="dark" />
     </div>
   );
 };
