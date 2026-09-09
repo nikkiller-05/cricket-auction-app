@@ -5,7 +5,7 @@ import { useNotification } from './NotificationSystem';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 // Isolated axios instance so this page's auth never clobbers the dashboard's.
-const api = axios.create({ baseURL: API_BASE_URL });
+const api = axios.create({ baseURL: API_BASE_URL, timeout: 25000 });
 
 const money = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
 const initials = (s = '') => s.trim().slice(0, 2).toUpperCase() || '?';
