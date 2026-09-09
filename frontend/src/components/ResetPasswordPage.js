@@ -41,7 +41,7 @@ const ResetPasswordPage = () => {
         ) : done ? (
           <div className="text-center">
             <p className="text-sm text-emerald-300 mb-4">Your password has been updated.</p>
-            <a href="/registrations" className="inline-block rounded-full bg-gradient-to-b from-amber-400 to-amber-500 px-6 py-2.5 text-sm font-bold text-slate-900">Go to sign in</a>
+            <a href="/" className="inline-block rounded-full bg-gradient-to-b from-amber-400 to-amber-500 px-6 py-2.5 text-sm font-bold text-slate-900">Go to sign in</a>
           </div>
         ) : (
           <form onSubmit={submit}>

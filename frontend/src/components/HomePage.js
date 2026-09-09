@@ -19,7 +19,7 @@ const AuthModal = ({ onClose }) => {
   const finish = (data) => {
     localStorage.setItem('regToken', data.token);
     localStorage.setItem('regUser', JSON.stringify(data.user));
-    navigate('/registrations');
+    navigate('/console');
   };
 
   const submit = async (e) => {

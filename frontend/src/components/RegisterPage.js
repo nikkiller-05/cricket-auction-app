@@ -235,6 +235,19 @@ const RegisterPage = () => {
           </button>
           <p className="text-center text-[11px] text-indigo-200/50">Crafted by The Vernekar Brothers</p>
         </form>
+
+        {event.show_contact && (event.contact_phone || event.contact_email || event.contact_note) && (
+          <div className="mt-4 rounded-2xl border border-amber-300/25 bg-amber-400/[0.06] p-4 text-center">
+            <p className="text-amber-200 font-bold text-sm">Questions about this event?</p>
+            <p className="text-indigo-200/70 text-xs mb-3">Contact the organizer directly.</p>
+            <div className="flex flex-wrap items-center justify-center gap-2">
+              {event.contact_phone && <a href={`tel:${event.contact_phone}`} className="rounded-full border border-white/20 bg-white/10 text-white text-xs font-semibold px-3 py-1.5 hover:bg-white/20">📞 {event.contact_phone}</a>}
+              {event.contact_phone && <a href={`https://wa.me/${event.contact_phone.replace(/\D/g, '')}`} target="_blank" rel="noreferrer" className="rounded-full border border-white/20 bg-white/10 text-white text-xs font-semibold px-3 py-1.5 hover:bg-white/20">💬 WhatsApp</a>}
+              {event.contact_email && <a href={`mailto:${event.contact_email}`} className="rounded-full border border-white/20 bg-white/10 text-white text-xs font-semibold px-3 py-1.5 hover:bg-white/20">✉️ {event.contact_email}</a>}
+            </div>
+            {event.contact_note && <p className="text-indigo-200/60 text-xs mt-2">{event.contact_note}</p>}
+          </div>
+        )}
       </div>
     </div>
   );

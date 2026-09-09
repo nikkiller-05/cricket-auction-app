@@ -299,12 +299,13 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
   return (
     <div className={`min-h-screen ${T.pageCls}`} style={T.pageStyle}>
       <header className={`sticky top-0 z-40 border-b px-4 sm:px-6 py-3 flex items-center justify-between ${T.header}`}>
-        <div className="flex items-center gap-3">
+        <a href="/" className="flex items-center gap-3 group" title="Back to home">
           <img src="/auction-logo.png" alt="" className="w-9 h-9 object-contain" />
           <div>
-            <h1 className={`text-lg font-bold tracking-tight ${T.heading}`}>GoldenBidX <span className={`font-normal ${T.sub}`}>· Registrations</span></h1>
+            <h1 className={`text-lg font-bold tracking-tight ${T.heading}`}>GoldenBidX</h1>
+            <p className={`text-xs ${T.sub}`}>Organizer dashboard</p>
           </div>
-        </div>
+        </a>
         <div className="flex items-center gap-2">
           <button onClick={toggleTheme} title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} className={`grid h-9 w-9 place-items-center rounded-full border text-base shadow-sm ${T.toggleBtn}`}>
             {theme === 'dark' ? '☀️' : '🌙'}
@@ -313,36 +314,53 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
         </div>
       </header>
 
-      {isSuper && (
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-5">
-          <div className={`inline-flex gap-1 rounded-2xl border p-1 ${T.soft}`}>
-            {[['events', '🗓️ Events'], ['organizers', '👥 Organizers']].map(([k, label]) => (
-              <button key={k} onClick={() => setView(k)} className={`rounded-xl px-5 py-2 text-sm font-semibold transition ${view === k ? 'bg-amber-400 text-slate-900 shadow' : T.tabIdle}`}>{label}</button>
-            ))}
-          </div>
+      {/* Dashboard tabs */}
+      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-5">
+        <div className={`inline-flex flex-wrap gap-1 rounded-2xl border p-1 ${T.soft}`}>
+          {[['events', '🗓️ Events'], ['registrations', '📋 Registrations'], ['auctions', '🔨 Auctions'], ...(isSuper ? [['organizers', '👥 Organizers']] : [])].map(([k, label]) => (
+            <button key={k} onClick={() => setView(k)} className={`rounded-xl px-4 sm:px-5 py-2 text-sm font-semibold transition ${view === k ? 'bg-amber-400 text-slate-900 shadow' : T.tabIdle}`}>{label}</button>
+          ))}
         </div>
-      )}
+      </div>
 
-      {view === 'organizers' && isSuper ? (
-        <div className="max-w-5xl mx-auto p-4 sm:p-6">
-          <OrganizersPanel events={events} organizers={organizers} reload={loadOrganizers} showSuccess={showSuccess} showError={showError} showConfirm={showConfirm} T={T} />
-        </div>
-      ) : (
-        <div className="max-w-6xl mx-auto p-4 sm:p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-1">
-            <EventsPanel canManageEvents={canManageEvents} canAssignOrganizer={canAssignOrganizer} events={events} organizers={organizers} selected={selected} onSelect={setSelected} reload={loadEvents} showSuccess={showSuccess} showError={showError} showConfirm={showConfirm} T={T} />
-          </div>
-          <div className="lg:col-span-2">
-            {selected ? (
-              <RegistrationsPanel event={selected} canImport={canImport} reloadEvents={loadEvents} showSuccess={showSuccess} showError={showError} showConfirm={showConfirm} T={T} />
-            ) : (
-              <div className={`${T.card} p-10 text-center ${T.sub}`}>
-                {canManageEvents ? 'Create an event to start collecting registrations.' : 'No event assigned to you yet.'}
+      <div className="max-w-6xl mx-auto p-4 sm:p-6">
+        {view === 'events' && (
+          <EventsPanel canManageEvents={canManageEvents} canAssignOrganizer={canAssignOrganizer} events={events} organizers={organizers} selected={selected} onSelect={(ev) => { setSelected(ev); setView('registrations'); }} reload={loadEvents} showSuccess={showSuccess} showError={showError} showConfirm={showConfirm} T={T} />
+        )}
+
+        {view === 'registrations' && (
+          events.length === 0 ? (
+            <div className={`${T.card} p-10 text-center ${T.sub}`}>{canManageEvents ? 'Create an event first (Events tab).' : 'No event assigned to you yet.'}</div>
+          ) : (
+            <div>
+              <div className="mb-4 flex flex-wrap items-center gap-2">
+                <span className={`text-sm font-semibold ${T.label}`}>Event:</span>
+                <select value={selected?.id || ''} onChange={(e) => setSelected(events.find((ev) => String(ev.id) === e.target.value) || null)} className={`rounded-lg border px-3 py-2 text-sm ${T.input}`}>
+                  <option value="">Select an event…</option>
+                  {events.map((ev) => <option key={ev.id} value={ev.id}>{ev.name}</option>)}
+                </select>
               </div>
-            )}
+              {selected ? (
+                <RegistrationsPanel event={selected} canImport={canImport} reloadEvents={loadEvents} showSuccess={showSuccess} showError={showError} showConfirm={showConfirm} T={T} />
+              ) : (
+                <div className={`${T.card} p-10 text-center ${T.sub}`}>Pick an event to review its registrations.</div>
+              )}
+            </div>
+          )
+        )}
+
+        {view === 'auctions' && (
+          <div className={`${T.card} p-10 text-center`}>
+            <div className="text-4xl mb-2">🔨</div>
+            <h3 className={`font-bold text-lg ${T.heading}`}>Auctions — coming soon</h3>
+            <p className={`text-sm mt-1 max-w-md mx-auto ${T.sub}`}>Create and run live player auctions for your events, right from your dashboard. We're building this next.</p>
           </div>
-        </div>
-      )}
+        )}
+
+        {view === 'organizers' && isSuper && (
+          <OrganizersPanel events={events} organizers={organizers} reload={loadOrganizers} showSuccess={showSuccess} showError={showError} showConfirm={showConfirm} T={T} />
+        )}
+      </div>
 
       {modal === 'password' && <ChangePasswordModal onClose={() => setModal(null)} showSuccess={showSuccess} showError={showError} T={T} />}
       {modal === 'profile' && <ProfileModal auth={auth} onClose={() => setModal(null)} updateAuthUser={updateAuthUser} showSuccess={showSuccess} showError={showError} T={T} />}
@@ -443,7 +461,7 @@ const ChangePasswordModal = ({ onClose, showSuccess, showError, T }) => {
 };
 
 // ---------------- Events panel ----------------
-const emptyForm = { name: '', paymentRequired: true, regFee: '', upiId: '', organizerId: '' };
+const emptyForm = { name: '', paymentRequired: true, regFee: '', upiId: '', organizerId: '', showContact: false, contactPhone: '', contactEmail: '', contactNote: '' };
 const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, selected, onSelect, reload, showSuccess, showError, showConfirm, T }) => {
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -456,7 +474,7 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
   const startCreate = () => { setCreating(true); setEditing(null); setForm(emptyForm); setQr(null); };
   const startEdit = (ev) => {
     setEditing(ev.id); setCreating(false); setQr(null);
-    setForm({ name: ev.name, paymentRequired: ev.payment_required, regFee: ev.reg_fee || '', upiId: ev.upi_id || '', organizerId: ev.organizer_id || '' });
+    setForm({ name: ev.name, paymentRequired: ev.payment_required, regFee: ev.reg_fee || '', upiId: ev.upi_id || '', organizerId: ev.organizer_id || '', showContact: !!ev.show_contact, contactPhone: ev.contact_phone || '', contactEmail: ev.contact_email || '', contactNote: ev.contact_note || '' });
   };
   const closeForm = () => { setCreating(false); setEditing(null); setForm(emptyForm); setQr(null); };
 
@@ -471,6 +489,12 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
       fd.append('regFee', form.regFee || 0);
       fd.append('upiId', form.upiId);
       if (canAssignOrganizer && form.organizerId) fd.append('organizerId', form.organizerId);
+      fd.append('showContact', form.showContact);
+      if (form.showContact) {
+        fd.append('contactPhone', form.contactPhone);
+        fd.append('contactEmail', form.contactEmail);
+        fd.append('contactNote', form.contactNote);
+      }
       if (qr) fd.append('qr', qr);
       if (editing) { await api.put(`/api/registrations/events/${editing}`, fd); showSuccess('Event updated'); }
       else { await api.post('/api/registrations/events', fd); showSuccess('Event created'); }
@@ -553,6 +577,17 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
               <option value="">Assign organizer (optional)…</option>
               {organizers.map((o) => <option key={o.id} value={o.id}>{o.name || o.username}</option>)}
             </select>
+          )}
+          <label className={`flex items-center gap-2 text-sm ${T.label}`}>
+            <input type="checkbox" checked={form.showContact} onChange={(e) => setForm({ ...form, showContact: e.target.checked })} />
+            Let players contact the organizer
+          </label>
+          {form.showContact && (
+            <>
+              <input className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} placeholder="Contact phone / WhatsApp" value={form.contactPhone} onChange={(e) => setForm({ ...form, contactPhone: e.target.value })} />
+              <input className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} placeholder="Contact email" value={form.contactEmail} onChange={(e) => setForm({ ...form, contactEmail: e.target.value })} />
+              <input className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} placeholder="Other note (e.g. name, timings)" value={form.contactNote} onChange={(e) => setForm({ ...form, contactNote: e.target.value })} />
+            </>
           )}
           <div className="flex gap-2">
             <button disabled={busy} className="flex-1 rounded-full bg-indigo-600 text-white px-4 py-2 text-sm font-semibold hover:bg-indigo-500 disabled:opacity-50">{busy ? 'Saving…' : editing ? 'Update event' : 'Create event'}</button>

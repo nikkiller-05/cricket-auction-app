@@ -42,8 +42,9 @@ function App() {
               {/* Public player registration form */}
               <Route path="/register/:slug" element={<RegisterPage />} />
               
-              {/* Registration management console (super-admin / admin / organizer) */}
-              <Route path="/registrations" element={<RegistrationsAdmin />} />
+              {/* Organizer / admin dashboard (renamed from /registrations) */}
+              <Route path="/console" element={<RegistrationsAdmin />} />
+              <Route path="/registrations" element={<Navigate to="/console" replace />} />
 
               {/* Public password reset via emailed token */}
               <Route path="/reset-password" element={<ResetPasswordPage />} />

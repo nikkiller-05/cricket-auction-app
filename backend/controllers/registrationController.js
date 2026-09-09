@@ -32,6 +32,10 @@ const publicEvent = (e) => ({
   reg_fee: e.reg_fee,
   upi_id: e.payment_required ? e.upi_id : null,
   upi_qr_url: e.payment_required ? e.upi_qr_url : null,
+  show_contact: !!e.show_contact,
+  contact_phone: e.show_contact ? e.contact_phone : null,
+  contact_email: e.show_contact ? e.contact_email : null,
+  contact_note: e.show_contact ? e.contact_note : null,
 });
 
 const registrationController = {
@@ -66,7 +70,7 @@ const registrationController = {
 
   async createEvent(req, res) {
     try {
-      const { name, organizerId, paymentRequired, regFee, upiId } = req.body;
+      const { name, organizerId, paymentRequired, regFee, upiId, showContact, contactPhone, contactEmail, contactNote } = req.body;
       if (!name || !name.trim()) return res.status(400).json({ error: 'Event name is required' });
 
       let slug = slugify(name);
@@ -81,6 +85,7 @@ const registrationController = {
       // Organizers can only create events under their own id; higher roles may assign anyone.
       const isOrganizer = req.user?.role === 'organizer';
       const organizer_id = isOrganizer ? req.user.id : (organizerId ? parseInt(organizerId, 10) : null);
+      const show_contact = showContact === 'false' ? false : !!showContact;
 
       const event = await registrationService.createEvent({
         slug,
@@ -90,6 +95,10 @@ const registrationController = {
         reg_fee: regFee ? Number(regFee) : 0,
         upi_id: upiId || null,
         upi_qr_url,
+        show_contact,
+        contact_phone: show_contact ? (contactPhone || null) : null,
+        contact_email: show_contact ? (contactEmail || null) : null,
+        contact_note: show_contact ? (contactNote || null) : null,
         registration_open: true,
         created_by: req.user?.username || 'super-admin',
       });
@@ -118,6 +127,13 @@ const registrationController = {
       if (body.paymentRequired !== undefined) payload.payment_required = body.paymentRequired === 'false' ? false : !!body.paymentRequired;
       if (body.regFee !== undefined) payload.reg_fee = Number(body.regFee) || 0;
       if (body.registrationOpen !== undefined) payload.registration_open = body.registrationOpen === 'false' ? false : !!body.registrationOpen;
+      if (body.showContact !== undefined) {
+        const on = body.showContact === 'false' ? false : !!body.showContact;
+        payload.show_contact = on;
+        payload.contact_phone = on ? (body.contactPhone || null) : null;
+        payload.contact_email = on ? (body.contactEmail || null) : null;
+        payload.contact_note = on ? (body.contactNote || null) : null;
+      }
       if (req.file) payload.upi_qr_url = await registrationService.uploadImage(req.file.buffer, req.file.mimetype, `qr/${id}`);
 
       res.json({ event: await registrationService.updateEvent(id, payload) });
