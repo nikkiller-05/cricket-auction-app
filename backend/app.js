@@ -35,11 +35,16 @@ app.use('/api/registrations', registrationRoutes);
 
 // ENHANCED ERROR HANDLING MIDDLEWARE (Must be AFTER routes)
 app.use((err, req, res, next) => {
+  // Never log secrets (passwords, tokens) that may be present in the body.
+  const SENSITIVE = ['password', 'currentPassword', 'newPassword', 'token'];
+  const safeBody = { ...(req.body || {}) };
+  SENSITIVE.forEach((k) => { if (safeBody[k] !== undefined) safeBody[k] = '[REDACTED]'; });
+
   console.error('\n=== DETAILED ERROR INFORMATION ===');
   console.error('Timestamp:', new Date().toISOString());
   console.error('Request Method:', req.method);
   console.error('Request URL:', req.url);
-  console.error('Request Body:', req.body);
+  console.error('Request Body:', safeBody);
   console.error('Error Name:', err.name);
   console.error('Error Message:', err.message);
   console.error('Error Stack:', err.stack);
