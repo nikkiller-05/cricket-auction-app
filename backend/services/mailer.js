@@ -94,6 +94,24 @@ const mailer = {
     }
   },
 
+  async sendOrganizerWelcome(to, username, setupUrl) {
+    if (!provider) return false;
+    try {
+      const linkBlock = setupUrl
+        ? `<p>To set your password, click the button below (valid for 7 days):</p><p><a href="${setupUrl}" style="display:inline-block;background:#e8b84b;color:#111;padding:10px 18px;border-radius:9999px;font-weight:700;text-decoration:none">Set your password</a></p><p>Or copy this link:<br>${setupUrl}</p>`
+        : '<p>Your administrator will share your password with you.</p>';
+      await deliver({
+        to,
+        subject: 'Welcome to GoldenBidX',
+        text: `Hi,\n\nAn organizer account has been created for you on GoldenBidX.\n\nUsername: ${username}\n\n${setupUrl ? `Set your password (valid for 7 days): ${setupUrl}` : 'Your administrator will share your password with you.'}\n\nSee you inside!`,
+        html: `<p>Hi,</p><p>An organizer account has been created for you on <b>GoldenBidX</b>.</p><p><b>Username:</b> ${username}</p>${linkBlock}<p style="color:#888;font-size:12px">If you weren't expecting this, you can ignore this email.</p>`,
+      });
+      return true;
+    } catch (e) {
+      throw new Error(cleanError(e));
+    }
+  },
+
   async sendTest(to) {
     if (!provider) throw new Error('No email provider configured (set RESEND_API_KEY, BREVO_API_KEY or SMTP_*).');
     try {

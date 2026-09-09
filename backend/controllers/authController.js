@@ -264,6 +264,24 @@ const authController = {
         console.error('createOrganizer error:', error.message);
         return res.status(500).json({ error: 'Could not create organizer' });
       }
+
+      // Welcome email with a self-serve "set your password" link (best-effort).
+      if (email && mailer.isConfigured) {
+        try {
+          const appUrl = (APP_URL || req.headers.origin || '').replace(/\/$/, '');
+          let setupUrl = null;
+          if (appUrl) {
+            const rawToken = crypto.randomBytes(32).toString('hex');
+            const expires = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(); // 7 days
+            await supabase.from(TABLE).update({ reset_token: hashToken(rawToken), reset_token_expires: expires }).eq('id', data.id);
+            setupUrl = `${appUrl}/reset-password?token=${rawToken}`;
+          }
+          await mailer.sendOrganizerWelcome(email, username, setupUrl);
+        } catch (e) {
+          console.error('organizer welcome email failed:', e.message);
+        }
+      }
+
       res.json({ message: 'Organizer created successfully', organizer: publicUser(data) });
     } catch (error) {
       next(error);
@@ -398,7 +416,7 @@ const authController = {
   forgotPassword: async (req, res, next) => {
     try {
       const identifier = (req.body.identifier || req.body.username || req.body.email || '').trim();
-      const generic = { message: 'If an account exists, a password reset link has been sent to its registered email.' };
+      const generic = { message: 'If an account exists, a password reset link has been sent to its registered email. If you don\'t receive it within a few minutes, check your spam folder or contact your admin.' };
       if (!identifier) return res.status(400).json({ error: 'Enter your username or registered email' });
       if (!supabase) return res.json(generic);
 

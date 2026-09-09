@@ -723,7 +723,7 @@ const OrganizersPanel = ({ events, organizers, reload, showSuccess, showError, s
           </select>
           <button disabled={busy} className="w-full rounded-full bg-amber-400 text-slate-900 px-4 py-2 text-sm font-bold hover:bg-amber-300 disabled:opacity-50">{busy ? 'Creating…' : 'Create organizer'}</button>
         </form>
-        <p className={`mt-3 text-[11px] ${T.sub}`}>Email/phone help avoid duplicates and power the forgot-password request.</p>
+        <p className={`mt-3 text-[11px] ${T.sub}`}>Email/phone help avoid duplicates. When an email is given, the organizer gets a welcome email with a link to set their own password.</p>
       </div>
 
       <div className={`${T.card} p-5 md:col-span-2`}>
