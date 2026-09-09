@@ -10,14 +10,6 @@ const TABLE = 'admin_users';
 const APP_URL = process.env.PUBLIC_APP_URL || process.env.FRONTEND_URL || '';
 const hashToken = (t) => crypto.createHash('sha256').update(t).digest('hex');
 
-// Show a hint of the email without revealing it fully, e.g. n****r@gmail.com.
-const maskEmail = (email) => {
-  const [name, domain] = String(email).split('@');
-  if (!domain) return email;
-  const shown = name.length <= 2 ? name[0] : `${name[0]}****${name[name.length - 1]}`;
-  return `${shown}@${domain}`;
-};
-
 // Look up a single admin/sub-admin row by username.
 const findUserByUsername = async (username) => {
   if (!supabase) return null;
@@ -36,7 +28,7 @@ const findUserByUsername = async (username) => {
 // Look up a row by a unique field (email lowercased / phone). Returns first match or null.
 const findUserByField = async (field, value) => {
   if (!supabase || !value) return null;
-  const { data } = await supabase.from(TABLE).select('id, username').eq(field, value).limit(1);
+  const { data } = await supabase.from(TABLE).select('*').eq(field, value).limit(1);
   return (data && data[0]) || null;
 };
 
@@ -401,45 +393,39 @@ const authController = {
 
   // Public: a user who forgot their password. A reset link is ONLY ever sent to
   // the account's own registered email — never to an address typed by the
-  // requester. Messages are explicit so users understand what happened.
+  // requester. Responds generically (anti user-enumeration): the reply is the
+  // same whether or not the account exists.
   forgotPassword: async (req, res, next) => {
     try {
       const identifier = (req.body.identifier || req.body.username || req.body.email || '').trim();
+      const generic = { message: 'If an account exists, a password reset link has been sent to its registered email.' };
       if (!identifier) return res.status(400).json({ error: 'Enter your username or registered email' });
-      if (!supabase) return res.status(503).json({ error: 'Service unavailable' });
+      if (!supabase) return res.json(generic);
 
       // Resolve the account by username first, then by registered email.
       let user = await findUserByUsername(identifier);
       if (!user) user = await findUserByField('email', identifier.toLowerCase());
-      if (!user) return res.status(404).json({ error: 'No account found with that username or email.' });
+      if (!user) return res.json(generic);
 
       // Record the request so an admin can help even if email can't be sent.
       await supabase.from(TABLE).update({ reset_requested_at: new Date().toISOString() }).eq('id', user.id);
 
-      if (!user.email) {
-        return res.status(400).json({ error: 'No email is registered for this account. Please contact your admin to reset your password.' });
-      }
-      if (!mailer.isConfigured) {
-        return res.status(400).json({ error: 'Email is not set up on the server yet. Your admin has been notified to reset your password.' });
-      }
-
-      // Prefer the configured public URL; fall back to the request origin so the
-      // link always points at the site the user came from.
+      // Prefer the configured public URL; fall back to the request origin.
       const appUrl = (APP_URL || req.headers.origin || '').replace(/\/$/, '');
-      if (!appUrl) return res.status(500).json({ error: 'Server is missing PUBLIC_APP_URL. Please contact your admin.' });
 
-      const rawToken = crypto.randomBytes(32).toString('hex');
-      const expires = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour
-      await supabase.from(TABLE).update({ reset_token: hashToken(rawToken), reset_token_expires: expires }).eq('id', user.id);
-      const resetUrl = `${appUrl}/reset-password?token=${rawToken}`;
-
-      try {
-        await mailer.sendPasswordReset(user.email, resetUrl, user.username);
-      } catch (e) {
-        console.error('reset email failed:', e.message);
-        return res.status(502).json({ error: `Could not send the reset email: ${e.message}` });
+      if (mailer.isConfigured && user.email && appUrl) {
+        const rawToken = crypto.randomBytes(32).toString('hex');
+        const expires = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour
+        await supabase.from(TABLE).update({ reset_token: hashToken(rawToken), reset_token_expires: expires }).eq('id', user.id);
+        const resetUrl = `${appUrl}/reset-password?token=${rawToken}`;
+        try { await mailer.sendPasswordReset(user.email, resetUrl, user.username); }
+        catch (e) { console.error('reset email failed:', e.message); }
+      } else {
+        // Logged (not exposed) so an admin can diagnose why no email went out.
+        console.warn('forgot-password: no email sent', { user: user.username, hasEmail: !!user.email, mailerConfigured: mailer.isConfigured, hasAppUrl: !!appUrl });
       }
-      res.json({ message: `A password reset link has been sent to ${maskEmail(user.email)}. It is valid for 1 hour.` });
+
+      res.json(generic);
     } catch (error) {
       next(error);
     }
