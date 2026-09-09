@@ -21,7 +21,7 @@ const ShareAuctionModal = ({ isOpen, onClose, url }) => {
   const nativeShare = async () => {
     if (navigator.share) {
       try {
-        await navigator.share({ title: 'Cricket Auction — Live', text: 'Watch the live cricket auction!', url: shareUrl });
+        await navigator.share({ title: 'GoldenBidX — Live', text: 'Watch the live auction on GoldenBidX!', url: shareUrl });
       } catch {
         // User dismissed the share sheet.
       }

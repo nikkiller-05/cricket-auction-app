@@ -241,7 +241,7 @@ const AuctionSetup = () => {
               🏏 Auction Setup
             </h1>
             <p className="text-xl text-blue-200 font-light">
-              Configure your cricket auction settings
+              Configure your auction settings
             </p>
           </div>
         </header>
@@ -749,7 +749,7 @@ const AuctionSetup = () => {
         {/* Footer */}
         <footer className="py-6 text-center">
           <p className="text-blue-300 text-sm">
-            © 2025 Cricket Auction Platform. Built with ❤️ for cricket enthusiasts.
+            © 2025 GoldenBidX. Built with ❤️ for auction organizers.
           </p>
         </footer>
       </div>

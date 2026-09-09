@@ -127,6 +127,7 @@ const LoginView = ({ onAuthed, showSuccess, showError, T, theme, toggleTheme }) 
       <form onSubmit={login} className={`w-full max-w-sm ${T.card} p-7`}>
         <div className="text-center mb-6">
           <img src="/auction-logo.png" alt="" className="w-14 h-14 rounded-xl mx-auto mb-3 ring-1 ring-amber-300/30" />
+          <p className="text-lg font-extrabold text-white tracking-tight">GoldenBidX</p>
           <p className="text-[11px] uppercase tracking-[0.3em] text-amber-400/90 font-bold">Registration Console</p>
         </div>
         <label className={`block text-xs font-semibold ${T.label} mb-1`}>Username</label>
@@ -300,7 +301,7 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
         <div className="flex items-center gap-3">
           <img src="/auction-logo.png" alt="" className="w-9 h-9 rounded-lg" />
           <div>
-            <h1 className={`text-lg font-bold tracking-tight ${T.heading}`}>Registration Console</h1>
+            <h1 className={`text-lg font-bold tracking-tight ${T.heading}`}>GoldenBidX <span className={`font-normal ${T.sub}`}>· Registrations</span></h1>
             <p className={`text-xs ${T.sub}`}>{auth.user.username} · {String(auth.user.role).replace('-', ' ')}</p>
           </div>
         </div>

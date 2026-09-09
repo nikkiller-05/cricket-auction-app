@@ -34,6 +34,7 @@ const ResetPasswordPage = () => {
       <div className="w-full max-w-sm rounded-2xl border border-white/12 bg-white/[0.05] backdrop-blur-xl p-7">
         <div className="text-center mb-6">
           <img src="/auction-logo.png" alt="" className="w-14 h-14 rounded-xl mx-auto mb-3 ring-1 ring-amber-300/30" />
+          <p className="text-lg font-extrabold text-white tracking-tight">GoldenBidX</p>
           <p className="text-[11px] uppercase tracking-[0.3em] text-amber-400/90 font-bold">Reset password</p>
         </div>
         {!token ? (

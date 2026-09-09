@@ -106,8 +106,8 @@ const Header = memo(({
         {/* Left Section - Logo */}
         <div className="header-left">
           <div className="logo">
-            <span className="logo-icon">🏏</span>
-            <span className="logo-text">Cricket Auction</span>
+            <span className="logo-icon">�</span>
+            <span className="logo-text">GoldenBidX</span>
           </div>
         </div>
 

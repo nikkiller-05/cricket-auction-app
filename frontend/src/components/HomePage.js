@@ -127,11 +127,11 @@ const HomePage = () => {
             />
             <h1 className="text-3xl md:text-4xl font-extrabold mb-1.5 tracking-tight drop-shadow-[0_4px_30px_rgba(232,184,75,0.35)]">
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-amber-100 via-white to-amber-200">
-                Cricket Auction
+                GoldenBidX
               </span>
             </h1>
             <p className="text-xs sm:text-sm font-bold uppercase tracking-[0.4em] text-amber-300/90 mb-2">
-              Bid · Discover · Own
+              Bid · Build · Win
             </p>
             <p className="text-base md:text-lg text-indigo-200/90 font-light">
               Experience the thrill of live player auctions

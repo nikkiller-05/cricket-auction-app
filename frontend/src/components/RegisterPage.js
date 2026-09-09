@@ -158,6 +158,7 @@ const RegisterPage = () => {
       <div className="max-w-lg mx-auto">
         <div className="text-center mb-6">
           <img src="/auction-logo.png" alt="" className="w-16 h-16 rounded-xl mx-auto mb-3 ring-1 ring-amber-300/30" />
+          <p className="text-sm font-extrabold text-white tracking-tight">GoldenBidX</p>
           <p className="text-[11px] uppercase tracking-[0.3em] text-amber-300/90 font-bold">Player Registration</p>
           <h1 className="text-2xl font-extrabold text-white mt-1">{event.name}</h1>
         </div>
