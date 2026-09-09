@@ -81,13 +81,17 @@ const mailer = {
 
   async sendPasswordReset(to, resetUrl, username) {
     if (!provider) return false;
-    await deliver({
-      to,
-      subject: 'Reset your GoldenBidX password',
-      text: `Hello ${username},\n\nWe received a request to reset your password. Open the link below to set a new one (valid for 1 hour):\n\n${resetUrl}\n\nIf you did not request this, you can ignore this email.`,
-      html: `<p>Hello ${username},</p><p>We received a request to reset your password. Click the button below to set a new one (valid for 1 hour):</p><p><a href="${resetUrl}" style="display:inline-block;background:#e8b84b;color:#111;padding:10px 18px;border-radius:9999px;font-weight:700;text-decoration:none">Reset password</a></p><p>Or copy this link:<br>${resetUrl}</p><p style="color:#888;font-size:12px">If you did not request this, you can safely ignore this email.</p>`,
-    });
-    return true;
+    try {
+      await deliver({
+        to,
+        subject: 'Reset your GoldenBidX password',
+        text: `Hello ${username},\n\nWe received a request to reset your password. Open the link below to set a new one (valid for 1 hour):\n\n${resetUrl}\n\nIf you did not request this, you can ignore this email.`,
+        html: `<p>Hello ${username},</p><p>We received a request to reset your password. Click the button below to set a new one (valid for 1 hour):</p><p><a href="${resetUrl}" style="display:inline-block;background:#e8b84b;color:#111;padding:10px 18px;border-radius:9999px;font-weight:700;text-decoration:none">Reset password</a></p><p>Or copy this link:<br>${resetUrl}</p><p style="color:#888;font-size:12px">If you did not request this, you can safely ignore this email.</p>`,
+      });
+      return true;
+    } catch (e) {
+      throw new Error(cleanError(e));
+    }
   },
 
   async sendTest(to) {
