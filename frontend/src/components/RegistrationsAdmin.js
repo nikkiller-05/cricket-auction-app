@@ -17,6 +17,14 @@ const IcoTrash = (p) => (<svg viewBox="0 0 24 24" fill="currentColor" width="15"
 const IcoLock = (p) => (<svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15" {...p}><path fillRule="evenodd" clipRule="evenodd" d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3c0-2.9-2.35-5.25-5.25-5.25zm3.75 8.25v-3a3.75 3.75 0 10-7.5 0v3h7.5z" /></svg>);
 const IcoUnlock = (p) => (<svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15" {...p}><path d="M18 1.5c2.9 0 5.25 2.35 5.25 5.25v3.75a.75.75 0 01-1.5 0V6.75a3.75 3.75 0 10-7.5 0v3h.75a3 3 0 013 3v6.75a3 3 0 01-3 3H3.75a3 3 0 01-3-3v-6.75a3 3 0 013-3h9v-3c0-2.9 2.35-5.25 5.25-5.25z" /></svg>);
 
+// Icon button with a custom hover tooltip (native title is too slow/inconsistent).
+const IconBtn = ({ title, onClick, danger, T, size = 'h-8 w-8', children }) => (
+  <span className="relative group inline-flex">
+    <button type="button" onClick={onClick} aria-label={title} className={`grid place-items-center rounded-full transition ${size} ${T.ghost} ${danger ? 'hover:text-rose-500' : ''}`}>{children}</button>
+    <span className="pointer-events-none absolute bottom-full left-1/2 mb-1.5 -translate-x-1/2 whitespace-nowrap rounded-md bg-slate-900 text-white text-[10px] font-semibold px-2 py-1 opacity-0 group-hover:opacity-100 transition-opacity duration-150 z-30 shadow-lg">{title}</span>
+  </span>
+);
+
 // Downscale an event logo before upload so storage stays light (~320px JPEG).
 const compressLogo = (file, maxDim = 320, quality = 0.85) => new Promise((resolve) => {
   try {
@@ -49,7 +57,7 @@ const THEMES = {
     heading: 'text-white', sub: 'text-indigo-200/60', label: 'text-indigo-200/80',
     input: 'bg-white/10 border-white/20 text-white placeholder-white/40 [&>option]:text-slate-900',
     chip: 'bg-white/10 text-white border-white/20 hover:bg-white/20',
-    ghost: 'text-white/80 hover:bg-white/12',
+    ghost: 'text-white/70 hover:bg-white/15',
     toggleBtn: 'bg-white/10 text-amber-300 border-white/20 hover:bg-white/20',
     tabIdle: 'text-indigo-200/60 hover:text-white',
     itemHover: 'hover:bg-white/5',
@@ -67,7 +75,7 @@ const THEMES = {
     heading: 'text-slate-900', sub: 'text-slate-500', label: 'text-slate-600',
     input: 'bg-white border-slate-300 text-slate-900 placeholder-slate-400',
     chip: 'bg-slate-100 text-slate-700 border-slate-200 hover:bg-slate-200',
-    ghost: 'text-slate-600 hover:bg-slate-100',
+    ghost: 'text-slate-500 hover:bg-slate-200',
     toggleBtn: 'bg-slate-800 text-amber-300 border-slate-800 hover:bg-slate-700',
     tabIdle: 'text-slate-500 hover:text-slate-900',
     itemHover: 'hover:bg-slate-50',
@@ -569,7 +577,6 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
     return true;
   });
 
-  const iconBtn = `grid place-items-center h-8 w-8 rounded-full transition ${T.ghost}`;
   const logoThumb = (ev, size = 'w-10 h-10') => ev.logo_url
     ? <img src={ev.logo_url} alt="" className={`${size} rounded-lg object-cover shrink-0 bg-white/10`} />
     : <div className={`${size} rounded-lg bg-white/10 grid place-items-center text-base shrink-0`}>🏆</div>;
@@ -584,13 +591,13 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
   ) : null;
   const actions = (ev) => canManageEvents ? (
     <div className="flex items-center gap-0.5 flex-wrap">
-      <button title="Copy registration link" onClick={(e) => { e.stopPropagation(); copyLink(ev); }} className={iconBtn}><IcoCopy /></button>
-      <button title="Edit event" onClick={(e) => { e.stopPropagation(); startEdit(ev); }} className={iconBtn}><IcoPencil /></button>
-      <button title={ev.registration_open ? 'End event (stop registrations)' : 'Reopen registrations'} onClick={(e) => { e.stopPropagation(); toggleOpen(ev); }} className={iconBtn}>{ev.registration_open ? <IcoLock /> : <IcoUnlock />}</button>
-      <button title="Delete event" onClick={(e) => { e.stopPropagation(); remove(ev); }} className={`${iconBtn} hover:text-rose-500`}><IcoTrash /></button>
+      <IconBtn T={T} title="Copy link" onClick={(e) => { e.stopPropagation(); copyLink(ev); }}><IcoCopy /></IconBtn>
+      <IconBtn T={T} title="Edit event" onClick={(e) => { e.stopPropagation(); startEdit(ev); }}><IcoPencil /></IconBtn>
+      <IconBtn T={T} title={ev.registration_open ? 'End event' : 'Reopen'} onClick={(e) => { e.stopPropagation(); toggleOpen(ev); }}>{ev.registration_open ? <IcoLock /> : <IcoUnlock />}</IconBtn>
+      <IconBtn T={T} danger title="Delete event" onClick={(e) => { e.stopPropagation(); remove(ev); }}><IcoTrash /></IconBtn>
     </div>
   ) : (
-    <button title="Copy registration link" onClick={(e) => { e.stopPropagation(); copyLink(ev); }} className={iconBtn}><IcoCopy /></button>
+    <IconBtn T={T} title="Copy link" onClick={(e) => { e.stopPropagation(); copyLink(ev); }}><IcoCopy /></IconBtn>
   );
 
   return (
@@ -688,7 +695,7 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
           ))}
         </div>
       ) : (
-        <div className={`rounded-xl border overflow-hidden ${T.cardIdle}`}>
+        <div className={`rounded-xl border ${T.cardIdle}`}>
           {filtered.map((ev, i) => (
             <div key={ev.id} className={`flex items-center gap-3 p-2.5 ${i > 0 ? `border-t ${T.divide}` : ''} ${selected?.id === ev.id ? T.cardSel : ''}`}>
               <button onClick={() => onSelect(ev)} className="flex items-center gap-3 flex-1 min-w-0 text-left">
@@ -950,7 +957,7 @@ const RegistrationsPanel = ({ event, canImport, reloadEvents, showSuccess, showE
           <h2 className={`font-bold ${T.heading}`}>{event.name} — Registrations</h2>
           <div className="flex items-center gap-1.5">
             <p className={`text-xs ${T.sub} break-all`}>Link: {window.location.origin}/register/{event.slug}</p>
-            <button onClick={copyLink} title="Copy registration link" className={`shrink-0 grid place-items-center h-6 w-6 rounded-md ${T.ghost}`}><IcoCopy /></button>
+            <IconBtn T={T} title="Copy link" onClick={copyLink} size="h-7 w-7"><IcoCopy /></IconBtn>
           </div>
         </div>
         <div className="flex gap-2">
