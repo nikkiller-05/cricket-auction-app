@@ -204,11 +204,13 @@ const HomePage = () => {
 
       <div className="relative z-10 min-h-screen flex flex-col">
         {/* Top nav */}
-        <nav className="sticky top-0 z-30 backdrop-blur-xl bg-black/25 border-b border-white/10">
-          <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between">
+        <nav className="sticky top-0 z-30 backdrop-blur-xl bg-[#0b0b12]/85 border-b border-amber-300/20 shadow-[0_10px_30px_-15px_rgba(0,0,0,0.9)]">
+          <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <img src="/auction-logo.png" alt="" className="h-10 w-auto drop-shadow-[0_1px_3px_rgba(0,0,0,0.55)]" />
-              <span className="font-extrabold tracking-tight text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-400">GoldenBidX</span>
+              <span className="font-extrabold tracking-tight text-lg">
+                <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-400">Golden</span><span className="text-white">Bid</span><span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-400">X</span>
+              </span>
             </div>
             <div className="flex items-center gap-4 sm:gap-6">
               <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-indigo-100/80">

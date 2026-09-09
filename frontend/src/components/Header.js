@@ -107,7 +107,9 @@ const Header = memo(({
         <div className="header-left">
           <div className="logo">
             <img src="/auction-logo.png" alt="GoldenBidX" className="logo-img" />
-            <span className="logo-text">GoldenBidX</span>
+            <span className="logo-text">
+              <span className="logo-gold">Golden</span><span className="logo-white">Bid</span><span className="logo-gold">X</span>
+            </span>
           </div>
         </div>
 

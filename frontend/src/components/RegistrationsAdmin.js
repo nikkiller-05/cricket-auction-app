@@ -83,6 +83,8 @@ const RegistrationsAdmin = () => {
     localStorage.removeItem('regUser');
     delete api.defaults.headers.common.Authorization;
     setAuth(null);
+    // Return to the public landing page after signing out.
+    window.location.href = '/';
   };
 
   const updateAuthUser = (user) => {

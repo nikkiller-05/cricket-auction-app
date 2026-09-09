@@ -64,10 +64,17 @@
 
 .logo-text {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+}
+
+.logo-gold {
   background: linear-gradient(135deg, #fde047, #facc15);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
+}
+
+.logo-white {
+  color: #ffffff;
 }
 
 /* Center Section - Auction Status */
