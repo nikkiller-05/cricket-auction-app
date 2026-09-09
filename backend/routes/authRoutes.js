@@ -18,10 +18,12 @@ router.delete('/sub-admin/:id', verifySuperAdmin, authController.deleteSubAdmin)
 // Organizer accounts (super-admin only)
 router.post('/organizer', verifySuperAdmin, authController.createOrganizer);
 router.get('/organizers', verifySuperAdmin, authController.getOrganizers);
+router.put('/organizer/:id', verifySuperAdmin, authController.updateOrganizer);
 router.delete('/organizer/:id', verifySuperAdmin, authController.deleteOrganizer);
 
 // Password management
 router.post('/change-password', verifyRegistrationManager, authController.changePassword);
+router.put('/profile', verifyRegistrationManager, authController.updateProfile);
 router.post('/users/:id/reset-password', verifySuperAdmin, authController.resetUserPassword);
 router.post('/test-email', verifySuperAdmin, authController.sendTestEmail);
 

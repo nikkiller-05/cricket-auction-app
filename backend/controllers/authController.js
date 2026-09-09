@@ -32,6 +32,36 @@ const findUserByField = async (field, value) => {
   return (data && data[0]) || null;
 };
 
+// Validate + assemble a name/email/phone update; sends an error response and
+// returns null if validation fails. `selfId` is the row being edited (to skip
+// its own email/phone during duplicate checks).
+const buildProfilePayload = async (body, selfId, res) => {
+  const payload = {};
+  if (body.name !== undefined) payload.name = (body.name || '').trim() || null;
+
+  if (body.email !== undefined) {
+    const email = (body.email || '').trim().toLowerCase() || null;
+    if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { res.status(400).json({ error: 'Invalid email address' }); return null; }
+    if (email) {
+      const ex = await findUserByField('email', email);
+      if (ex && String(ex.id) !== String(selfId)) { res.status(400).json({ error: 'An account with this email already exists' }); return null; }
+    }
+    payload.email = email;
+  }
+
+  if (body.phone !== undefined) {
+    const phone = (body.phone || '').trim() || null;
+    if (phone && !/^\d{10}$/.test(phone)) { res.status(400).json({ error: 'Phone must be a 10-digit number' }); return null; }
+    if (phone) {
+      const ex = await findUserByField('phone', phone);
+      if (ex && String(ex.id) !== String(selfId)) { res.status(400).json({ error: 'An account with this phone already exists' }); return null; }
+    }
+    payload.phone = phone;
+  }
+
+  return payload;
+};
+
 const publicUser = (u) => ({
   id: u.id,
   username: u.username,
@@ -75,7 +105,15 @@ const authController = {
       res.json({
         message: 'Login successful',
         token,
-        user: { id: user.id, username: user.username, role: user.role, eventId: user.event_id || null },
+        user: {
+          id: user.id,
+          username: user.username,
+          name: user.name || null,
+          email: user.email || null,
+          phone: user.phone || null,
+          role: user.role,
+          eventId: user.event_id || null,
+        },
       });
     } catch (error) {
       console.error('Login error:', error.message);
@@ -270,6 +308,37 @@ const authController = {
       next(error);
     }
   },
+
+  // Edit your own profile (name / email / phone).
+  updateProfile: async (req, res, next) => {
+    try {
+      if (!supabase) return res.status(503).json({ error: 'Authentication service unavailable' });
+      const payload = await buildProfilePayload(req.body, req.user.id, res);
+      if (!payload) return; // buildProfilePayload already sent an error response
+      const { data, error } = await supabase.from(TABLE).update(payload).eq('id', req.user.id).select().maybeSingle();
+      if (error) return res.status(500).json({ error: 'Could not update profile' });
+      if (!data) return res.status(404).json({ error: 'User not found' });
+      res.json({ user: publicUser(data) });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  // Super-admin edits an organizer's profile (name / email / phone).
+  updateOrganizer: async (req, res, next) => {
+    try {
+      if (!supabase) return res.status(503).json({ error: 'Authentication service unavailable' });
+      const { id } = req.params;
+      const payload = await buildProfilePayload(req.body, id, res);
+      if (!payload) return;
+      const { data, error } = await supabase.from(TABLE).update(payload).eq('id', id).eq('role', 'organizer').select().maybeSingle();
+      if (error) return res.status(500).json({ error: 'Could not update organizer' });
+      if (!data) return res.status(404).json({ error: 'Organizer not found' });
+      res.json({ organizer: publicUser(data) });
+    } catch (error) {
+      next(error);
+    }
+  },
   // Change your own password (any logged-in manager: super-admin/admin/organizer).
   changePassword: async (req, res, next) => {
     try {
@@ -322,28 +391,21 @@ const authController = {
     }
   },
 
-  // Public: a user who forgot their password. When SMTP is configured and the
-  // account has an email, we send a tokenized reset link; otherwise we fall back
-  // to flagging a reset request for the super-admin. Always responds generically.
+  // Public: a user who forgot their password. A reset link is ONLY ever sent to
+  // the account's own registered email — never to an address typed by the
+  // requester — so it cannot be used to redirect a reset to an attacker.
   forgotPassword: async (req, res, next) => {
     try {
-      const username = (req.body.username || '').trim();
-      const email = (req.body.email || '').trim().toLowerCase();
-      const generic = { message: 'If the account exists, a reset link (or admin request) has been sent.' };
-      if (!username && !email) {
-        return res.status(400).json({ error: 'Enter your username or registered email' });
-      }
+      const identifier = (req.body.identifier || req.body.username || req.body.email || '').trim();
+      const generic = { message: 'If an account exists, a reset link has been sent to its registered email.' };
+      if (!identifier) return res.status(400).json({ error: 'Enter your username or registered email' });
       if (!supabase) return res.json(generic);
 
-      let user = username ? await findUserByUsername(username) : null;
-      if (!user && email) user = await findUserByField('email', email);
-      // If both provided, require them to match the same account.
-      if (user && username && email && user.email && user.email.toLowerCase() !== email) {
-        return res.json(generic);
-      }
+      // Resolve the account by username first, then by registered email.
+      let user = await findUserByUsername(identifier);
+      if (!user) user = await findUserByField('email', identifier.toLowerCase());
       if (!user) return res.json(generic);
 
-      // Preferred path: email a tokenized reset link.
       if (mailer.isConfigured && user.email && APP_URL) {
         const rawToken = crypto.randomBytes(32).toString('hex');
         const expires = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour
@@ -358,7 +420,7 @@ const authController = {
         return res.json(generic);
       }
 
-      // Fallback: flag the request for the super-admin to reset manually.
+      // Fallback (no email on file or SMTP/API not configured): flag for the admin.
       await supabase.from(TABLE).update({ reset_requested_at: new Date().toISOString() }).eq('id', user.id);
       res.json(generic);
     } catch (error) {

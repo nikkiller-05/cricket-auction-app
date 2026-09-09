@@ -85,9 +85,14 @@ const RegistrationsAdmin = () => {
     setAuth(null);
   };
 
+  const updateAuthUser = (user) => {
+    setAuth((a) => (a ? { ...a, user } : a));
+    localStorage.setItem('regUser', JSON.stringify(user));
+  };
+
   if (booting) return <div className="min-h-screen" style={DARK_BG} />;
   if (!auth) return <LoginView onAuthed={setAuth} showSuccess={showSuccess} showError={showError} theme={theme} toggleTheme={toggleTheme} T={T} />;
-  return <Console auth={auth} onLogout={onLogout} showSuccess={showSuccess} showError={showError} showConfirm={showConfirm} T={T} theme={theme} toggleTheme={toggleTheme} />;
+  return <Console auth={auth} onLogout={onLogout} updateAuthUser={updateAuthUser} showSuccess={showSuccess} showError={showError} showConfirm={showConfirm} T={T} theme={theme} toggleTheme={toggleTheme} />;
 };
 
 // ---------------- Login ----------------
@@ -145,14 +150,14 @@ const LoginView = ({ onAuthed, showSuccess, showError, T, theme, toggleTheme }) 
 
 // ---------------- Forgot password ----------------
 const ForgotPasswordModal = ({ onClose, showSuccess, showError, T }) => {
-  const [form, setForm] = useState({ username: '', email: '' });
+  const [identifier, setIdentifier] = useState('');
   const [busy, setBusy] = useState(false);
   const submit = async (e) => {
     e.preventDefault();
-    if (!form.username && !form.email) return showError('Enter your username or registered email');
+    if (!identifier.trim()) return showError('Enter your username or registered email');
     setBusy(true);
     try {
-      const res = await api.post('/api/auth/forgot-password', form);
+      const res = await api.post('/api/auth/forgot-password', { identifier: identifier.trim() });
       showSuccess(res.data.message || 'Request sent');
       onClose();
     } catch (err) { showError(err.response?.data?.error || 'Could not send request'); }
@@ -160,13 +165,12 @@ const ForgotPasswordModal = ({ onClose, showSuccess, showError, T }) => {
   };
   return (
     <ModalShell onClose={onClose} T={T} title="Forgot password">
-      <p className={`text-xs mb-3 ${T.sub}`}>If your account has a registered email, we'll send a reset link. Otherwise a reset request goes to the admin, who will set a new password for you.</p>
+      <p className={`text-xs mb-3 ${T.sub}`}>Enter your username or email. For security, the reset link is always sent to the account's <b>registered email</b> — never to an address typed here. If no email is on file, the request goes to the admin.</p>
       <form onSubmit={submit}>
-        <input placeholder="Username" value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} className={`w-full rounded-lg border px-3 py-2.5 mb-2 ${T.input}`} />
-        <input placeholder="Registered email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className={`w-full rounded-lg border px-3 py-2.5 mb-4 ${T.input}`} />
+        <input placeholder="Username or registered email" value={identifier} onChange={(e) => setIdentifier(e.target.value)} className={`w-full rounded-lg border px-3 py-2.5 mb-4 ${T.input}`} />
         <div className="flex justify-end gap-2">
           <button type="button" onClick={onClose} className={`rounded-full border px-4 py-2 text-sm font-semibold ${T.chip}`}>Cancel</button>
-          <button disabled={busy} className="rounded-full bg-amber-500 text-slate-900 px-5 py-2 text-sm font-bold hover:bg-amber-400 disabled:opacity-50">{busy ? 'Sending…' : 'Send request'}</button>
+          <button disabled={busy} className="rounded-full bg-amber-500 text-slate-900 px-5 py-2 text-sm font-bold hover:bg-amber-400 disabled:opacity-50">{busy ? 'Sending…' : 'Send reset link'}</button>
         </div>
       </form>
     </ModalShell>
@@ -257,7 +261,7 @@ const ProfileMenu = ({ auth, onChangePassword, onProfile, onLogout, onTestEmail,
 };
 
 // ---------------- Console ----------------
-const Console = ({ auth, onLogout, showSuccess, showError, showConfirm, T, theme, toggleTheme }) => {
+const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showConfirm, T, theme, toggleTheme }) => {
   const isSuper = auth.user.role === 'super-admin';
   const isOrganizer = auth.user.role === 'organizer';
   const canImport = ['super-admin', 'admin'].includes(auth.user.role);
@@ -297,13 +301,7 @@ const Console = ({ auth, onLogout, showSuccess, showError, showConfirm, T, theme
           <img src="/auction-logo.png" alt="" className="w-9 h-9 rounded-lg" />
           <div>
             <h1 className={`text-lg font-bold tracking-tight ${T.heading}`}>Registration Console</h1>
-            {isSuper && (
-              <nav className="mt-1 flex gap-1">
-                {[['events', 'Events'], ['organizers', 'Organizers']].map(([k, label]) => (
-                  <button key={k} onClick={() => setView(k)} className={`rounded-full px-3 py-0.5 text-xs font-semibold ${view === k ? 'bg-amber-400 text-slate-900' : T.tabIdle}`}>{label}</button>
-                ))}
-              </nav>
-            )}
+            <p className={`text-xs ${T.sub}`}>{auth.user.username} · {String(auth.user.role).replace('-', ' ')}</p>
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -313,6 +311,16 @@ const Console = ({ auth, onLogout, showSuccess, showError, showConfirm, T, theme
           <ProfileMenu auth={auth} onChangePassword={() => setModal('password')} onProfile={() => setModal('profile')} onTestEmail={isSuper ? () => setModal('testemail') : undefined} onLogout={onLogout} T={T} />
         </div>
       </header>
+
+      {isSuper && (
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-5">
+          <div className={`inline-flex gap-1 rounded-2xl border p-1 ${T.soft}`}>
+            {[['events', '🗓️ Events'], ['organizers', '👥 Organizers']].map(([k, label]) => (
+              <button key={k} onClick={() => setView(k)} className={`rounded-xl px-5 py-2 text-sm font-semibold transition ${view === k ? 'bg-amber-400 text-slate-900 shadow' : T.tabIdle}`}>{label}</button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {view === 'organizers' && isSuper ? (
         <div className="max-w-5xl mx-auto p-4 sm:p-6">
@@ -336,32 +344,70 @@ const Console = ({ auth, onLogout, showSuccess, showError, showConfirm, T, theme
       )}
 
       {modal === 'password' && <ChangePasswordModal onClose={() => setModal(null)} showSuccess={showSuccess} showError={showError} T={T} />}
-      {modal === 'profile' && <ProfileModal auth={auth} onClose={() => setModal(null)} T={T} />}
+      {modal === 'profile' && <ProfileModal auth={auth} onClose={() => setModal(null)} updateAuthUser={updateAuthUser} showSuccess={showSuccess} showError={showError} T={T} />}
       {modal === 'testemail' && <TestEmailModal defaultTo={auth.user.email || ''} onClose={() => setModal(null)} showSuccess={showSuccess} showError={showError} T={T} />}
     </div>
   );
 };
 
-// ---------------- Profile (read-only) ----------------
-const ProfileModal = ({ auth, onClose, T }) => {
+// ---------------- Profile (view + edit) ----------------
+const ProfileModal = ({ auth, onClose, updateAuthUser, showSuccess, showError, T }) => {
+  const [editing, setEditing] = useState(false);
+  const [form, setForm] = useState({ name: auth.user.name || '', email: auth.user.email || '', phone: auth.user.phone || '' });
+  const [busy, setBusy] = useState(false);
+
+  const save = async (e) => {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      const res = await api.put('/api/auth/profile', form);
+      const u = res.data.user;
+      updateAuthUser({ ...auth.user, name: u.name, email: u.email, phone: u.phone });
+      showSuccess('Profile updated');
+      setEditing(false);
+    } catch (err) { showError(err.response?.data?.error || 'Could not update profile'); }
+    finally { setBusy(false); }
+  };
+
   const rows = [
     ['Username', auth.user.username],
     ['Name', auth.user.name || '—'],
+    ['Email', auth.user.email || '—'],
+    ['Phone', auth.user.phone || '—'],
     ['Role', String(auth.user.role).replace('-', ' ')],
   ];
+
   return (
     <ModalShell onClose={onClose} T={T} title="Profile">
-      <div className="space-y-2">
-        {rows.map(([k, v]) => (
-          <div key={k} className={`flex justify-between gap-4 text-sm border-b pb-2 ${T.divide}`}>
-            <span className={T.sub}>{k}</span>
-            <span className={`font-semibold capitalize ${T.heading}`}>{v}</span>
+      {editing ? (
+        <form onSubmit={save}>
+          <label className={`block text-xs font-semibold ${T.label} mb-1`}>Name</label>
+          <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={`w-full rounded-lg border px-3 py-2.5 mb-3 ${T.input}`} placeholder="Full name" />
+          <label className={`block text-xs font-semibold ${T.label} mb-1`}>Email</label>
+          <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className={`w-full rounded-lg border px-3 py-2.5 mb-3 ${T.input}`} placeholder="you@example.com" />
+          <label className={`block text-xs font-semibold ${T.label} mb-1`}>Phone</label>
+          <input inputMode="numeric" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })} className={`w-full rounded-lg border px-3 py-2.5 mb-4 ${T.input}`} placeholder="10-digit number" />
+          <div className="flex justify-end gap-2">
+            <button type="button" onClick={() => setEditing(false)} className={`rounded-full border px-4 py-2 text-sm font-semibold ${T.chip}`}>Cancel</button>
+            <button disabled={busy} className="rounded-full bg-indigo-600 text-white px-5 py-2 text-sm font-semibold hover:bg-indigo-500 disabled:opacity-50">{busy ? 'Saving…' : 'Save'}</button>
           </div>
-        ))}
-      </div>
-      <div className="mt-5 text-right">
-        <button onClick={onClose} className={`rounded-full border px-4 py-2 text-sm font-semibold ${T.chip}`}>Close</button>
-      </div>
+        </form>
+      ) : (
+        <>
+          <div className="space-y-2">
+            {rows.map(([k, v]) => (
+              <div key={k} className={`flex justify-between gap-4 text-sm border-b pb-2 ${T.divide}`}>
+                <span className={T.sub}>{k}</span>
+                <span className={`font-semibold ${k === 'Role' ? 'capitalize' : ''} ${T.heading}`}>{v}</span>
+              </div>
+            ))}
+          </div>
+          <div className="mt-5 flex justify-end gap-2">
+            <button onClick={onClose} className={`rounded-full border px-4 py-2 text-sm font-semibold ${T.chip}`}>Close</button>
+            <button onClick={() => setEditing(true)} className="rounded-full bg-amber-400 text-slate-900 px-4 py-2 text-sm font-bold hover:bg-amber-300">Edit profile</button>
+          </div>
+        </>
+      )}
     </ModalShell>
   );
 };
@@ -588,12 +634,46 @@ const ResetPasswordModal = ({ user, onClose, showSuccess, showError, reload, T }
   );
 };
 
+// ---------------- Edit an organizer's profile (super-admin) ----------------
+const EditOrganizerModal = ({ user, onClose, showSuccess, showError, reload, T }) => {
+  const [form, setForm] = useState({ name: user.name || '', email: user.email || '', phone: user.phone || '' });
+  const [busy, setBusy] = useState(false);
+  const submit = async (e) => {
+    e.preventDefault();
+    setBusy(true);
+    try {
+      await api.put(`/api/auth/organizer/${user.id}`, form);
+      showSuccess(`Updated @${user.username}`);
+      onClose();
+      reload();
+    } catch (err) { showError(err.response?.data?.error || 'Could not update organizer'); }
+    finally { setBusy(false); }
+  };
+  return (
+    <ModalShell onClose={onClose} T={T} title={`Edit @${user.username}`}>
+      <form onSubmit={submit}>
+        <label className={`block text-xs font-semibold ${T.label} mb-1`}>Name</label>
+        <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={`w-full rounded-lg border px-3 py-2.5 mb-3 ${T.input}`} placeholder="Full name" />
+        <label className={`block text-xs font-semibold ${T.label} mb-1`}>Email</label>
+        <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} className={`w-full rounded-lg border px-3 py-2.5 mb-3 ${T.input}`} placeholder="you@example.com" />
+        <label className={`block text-xs font-semibold ${T.label} mb-1`}>Phone</label>
+        <input inputMode="numeric" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })} className={`w-full rounded-lg border px-3 py-2.5 mb-4 ${T.input}`} placeholder="10-digit number" />
+        <div className="flex justify-end gap-2">
+          <button type="button" onClick={onClose} className={`rounded-full border px-4 py-2 text-sm font-semibold ${T.chip}`}>Cancel</button>
+          <button disabled={busy} className="rounded-full bg-indigo-600 text-white px-5 py-2 text-sm font-semibold hover:bg-indigo-500 disabled:opacity-50">{busy ? 'Saving…' : 'Save'}</button>
+        </div>
+      </form>
+    </ModalShell>
+  );
+};
+
 // ---------------- Organizers panel (super-admin, own view) ----------------
 const OrganizersPanel = ({ events, organizers, reload, showSuccess, showError, showConfirm, T }) => {
   const [form, setForm] = useState({ username: '', password: '', name: '', email: '', phone: '', eventId: '' });
   const [busy, setBusy] = useState(false);
   const [q, setQ] = useState('');
   const [resetting, setResetting] = useState(null);
+  const [editingOrg, setEditingOrg] = useState(null);
 
   const create = async (e) => {
     e.preventDefault();
@@ -669,6 +749,7 @@ const OrganizersPanel = ({ events, organizers, reload, showSuccess, showError, s
                     <div className={`text-[11px] mt-1 ${T.sub}`}>Events: {evs.length ? evs.join(', ') : '—'}</div>
                   </div>
                   <div className="flex flex-col items-end gap-1.5 shrink-0">
+                    <button onClick={() => setEditingOrg(o)} className={`rounded-full border px-3 py-1 text-xs font-semibold ${T.chip}`}>✏️ Edit</button>
                     <button onClick={() => resetPassword(o)} className={`rounded-full border px-3 py-1 text-xs font-semibold ${o.reset_requested_at ? 'bg-amber-400 text-slate-900 border-amber-400 hover:bg-amber-300' : T.chip}`}>Reset password</button>
                     <button onClick={() => removeOrganizer(o)} className="rounded-full border border-rose-300/40 bg-rose-500/10 text-rose-300 px-3 py-1 text-xs font-semibold hover:bg-rose-500/20">Delete</button>
                   </div>
@@ -679,6 +760,7 @@ const OrganizersPanel = ({ events, organizers, reload, showSuccess, showError, s
         <p className={`mt-3 text-[11px] ${T.sub}`}>Tip: assign one organizer to multiple events (season 1, 2…) via each event's Edit → organizer.</p>
       </div>
       {resetting && <ResetPasswordModal user={resetting} onClose={() => setResetting(null)} showSuccess={showSuccess} showError={showError} reload={reload} T={T} />}
+      {editingOrg && <EditOrganizerModal user={editingOrg} onClose={() => setEditingOrg(null)} showSuccess={showSuccess} showError={showError} reload={reload} T={T} />}
     </div>
   );
 };
