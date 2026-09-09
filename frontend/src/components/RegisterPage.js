@@ -160,16 +160,16 @@ const RegisterPage = () => {
 
   return (
     <div className="min-h-screen flex flex-col" style={bg}>
-      {/* Branding header (static) */}
+      {/* Branding header (static, full-width like the console) */}
       <header className="border-b border-white/10 bg-white/[0.04] backdrop-blur-xl">
-        <div className="max-w-lg mx-auto px-4 h-14 flex items-center justify-between">
-          <div className="flex items-center gap-2">
+        <div className="px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
+          <div className="flex items-center gap-2 shrink-0">
             <img src="/auction-logo.png" alt="" className="h-8 w-auto drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]" />
             <span className="font-extrabold tracking-tight text-lg">
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-400">Golden</span><span className="text-white">Bid</span><span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-400">X</span>
             </span>
           </div>
-          <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300/90 rounded-full border border-amber-300/25 bg-amber-400/10 px-3 py-1">Player Registration</span>
+          <span className="hidden sm:inline-flex shrink-0 whitespace-nowrap text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300/90 rounded-full border border-amber-300/25 bg-amber-400/10 px-3 py-1">Player Registration</span>
         </div>
       </header>
 
@@ -182,6 +182,7 @@ const RegisterPage = () => {
               <div className="w-28 h-28 rounded-2xl bg-white/10 grid place-items-center text-5xl mx-auto mb-4">🏆</div>
             )}
             <h1 className="text-3xl sm:text-4xl font-extrabold bg-clip-text text-transparent bg-gradient-to-r from-amber-200 via-yellow-100 to-amber-400 drop-shadow-[0_2px_14px_rgba(232,184,75,0.5)]">{event.name}</h1>
+            <p className="sm:hidden mt-2 text-[11px] uppercase tracking-[0.3em] text-amber-300/90 font-bold">Player Registration</p>
           </div>
 
         <form onSubmit={submit} className="rounded-2xl border border-white/15 bg-white/[0.06] backdrop-blur-2xl p-6 space-y-4 shadow-2xl">
