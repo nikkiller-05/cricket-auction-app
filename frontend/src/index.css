@@ -183,6 +183,27 @@
 .dash-root .focus\:ring-blue-500:focus { --tw-ring-color: rgba(245, 158, 11, 0.6) !important; }
 .dash-root .focus\:border-blue-500:focus { border-color: #d97706 !important; }
 
+/* Admin input focus rings (indigo) → amber. */
+.dash-root .focus\:ring-indigo-500:focus,
+.dash-root .focus\:ring-indigo-500\/40:focus { --tw-ring-color: rgba(245, 158, 11, 0.5) !important; }
+.dash-root .focus\:border-indigo-400:focus { border-color: #d97706 !important; }
+
+/* Decorative (non-semantic) accents → gold. Semantic status colors kept. */
+.dash-root .from-sky-500,
+.dash-root .from-fuchsia-500,
+.dash-root .from-purple-600 { --tw-gradient-from: #f59e0b var(--tw-gradient-from-position) !important; --tw-gradient-to: rgb(245 158 11 / 0) var(--tw-gradient-to-position) !important; }
+.dash-root .to-indigo-500,
+.dash-root .to-purple-500,
+.dash-root .to-purple-700 { --tw-gradient-to: #b45309 var(--tw-gradient-to-position) !important; }
+.dash-root .hover\:from-purple-700:hover { --tw-gradient-from: #d97706 var(--tw-gradient-from-position) !important; --tw-gradient-to: rgb(217 119 6 / 0) var(--tw-gradient-to-position) !important; }
+.dash-root .hover\:to-purple-800:hover { --tw-gradient-to: #92400e var(--tw-gradient-to-position) !important; }
+
+/* Indigo accent text & hairlines → gold. */
+.dash-root .text-indigo-600 { color: #b45309 !important; }
+.dash-root .border-indigo-300,
+.dash-root .border-indigo-200\/70 { border-color: rgba(217, 119, 6, 0.35) !important; }
+.dash-root[data-theme="dark"] .text-indigo-600 { color: #f0b445 !important; }
+
 .dash-root .shadow-violet-600\/40,
 .dash-root .shadow-violet-600\/30,
 .dash-root .shadow-blue-500\/30 { --tw-shadow-color: rgba(217, 119, 6, 0.35) !important; }

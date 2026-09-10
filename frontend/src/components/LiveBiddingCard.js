@@ -95,13 +95,13 @@ const LiveBiddingCardInner = ({
   );
 
   return (
-    <div className="relative overflow-hidden rounded-3xl shadow-2xl border border-white/15 mb-8 bg-gradient-to-br from-slate-900 via-indigo-950 to-purple-950 text-white">
+    <div className="relative overflow-hidden rounded-3xl shadow-2xl border border-white/15 mb-8 bg-gradient-to-br from-[#0b0a06] via-[#1c1608] to-[#2a1f08] text-white">
       {/* Top shine accent */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
       {/* Decorative background orbs */}
-      <div className="pointer-events-none absolute -top-32 -left-32 w-80 h-80 bg-cyan-500/25 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s' }} />
-      <div className="pointer-events-none absolute -bottom-32 -right-32 w-96 h-96 bg-fuchsia-500/25 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '8s' }} />
-      <div className="pointer-events-none absolute top-1/2 left-1/3 w-64 h-64 bg-indigo-500/20 rounded-full blur-3xl" />
+      <div className="pointer-events-none absolute -top-32 -left-32 w-80 h-80 bg-amber-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '6s' }} />
+      <div className="pointer-events-none absolute -bottom-32 -right-32 w-96 h-96 bg-yellow-600/20 rounded-full blur-3xl animate-pulse" style={{ animationDuration: '8s' }} />
+      <div className="pointer-events-none absolute top-1/2 left-1/3 w-64 h-64 bg-amber-400/15 rounded-full blur-3xl" />
 
       {/* Header bar */}
       <div className="relative flex items-center justify-between px-4 sm:px-6 pt-4 sm:pt-5">
@@ -110,7 +110,7 @@ const LiveBiddingCardInner = ({
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
             <span className="relative inline-flex rounded-full h-3 w-3 bg-red-500 shadow-[0_0_10px_rgba(239,68,68,0.8)]" />
           </span>
-          <h2 className="text-base sm:text-lg md:text-xl font-bold tracking-[0.2em] uppercase bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent">
+          <h2 className="text-base sm:text-lg md:text-xl font-bold tracking-[0.2em] uppercase bg-gradient-to-r from-amber-200 via-white to-amber-200 bg-clip-text text-transparent">
             Live Bidding
           </h2>
           {isFastTrack && (
@@ -138,18 +138,18 @@ const LiveBiddingCardInner = ({
                   href={player.cricHeroesLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent hover:from-cyan-200 hover:to-cyan-200 transition-all break-words"
+                  className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-amber-100 via-white to-amber-100 bg-clip-text text-transparent hover:from-amber-200 hover:to-amber-200 transition-all break-words"
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
                   {player.name}
                 </a>
               ) : (
-                <h3 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-white via-cyan-100 to-white bg-clip-text text-transparent break-words">
+                <h3 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-amber-100 via-white to-amber-100 bg-clip-text text-transparent break-words">
                   {player.name}
                 </h3>
               )}
               {player.role && (
-                <span className="mt-2 self-center sm:self-start inline-block text-[10px] sm:text-xs font-bold uppercase tracking-[0.15em] px-2.5 py-1 rounded-full bg-gradient-to-r from-cyan-500/30 to-fuchsia-500/30 border border-white/30 backdrop-blur-sm shadow-lg">
+                <span className="mt-2 self-center sm:self-start inline-block text-[10px] sm:text-xs font-bold uppercase tracking-[0.15em] px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-500/30 to-yellow-600/30 border border-white/30 backdrop-blur-sm shadow-lg">
                   {player.role}
                 </span>
               )}
