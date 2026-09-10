@@ -68,7 +68,30 @@ const SaleCelebration = ({ celebration, onDone }) => {
               }}
             />
           ))}
-          <div className="gbx-hammer" aria-hidden="true">🔨</div>
+          {/* Wooden auction gavel that drops and bangs the sound block */}
+          <div className="gbx-gavel" aria-hidden="true">
+            <svg viewBox="0 0 180 150" className="gbx-gavel-svg">
+              <defs>
+                <linearGradient id="gvHead" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stopColor="#b07d40" />
+                  <stop offset="0.5" stopColor="#8a5a2b" />
+                  <stop offset="1" stopColor="#6b4420" />
+                </linearGradient>
+                <linearGradient id="gvHandle" x1="0" y1="0" x2="1" y2="0">
+                  <stop offset="0" stopColor="#7c5227" />
+                  <stop offset="0.5" stopColor="#b5834f" />
+                  <stop offset="1" stopColor="#7c5227" />
+                </linearGradient>
+              </defs>
+              <rect x="81" y="6" width="18" height="92" rx="9" fill="url(#gvHandle)" />
+              <ellipse cx="90" cy="6" rx="13" ry="8" fill="#8a5a2b" />
+              <rect x="26" y="92" width="128" height="42" rx="13" fill="url(#gvHead)" />
+              <rect x="30" y="88" width="18" height="50" rx="7" fill="#5c3a1a" />
+              <rect x="132" y="88" width="18" height="50" rx="7" fill="#5c3a1a" />
+              <rect x="34" y="98" width="112" height="7" rx="3.5" fill="rgba(255,255,255,0.20)" />
+            </svg>
+          </div>
+          <div className="gbx-soundblock" aria-hidden="true" />
           <div className="gbx-impact-flash" aria-hidden="true" />
         </>
       )}
@@ -78,7 +101,12 @@ const SaleCelebration = ({ celebration, onDone }) => {
           <div className="rounded-3xl overflow-hidden ring-4 ring-amber-300/60 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.8)]">
             <PlayerAvatar player={player} size="3xl" shape="rounded" position="top" />
           </div>
-          {!sold && <div className="gbx-stamp" aria-hidden="true"><span>UNSOLD</span></div>}
+          {!sold && (
+            <div className="gbx-stamp" aria-hidden="true">
+              <span className="gbx-stamp-grip" />
+              <span>UNSOLD</span>
+            </div>
+          )}
         </div>
 
         {sold ? (

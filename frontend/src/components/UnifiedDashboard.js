@@ -821,7 +821,11 @@ const UnifiedDashboard = () => {
       timestamp: new Date()
     };
     
-    setTransactionHistory(prev => [transaction, ...prev]);
+    // Skip if this player+type is already in the feed (guards against the
+    // init-from-data + socket-event race that produced duplicates).
+    setTransactionHistory(prev => (
+      prev.some(t => t.playerId === player.id && t.type === type) ? prev : [transaction, ...prev]
+    ));
   };
 
   // Undo functionality functions
@@ -1387,7 +1391,7 @@ const UnifiedDashboard = () => {
         <div className="gbx-current-bid-banner bg-white bg-opacity-20 border-b border-white border-opacity-30 py-3">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-center">
-              <div className="gbx-current-bid-pill px-4 py-2 rounded-full text-sm font-medium bg-yellow-400 bg-opacity-80 text-yellow-900 animate-pulse shadow-lg border border-yellow-300">
+              <div className="gbx-current-bid-pill px-4 py-2 rounded-full text-sm font-bold bg-amber-400 text-slate-900 animate-pulse shadow-lg border border-amber-500">
                 💰 Current Bid: {formatCurrency(auctionData.currentBid.currentAmount)}
               </div>
             </div>
@@ -1422,6 +1426,8 @@ const UnifiedDashboard = () => {
                       <button
                         key={team.id}
                         onClick={async () => {
+                          // Optimistic: show the bid instantly; socket reconciles.
+                          setAuctionData(prev => prev ? { ...prev, currentBid: { ...(prev.currentBid || {}), playerId: currentPlayer?.id, currentAmount: nextBidAmount, biddingTeam: team.id } } : prev);
                           try {
                             await axios.post(`${API_BASE_URL}/api/auction/bidding/place`, { teamId: team.id });
                           } catch (error) {
@@ -1506,11 +1512,13 @@ const UnifiedDashboard = () => {
                     </button>
                   </div>
                   <div className="flex justify-center gap-2 mt-2.5">
-                    {[
-                      { label: '+1L', val: 100000 },
-                      { label: '+5L', val: 500000 },
-                      { label: '+10L', val: 1000000 },
-                    ].map((j) => (
+                    {(() => {
+                      // Quick-add steps scale with the auction's own bid increment
+                      // (not hardcoded lakhs), so any budget size works.
+                      const curAmt = auctionData.currentBid?.currentAmount ?? (auctionData.settings?.basePrice || 0);
+                      const step = Math.max(1, computeNextBid(auctionData.currentBid, auctionData.settings) - curAmt);
+                      return [1, 5, 10].map((m) => ({ label: `+${formatCurrency(step * m)}`, val: step * m }));
+                    })().map((j) => (
                       <button
                         key={j.label}
                         onClick={() => {

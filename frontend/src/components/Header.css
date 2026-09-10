@@ -89,6 +89,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  position: relative;
   padding: 0.75rem 1.5rem;
   max-width: 1400px;
   margin: 0 auto;
@@ -188,12 +189,18 @@
   color: #ffffff;
 }
 
-/* Center Section - Auction Status */
+/* Center Section - Auction Status (absolutely centered in the header so it
+   stays centred regardless of the differing left/right widths). */
 .header-center {
-  flex: 1;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 1;
 }
 
 /* Auction Status Badge — modern glass pill with uppercase label, sheen sweep,
