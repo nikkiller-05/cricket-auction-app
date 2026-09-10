@@ -66,7 +66,7 @@ const THEMES = {
   light: {
     isDark: false,
     pageStyle: undefined, pageCls: 'text-slate-900 gbx-bg-light',
-    header: 'bg-white/85 border-amber-300/50 backdrop-blur-xl shadow-[0_14px_30px_-16px_rgba(150,110,30,0.45)]',
+    header: 'bg-gradient-to-r from-amber-200/85 via-amber-100/75 to-amber-200/85 border-amber-300/60 backdrop-blur-xl shadow-[0_14px_30px_-16px_rgba(150,110,30,0.45)]',
     card: 'rounded-2xl border border-amber-900/10 bg-white/90 backdrop-blur-sm shadow-[0_12px_34px_-20px_rgba(120,90,20,0.45)]',
     menu: 'bg-white border border-amber-200/60 shadow-2xl',
     cardSel: 'border-amber-400 bg-amber-50',
@@ -340,7 +340,7 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
           <img src="/auction-logo.png" alt="" className="w-9 h-9 object-contain" />
           <div>
             <h1 className="text-lg font-bold tracking-tight">
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-400">Golden</span><span className={T.heading}>Bid</span><span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-400">X</span>
+              <span className={`text-transparent bg-clip-text bg-gradient-to-r ${theme === 'light' ? 'from-amber-500 to-amber-700' : 'from-amber-200 to-amber-400'}`}>Golden</span><span className={T.heading}>Bid</span><span className={`text-transparent bg-clip-text bg-gradient-to-r ${theme === 'light' ? 'from-amber-500 to-amber-700' : 'from-amber-200 to-amber-400'}`}>X</span>
             </h1>
             <p className={`text-xs ${T.sub}`}>Organizer dashboard</p>
           </div>

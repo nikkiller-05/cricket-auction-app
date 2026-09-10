@@ -49,9 +49,9 @@
 /* --- DARK (default) --- */
 .dash-root[data-theme="dark"] {
   background:
-    radial-gradient(48% 38% at 12% -6%, rgba(232, 184, 75, 0.16) 0%, transparent 60%),
-    radial-gradient(44% 38% at 108% 4%, rgba(206, 158, 52, 0.11) 0%, transparent 55%),
-    linear-gradient(160deg, #0a0a0f 0%, #100e17 55%, #0b0b11 100%);
+    radial-gradient(48% 38% at 12% -6%, rgba(232, 184, 75, 0.15) 0%, transparent 60%),
+    radial-gradient(44% 38% at 108% 4%, rgba(206, 158, 52, 0.10) 0%, transparent 55%),
+    linear-gradient(160deg, #18161f 0%, #201c2b 55%, #191722 100%);
   background-size: 140% 140%, 140% 140%, 100% 100%;
   background-position: 0% 0%, 100% 0%, 0 0;
   animation: gbxDriftMin 48s ease-in-out infinite alternate;
@@ -310,9 +310,12 @@
 .dash-root[data-theme="dark"] .dash-menu > button:hover,
 .dash-root[data-theme="dark"] .dash-menu > button:focus { background: rgba(253, 224, 71, 0.10) !important; }
 
-/* ===== Players List: shadow separates the header bar from the rows ===== */
-.pl-head { box-shadow: 0 1px 0 rgba(160, 120, 30, 0.20); }
-.dash-root[data-theme="dark"] .pl-head { box-shadow: 0 1px 0 rgba(253, 224, 71, 0.12); }
+/* ===== Players List: tinted header bar + shadow to separate it from the rows ===== */
+.pl-head { background: rgba(160, 120, 30, 0.06); box-shadow: 0 1px 0 rgba(160, 120, 30, 0.20), 0 4px 10px -8px rgba(120, 90, 20, 0.35); }
+.dash-root[data-theme="dark"] .pl-head { background: rgba(255, 255, 255, 0.035); box-shadow: 0 1px 0 rgba(253, 224, 71, 0.12); }
+
+/* ===== Assign Captain button: dark text in light theme (white washed out on the yellow) ===== */
+.dash-root[data-theme="light"] .capt-assign-btn { color: #3a2a06 !important; }
 
 /* ===== Assign Captain button: brighter yellow-gold in light for visibility ===== */
 .dash-root[data-theme="light"] .from-sky-500 { --tw-gradient-from: #fbbf24 var(--tw-gradient-from-position) !important; --tw-gradient-to: rgb(251 191 36 / 0) var(--tw-gradient-to-position) !important; }

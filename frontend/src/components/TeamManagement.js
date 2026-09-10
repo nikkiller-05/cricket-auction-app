@@ -846,7 +846,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
                         <button
                           onClick={() => assignCaptainFromDropdown(team.id)}
                           disabled={assigningCaptain || !selectedCaptains[team.id]}
-                          className="w-full bg-gradient-to-br from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 disabled:from-slate-400 disabled:to-slate-400 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 px-4 py-2 rounded-xl text-sm font-semibold shadow-md disabled:cursor-not-allowed"
+                          className="capt-assign-btn w-full bg-gradient-to-br from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 disabled:from-slate-400 disabled:to-slate-400 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 px-4 py-2 rounded-xl text-sm font-semibold shadow-md disabled:cursor-not-allowed"
                         >
                           {assigningCaptain ? 'Assigning...' : '👑 Assign Captain'}
                         </button>
