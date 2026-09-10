@@ -1,48 +1,16 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import PlayerAvatar from './PlayerAvatar';
 
-const GLITTER_COLORS = ['#fde047', '#facc15', '#f59e0b', '#fbbf24', '#fff7cc', '#eab308'];
+const CONFETTI_COLORS = ['#34d399', '#10b981', '#22c55e', '#fde047', '#fbbf24', '#86efac'];
+const BALLOON_COLORS = ['#34d399', '#10b981', '#22c55e', '#fbbf24', '#f472b6', '#60a5fa', '#a78bfa'];
 const formatCurrency = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
 
-// Synthesized wooden "bang"/"thud" via Web Audio — no asset needed.
-function playImpactSound(sold) {
-  try {
-    const AC = window.AudioContext || window.webkitAudioContext;
-    if (!AC) return;
-    const ctx = new AC();
-    if (ctx.state === 'suspended') ctx.resume();
-    const now = ctx.currentTime;
-    const osc = ctx.createOscillator();
-    const g = ctx.createGain();
-    osc.type = 'sine';
-    osc.frequency.setValueAtTime(sold ? 185 : 135, now);
-    osc.frequency.exponentialRampToValueAtTime(sold ? 55 : 48, now + 0.18);
-    g.gain.setValueAtTime(0.0001, now);
-    g.gain.exponentialRampToValueAtTime(sold ? 0.6 : 0.45, now + 0.01);
-    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.3);
-    osc.connect(g); g.connect(ctx.destination);
-    osc.start(now); osc.stop(now + 0.32);
-    const len = Math.floor(ctx.sampleRate * 0.06);
-    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
-    const d = buf.getChannelData(0);
-    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.2);
-    const noise = ctx.createBufferSource();
-    noise.buffer = buf;
-    const ng = ctx.createGain();
-    ng.gain.setValueAtTime(sold ? 0.5 : 0.35, now);
-    ng.gain.exponentialRampToValueAtTime(0.0001, now + 0.09);
-    noise.connect(ng); ng.connect(ctx.destination);
-    noise.start(now);
-    setTimeout(() => { try { ctx.close(); } catch (e) { /* ignore */ } }, 600);
-  } catch (e) { /* audio blocked — ignore */ }
-}
-
-// Full-screen celebration when a player is sold (hammer bang + spin/expand + glitter)
-// or unsold (spin + red rubber-stamp slam). Auto-dismisses; click to skip.
+// Full-screen celebration: SOLD = green banner + balloons + confetti,
+// UNSOLD = red banner + spin. Auto-dismisses; click to skip.
 const SaleCelebration = ({ celebration, onDone }) => {
   const sold = celebration?.type === 'sold';
 
-  const glitter = useMemo(
+  const confetti = useMemo(
     () =>
       Array.from({ length: 40 }).map((_, i) => ({
         id: i,
@@ -50,8 +18,23 @@ const SaleCelebration = ({ celebration, onDone }) => {
         delay: Math.random() * 0.9,
         duration: 1.9 + Math.random() * 1.8,
         size: 5 + Math.random() * 9,
-        color: GLITTER_COLORS[i % GLITTER_COLORS.length],
+        color: CONFETTI_COLORS[i % CONFETTI_COLORS.length],
         rot: 180 + Math.random() * 540,
+      })),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [celebration?.player?.id, celebration?.type]
+  );
+
+  const balloons = useMemo(
+    () =>
+      Array.from({ length: 12 }).map((_, i) => ({
+        id: i,
+        left: 4 + Math.random() * 90,
+        delay: Math.random() * 0.9,
+        duration: 3 + Math.random() * 2,
+        size: 34 + Math.random() * 26,
+        color: BALLOON_COLORS[i % BALLOON_COLORS.length],
+        sway: `${(Math.random() * 2 - 1) * 44}px`,
       })),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [celebration?.player?.id, celebration?.type]
@@ -63,12 +46,9 @@ const SaleCelebration = ({ celebration, onDone }) => {
 
   useEffect(() => {
     if (!celebration) return undefined;
-    // ~3s hold after the entrance animation finishes.
     const ms = celebration.type === 'sold' ? 4500 : 3500;
     const t = setTimeout(() => onDoneRef.current(), ms);
-    // Play the wooden bang/thud timed to the moment of impact.
-    const sfx = setTimeout(() => playImpactSound(celebration.type === 'sold'), 560);
-    return () => { clearTimeout(t); clearTimeout(sfx); };
+    return () => clearTimeout(t);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [celebration?.player?.id, celebration?.type]);
 
@@ -86,9 +66,24 @@ const SaleCelebration = ({ celebration, onDone }) => {
 
       {sold && (
         <>
-          {glitter.map((g) => (
+          {balloons.map((b) => (
             <span
-              key={g.id}
+              key={`b${b.id}`}
+              className="gbx-balloon"
+              style={{
+                left: `${b.left}%`,
+                width: b.size,
+                height: b.size * 1.22,
+                background: `radial-gradient(circle at 32% 28%, rgba(255,255,255,0.55), ${b.color} 62%)`,
+                animationDelay: `${b.delay}s`,
+                animationDuration: `${b.duration}s`,
+                '--sway': b.sway,
+              }}
+            />
+          ))}
+          {confetti.map((g) => (
+            <span
+              key={`c${g.id}`}
               className="gbx-glitter"
               style={{
                 left: `${g.left}%`,
@@ -101,48 +96,27 @@ const SaleCelebration = ({ celebration, onDone }) => {
               }}
             />
           ))}
-          {/* Wooden auction gavel arcs down and bangs the sound block */}
-          <div className="gbx-gavel-stage" aria-hidden="true">
-            <div className="gbx-soundblock" />
-            <svg viewBox="0 0 230 130" className="gbx-gavel-svg">
-              <defs>
-                <linearGradient id="gvHead" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0" stopColor="#b07d40" />
-                  <stop offset="0.5" stopColor="#8a5a2b" />
-                  <stop offset="1" stopColor="#6b4420" />
-                </linearGradient>
-                <linearGradient id="gvHandle" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0" stopColor="#b5834f" />
-                  <stop offset="0.5" stopColor="#8a5a2b" />
-                  <stop offset="1" stopColor="#6b4420" />
-                </linearGradient>
-              </defs>
-              <rect x="92" y="56" width="120" height="16" rx="8" fill="url(#gvHandle)" />
-              <rect x="200" y="50" width="26" height="28" rx="9" fill="#6b4420" />
-              <rect x="22" y="20" width="84" height="88" rx="22" fill="url(#gvHead)" />
-              <ellipse cx="30" cy="64" rx="11" ry="44" fill="#5c3a1a" />
-              <ellipse cx="98" cy="64" rx="11" ry="44" fill="#7c5227" />
-              <rect x="34" y="34" width="58" height="9" rx="4.5" fill="rgba(255,255,255,0.22)" />
-            </svg>
-          </div>
-          <div className="gbx-impact-flash" aria-hidden="true" />
         </>
       )}
 
       <div className="relative z-10 flex flex-col items-center text-center px-6">
         <div className={`relative ${sold ? 'gbx-sold-photo' : 'gbx-unsold-photo'}`}>
-          <div className="rounded-3xl overflow-hidden ring-4 ring-amber-300/60 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.8)]">
+          <div
+            className={`rounded-3xl overflow-hidden ring-4 ${
+              sold ? 'ring-emerald-300/60' : 'ring-rose-300/60'
+            } shadow-[0_20px_60px_-15px_rgba(0,0,0,0.8)]`}
+          >
             <PlayerAvatar player={player} size="3xl" shape="rounded" position="top" />
           </div>
         </div>
 
         {sold ? (
           <div className="gbx-sold-text mt-7">
-            <div className="text-5xl sm:text-7xl font-black tracking-[0.15em] text-transparent bg-clip-text bg-gradient-to-b from-amber-200 via-amber-300 to-amber-500 drop-shadow-[0_4px_18px_rgba(245,158,11,0.5)]">
+            <div className="text-5xl sm:text-7xl font-black tracking-[0.15em] text-transparent bg-clip-text bg-gradient-to-b from-emerald-200 via-emerald-300 to-green-500 drop-shadow-[0_4px_18px_rgba(16,185,129,0.5)]">
               SOLD!
             </div>
             <div className="mt-3 text-xl sm:text-2xl font-bold text-white">{player?.name}</div>
-            <div className="mt-1 text-base sm:text-lg font-semibold text-amber-200">
+            <div className="mt-1 text-base sm:text-lg font-semibold text-emerald-200">
               {formatCurrency(amount)} · {team?.name}
             </div>
           </div>

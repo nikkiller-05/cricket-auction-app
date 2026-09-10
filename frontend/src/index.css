@@ -500,6 +500,37 @@
   z-index: 15;
   pointer-events: none;
 }
+/* Balloons floating up for the sold celebration. */
+@keyframes gbxBalloon {
+  0% { transform: translateY(115vh) translateX(0) rotate(-3deg); opacity: 0; }
+  12% { opacity: 1; }
+  90% { opacity: 1; }
+  100% { transform: translateY(-25vh) translateX(var(--sway, 0px)) rotate(3deg); opacity: 0; }
+}
+.gbx-balloon {
+  position: absolute;
+  bottom: 0;
+  border-radius: 50% 50% 48% 48% / 55% 55% 45% 45%;
+  box-shadow: inset -4px -6px 10px rgba(0, 0, 0, 0.18);
+  animation-name: gbxBalloon;
+  animation-timing-function: ease-in;
+  animation-iteration-count: 1;
+  z-index: 12;
+  pointer-events: none;
+}
+.gbx-balloon::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  width: 1px;
+  height: 3.5rem;
+  background: rgba(255, 255, 255, 0.35);
+  transform: translateX(-50%);
+}
+/* Horizontally scrollable tab bar on small screens (hide the scrollbar). */
+.gbx-tab-scroller { -ms-overflow-style: none; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
+.gbx-tab-scroller::-webkit-scrollbar { display: none; }
 @keyframes gbxPop { 0% { transform: scale(0.6); opacity: 0; } 60% { transform: scale(1.08); opacity: 1; } 100% { transform: scale(1); } }
 .gbx-sold-text { animation: gbxPop 0.5s ease-out 0.55s both; }
 .gbx-unsold-text { animation: gbxPop 0.5s ease-out 0.7s both; }
@@ -594,7 +625,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .gbx-sold-photo, .gbx-unsold-photo, .gbx-gavel-svg, .gbx-soundblock, .gbx-glitter, .gbx-impact-flash, .gbx-stamp-flash,
+  .gbx-sold-photo, .gbx-unsold-photo, .gbx-balloon, .gbx-glitter, .gbx-impact-flash, .gbx-stamp-flash,
   .gbx-sold-text, .gbx-unsold-text, .gbx-stamp { animation-duration: 0.01ms !important; }
 }
 

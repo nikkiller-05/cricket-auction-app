@@ -104,7 +104,9 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  flex-shrink: 0;
+  flex: 1 1 0;
+  min-width: 0;
+  justify-content: flex-start;
 }
 
 .theme-toggle-btn {
@@ -189,17 +191,16 @@
   color: #ffffff;
 }
 
-/* Center Section - Auction Status (absolutely centered in the header so it
-   stays centred regardless of the differing left/right widths). */
+/* Center Section - Auction Status. Sits in normal flow as the middle flex
+   column (left/right columns flex-grow equally) so it stays centred without
+   absolute positioning and never overlaps the logo or the controls. */
 .header-center {
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  transform: translate(-50%, -50%);
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  pointer-events: none;
+  flex: 0 0 auto;
+  min-width: 0;
   z-index: 1;
 }
 
@@ -404,7 +405,9 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  flex-shrink: 0;
+  flex: 1 1 0;
+  min-width: 0;
+  justify-content: flex-end;
   margin-right: 1rem;
 }
 
