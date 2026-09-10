@@ -755,7 +755,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
                           });
                           
                           return (
-                            <div className="absolute z-[9999] w-full mt-1 bg-white border-2 border-blue-300 rounded-md shadow-2xl max-h-60 overflow-y-auto">
+                            <div className="dash-menu absolute z-[9999] w-full mt-1 rounded-md shadow-2xl max-h-60 overflow-y-auto">
                               {filteredPlayers.map((player) => (
                                 <button
                                   key={player.id}
@@ -1076,7 +1076,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
                           
                           {/* Custom Dropdown List */}
                           {dropdownOpen[team.id] && (
-                            <div className="absolute z-[9999] w-full mt-1 bg-white border-2 border-purple-300 rounded-md shadow-2xl max-h-60 overflow-y-auto"
+                            <div className="dash-menu absolute z-[9999] w-full mt-1 rounded-md shadow-2xl max-h-60 overflow-y-auto"
                               style={{
                                 boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
                               }}

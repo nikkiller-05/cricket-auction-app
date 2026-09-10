@@ -227,7 +227,7 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
 
       {/* Players Table */}
       <div className="rounded-2xl border border-slate-200/70 bg-white/90 overflow-hidden shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)]">
-        <div className="px-6 py-4 border-b border-slate-200/70 flex items-center justify-between">
+        <div className="px-6 py-4 border-b border-slate-200/70 flex items-center justify-between pl-head">
           <h4 className="text-lg font-bold text-slate-900 tracking-tight">
             Players List
           </h4>

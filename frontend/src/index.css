@@ -303,6 +303,23 @@
 .dash-root[data-theme="light"] .tab-seg-idle { color: #64748b; }
 .dash-root[data-theme="light"] .tab-seg-idle:hover { color: #0f172a; }
 
+/* ===== Custom search dropdown (captain / retention) → solid, theme-aware ===== */
+.dash-menu { background: #ffffff; border: 1px solid rgba(160, 120, 30, 0.22) !important; }
+.dash-root[data-theme="dark"] .dash-menu { background: #17130b; border-color: rgba(253, 224, 71, 0.18) !important; }
+.dash-root[data-theme="dark"] .dash-menu > button { border-color: rgba(255, 255, 255, 0.08) !important; }
+.dash-root[data-theme="dark"] .dash-menu > button:hover,
+.dash-root[data-theme="dark"] .dash-menu > button:focus { background: rgba(253, 224, 71, 0.10) !important; }
+
+/* ===== Players List: shadow separates the header bar from the rows ===== */
+.pl-head { box-shadow: 0 1px 0 rgba(160, 120, 30, 0.20); }
+.dash-root[data-theme="dark"] .pl-head { box-shadow: 0 1px 0 rgba(253, 224, 71, 0.12); }
+
+/* ===== Assign Captain button: brighter yellow-gold in light for visibility ===== */
+.dash-root[data-theme="light"] .from-sky-500 { --tw-gradient-from: #fbbf24 var(--tw-gradient-from-position) !important; --tw-gradient-to: rgb(251 191 36 / 0) var(--tw-gradient-to-position) !important; }
+.dash-root[data-theme="light"] .to-blue-600 { --tw-gradient-to: #f59e0b var(--tw-gradient-to-position) !important; }
+.dash-root[data-theme="light"] .hover\:from-sky-400:hover { --tw-gradient-from: #fcd34d var(--tw-gradient-from-position) !important; --tw-gradient-to: rgb(252 211 77 / 0) var(--tw-gradient-to-position) !important; }
+.dash-root[data-theme="light"] .hover\:to-blue-500:hover { --tw-gradient-to: #fbbf24 var(--tw-gradient-to-position) !important; }
+
 /* Inactive nav-tab count chip on dark. */
 .dash-root[data-theme="dark"] .bg-slate-50,
 .dash-root[data-theme="dark"] .bg-slate-100,
