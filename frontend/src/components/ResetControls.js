@@ -119,7 +119,7 @@ const ResetControls = memo(({ auctionData, onReset }) => {
   const availablePlayersCount = auctionData.players?.filter(p => p.status === 'available' && p.category !== 'captain').length || 0;
 
   return (
-    <div className="bg-white bg-opacity-20 rounded-xl shadow-2xl p-6 hover:bg-opacity-30 transition-all duration-300">
+    <div className="gbx-reset-controls bg-white bg-opacity-20 rounded-xl shadow-2xl p-6 hover:bg-opacity-30 transition-all duration-300">
       <h3 className="text-2xl font-bold text-gray-900 mb-4">Auction Management</h3>
       
       {/* Current Status */}
@@ -141,7 +141,7 @@ const ResetControls = memo(({ auctionData, onReset }) => {
       {/* Action Buttons */}
       <div className="space-y-4">
         {/* Reset Auction */}
-        <div className="border-l-4 border-red-500 bg-red-50 bg-opacity-30 rounded-lg p-4 shadow-md">
+        <div className="gbx-reset-section border-l-4 border-red-500 bg-red-50 bg-opacity-30 rounded-lg p-4 shadow-md">
           <h4 className="text-xl font-bold text-gray-900 mb-2">Reset Entire Auction</h4>
           <p className="text-sm text-gray-600 mb-3">
             This will reset all players to available status and restore team budgets. 
@@ -150,14 +150,14 @@ const ResetControls = memo(({ auctionData, onReset }) => {
           <button
             onClick={resetAuction}
             disabled={loading || !auctionData.fileUploaded}
-            className="bg-gradient-to-br from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 disabled:from-slate-400 disabled:to-slate-400 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 px-4 py-2 rounded-xl text-sm font-semibold border border-rose-500/40 shadow-md"
+            className="gbx-btn-reset-auction bg-gradient-to-br from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 disabled:from-slate-400 disabled:to-slate-400 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 px-4 py-2 rounded-xl text-sm font-semibold border border-rose-500/40 shadow-md"
           >
             {loading ? 'Resetting...' : 'Reset Auction'}
           </button>
         </div>
 
         {/* Fast Track Auction */}
-        <div className="border-l-4 border-orange-500 bg-orange-50 bg-opacity-30 rounded-lg p-4 shadow-md">
+        <div className="gbx-fasttrack-section border-l-4 border-orange-500 bg-orange-50 bg-opacity-30 rounded-lg p-4 shadow-md">
           <h4 className="text-xl font-bold text-gray-900 mb-2">Fast Track Auction</h4>
           <p className="text-sm text-gray-600 mb-3">
             Give unsold players another chance by moving them back to available status.
@@ -189,7 +189,7 @@ const ResetControls = memo(({ auctionData, onReset }) => {
         </div>
 
         {/* Finish Entire Auction */}
-        <div className="border-l-4 border-gray-500 bg-gray-50 bg-opacity-30 rounded-lg p-4 shadow-md">
+        <div className="gbx-complete-section border-l-4 border-gray-500 bg-gray-50 bg-opacity-30 rounded-lg p-4 shadow-md">
           <h4 className="text-xl font-bold text-gray-900 mb-2">Complete Auction</h4>
           <p className="text-sm text-gray-600 mb-3">
             Permanently finish the entire auction process. This will end all bidding and finalize results.

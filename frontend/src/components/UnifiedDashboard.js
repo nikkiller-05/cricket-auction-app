@@ -1321,7 +1321,7 @@ const UnifiedDashboard = () => {
   const tabs = isAdmin ? adminTabs : spectatorTabs;
 
   return (
-    <div className="dash-root min-h-screen overflow-x-hidden" data-theme={theme}>
+    <div className="gbx-dashboard dash-root min-h-screen overflow-x-hidden" data-theme={theme}>
       {/* Notifications */}
       {notifications.length > 0 && (
         <div className="fixed top-4 right-4 left-4 sm:left-auto space-y-2 z-50 max-w-sm sm:max-w-sm">
@@ -1387,10 +1387,10 @@ const UnifiedDashboard = () => {
 
       {/* Current Bid Indicator - only show when there's an active bid */}
       {auctionData.currentBid && (
-        <div className="bg-white bg-opacity-20 border-b border-white border-opacity-30 py-3">
+        <div className="gbx-current-bid-banner bg-white bg-opacity-20 border-b border-white border-opacity-30 py-3">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div className="flex items-center justify-center">
-              <div className="px-4 py-2 rounded-full text-sm font-medium bg-yellow-400 bg-opacity-80 text-yellow-900 animate-pulse shadow-lg border border-yellow-300">
+              <div className="gbx-current-bid-pill px-4 py-2 rounded-full text-sm font-medium bg-yellow-400 bg-opacity-80 text-yellow-900 animate-pulse shadow-lg border border-yellow-300">
                 💰 Current Bid: {formatCurrency(auctionData.currentBid.currentAmount)}
               </div>
             </div>
@@ -1398,7 +1398,7 @@ const UnifiedDashboard = () => {
         </div>
       )}
       
-      <div className="max-w-7xl mx-auto mt-5 sm:mt-6 px-4 sm:px-6 lg:px-8 py-8 rounded-2xl border border-white/60 bg-white/55 backdrop-blur-xl shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_12px_28px_-16px_rgba(15,23,42,0.18)]">
+      <div className="gbx-dashboard-content max-w-7xl mx-auto mt-5 sm:mt-6 px-4 sm:px-6 lg:px-8 py-8 rounded-2xl border border-white/60 bg-white/55 backdrop-blur-xl shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_12px_28px_-16px_rgba(15,23,42,0.18)]">
         {/* SINGLE Live Bidding Section - Visible to everyone */}
         {auctionData.currentBid && currentPlayer && (
           <LiveBiddingCard
@@ -1649,7 +1649,7 @@ const UnifiedDashboard = () => {
         )}
 
         {/* Quick Stats */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mb-8">
+        <div className="gbx-stats-grid grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mb-8">
           {[
             { label: 'Total Players', value: auctionData.players?.length || 0, accent: 'from-indigo-500 to-violet-500' },
             { label: 'Players Sold', value: soldPlayers.length, accent: 'from-emerald-500 to-teal-500' },
@@ -1660,11 +1660,11 @@ const UnifiedDashboard = () => {
           ].map((stat) => (
             <div
               key={stat.label}
-              className="group relative overflow-hidden rounded-xl border border-slate-200/70 bg-white/90 p-4 text-left shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_6px_16px_-10px_rgba(15,23,42,0.18)] hover:-translate-y-0.5 hover:border-slate-300/80 transition-[transform,box-shadow,border-color] duration-200"
+              className="gbx-stat-card group relative overflow-hidden rounded-xl border border-slate-200/70 bg-white/90 p-4 text-left shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_6px_16px_-10px_rgba(15,23,42,0.18)] hover:-translate-y-0.5 hover:border-slate-300/80 transition-[transform,box-shadow,border-color] duration-200"
             >
               <span className={`absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r ${stat.accent} opacity-80`} />
-              <div className="text-[11px] uppercase tracking-[0.18em] font-semibold text-slate-500">{stat.label}</div>
-              <div className={`mt-1 text-3xl font-bold bg-gradient-to-br ${stat.accent} bg-clip-text text-transparent`}>{stat.value}</div>
+              <div className="gbx-stat-label text-[11px] uppercase tracking-[0.18em] font-semibold text-slate-500">{stat.label}</div>
+              <div className={`gbx-stat-value mt-1 text-3xl font-bold bg-gradient-to-br ${stat.accent} bg-clip-text text-transparent`}>{stat.value}</div>
             </div>
           ))}
         </div>
@@ -1712,13 +1712,13 @@ const UnifiedDashboard = () => {
         )}
 
         {/* Tab Navigation */}
-        <div className="mb-8">
+        <div className="gbx-tab-nav mb-8">
           <div className="flex w-full flex-wrap gap-1 rounded-2xl border p-1 tab-seg">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`flex-1 min-w-[7.5rem] rounded-xl px-3 sm:px-4 py-2 font-semibold text-sm flex items-center justify-center whitespace-nowrap transition ${
+                className={`gbx-tab-btn gbx-tab-${tab.id} flex-1 min-w-[7.5rem] rounded-xl px-3 sm:px-4 py-2 font-semibold text-sm flex items-center justify-center whitespace-nowrap transition ${
                   activeTab === tab.id
                     ? 'bg-amber-400 text-slate-900 shadow'
                     : 'tab-seg-idle'
@@ -1752,10 +1752,10 @@ const UnifiedDashboard = () => {
         </div>
 
         {/* Tab Content */}
-        <div className="tab-content rounded-2xl p-6 sm:p-8 mt-4 bg-white/65 backdrop-blur-xl shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_20px_50px_-30px_rgba(15,23,42,0.25)]">
+        <div className="gbx-tab-content tab-content rounded-2xl p-6 sm:p-8 mt-4 bg-white/65 backdrop-blur-xl shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_20px_50px_-30px_rgba(15,23,42,0.25)]">
           {/* Live Status Tab - Available to everyone */}
           {activeTab === 'live' && (
-            <div className="space-y-6">
+            <div className="gbx-tabpanel-live space-y-6">
               <div className="flex items-center justify-between gap-3 flex-wrap">
                 <h3 className="text-2xl font-bold text-slate-900 tracking-tight">Live Auction Status</h3>
                 <button
@@ -2072,7 +2072,7 @@ const UnifiedDashboard = () => {
 
           {/* Players Tab - Enhanced for both admin and spectators */}
           {activeTab === 'players' && (
-            <div className="space-y-6">
+            <div className="gbx-tabpanel-players space-y-6">
               {auctionData.fileUploaded && auctionData.players?.length > 0 ? (
                 isAdmin ? (
                   <PlayersList 
@@ -2548,7 +2548,7 @@ const UnifiedDashboard = () => {
                   </div>
                 )
               ) : (
-                <div className="text-center py-12 bg-white bg-opacity-25 rounded-lg border-2 border-gray-300 border-opacity-60 shadow-xl">
+                <div className="gbx-players-empty text-center py-12 bg-white bg-opacity-25 rounded-lg border-2 border-gray-300 border-opacity-60 shadow-xl">
                   <div className="text-6xl mb-4">👥</div>
                   <h3 className="text-lg font-medium mb-2 text-gray-900">No Players Available</h3>
                   <p className="text-gray-600">
@@ -2560,7 +2560,7 @@ const UnifiedDashboard = () => {
                   {isAdmin && canConfigure && (
                     <button
                       onClick={() => setShowUploadModal(true)}
-                      className="mt-4 bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 border border-indigo-500/40 shadow-md"
+                      className="gbx-btn-upload-players mt-4 bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 border border-indigo-500/40 shadow-md"
                     >
                       Upload Players
                     </button>
@@ -2568,7 +2568,7 @@ const UnifiedDashboard = () => {
                   {isAdmin && canConfigure && (
                     <button
                       onClick={() => setShowAddPlayerModal(true)}
-                      className="mt-4 ml-3 bg-emerald-600 text-white px-6 py-3 rounded-xl hover:bg-emerald-700 border border-emerald-500/40 shadow-md"
+                      className="gbx-btn-add-player mt-4 ml-3 bg-emerald-600 text-white px-6 py-3 rounded-xl hover:bg-emerald-700 border border-emerald-500/40 shadow-md"
                     >
                       ➕ Add Player Manually
                     </button>
@@ -2576,7 +2576,7 @@ const UnifiedDashboard = () => {
                   {isAdmin && canConfigure && (
                     <button
                       onClick={openRegImport}
-                      className="mt-4 ml-3 bg-amber-500 text-slate-900 px-6 py-3 rounded-xl hover:bg-amber-400 border border-amber-400/40 shadow-md font-semibold"
+                      className="gbx-btn-from-registrations mt-4 ml-3 bg-amber-500 text-slate-900 px-6 py-3 rounded-xl hover:bg-amber-400 border border-amber-400/40 shadow-md font-semibold"
                     >
                       📋 From Registrations
                     </button>
@@ -2588,7 +2588,7 @@ const UnifiedDashboard = () => {
 
           {/* Team Management Tab - For Admin: Team Management & Retention, For Spectators: Team Squad Viewer */}
           {activeTab === 'teams' && (
-            <div className="space-y-6">
+            <div className="gbx-tabpanel-teams space-y-6">
               {auctionData.fileUploaded ? (
                 <>
                   {/* Admin Team Management (only for admin/super-admin) */}
@@ -2627,7 +2627,7 @@ const UnifiedDashboard = () => {
 
           {/* Team Squads Tab - Dedicated tab for viewing team compositions */}
           {activeTab === 'teamsquads' && (
-            <div className="space-y-6">
+            <div className="gbx-tabpanel-teamsquads space-y-6">
               {auctionData.fileUploaded ? (
                 <TeamSquadViewer 
                   teams={auctionData.teams || []}

@@ -18,7 +18,7 @@ const formatCurrency = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
  *   - rightSlot: optional ReactNode rendered below the bid panel (e.g. team bid buttons)
  */
 const Stat = ({ label, value }) => (
-  <div className="flex flex-col items-center justify-center text-center rounded-xl px-2.5 py-1.5 sm:py-2 min-w-[58px] bg-white/[0.07] border border-white/10 hover:bg-white/[0.12] transition-colors duration-200">
+  <div className="gbx-live-stat flex flex-col items-center justify-center text-center rounded-xl px-2.5 py-1.5 sm:py-2 min-w-[58px] bg-white/[0.07] border border-white/10 hover:bg-white/[0.12] transition-colors duration-200">
     <div className="text-sm sm:text-base md:text-lg font-extrabold leading-tight text-white drop-shadow-sm">
       {value}
     </div>
@@ -94,7 +94,7 @@ const LiveBiddingCardInner = ({
   );
 
   return (
-    <div className="relative overflow-hidden rounded-3xl shadow-2xl border border-white/15 mb-8 bg-gradient-to-br from-[#0b0a06] via-[#1c1608] to-[#2a1f08] text-white">
+    <div className="gbx-live-card relative overflow-hidden rounded-3xl shadow-2xl border border-white/15 mb-8 bg-gradient-to-br from-[#0b0a06] via-[#1c1608] to-[#2a1f08] text-white">
       {/* Top shine accent */}
       <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
       {/* Decorative background orbs */}
@@ -103,7 +103,7 @@ const LiveBiddingCardInner = ({
       <div className="pointer-events-none absolute top-1/2 left-1/3 w-64 h-64 bg-amber-400/15 rounded-full blur-3xl" />
 
       {/* Header bar */}
-      <div className="relative flex items-center justify-between px-4 sm:px-6 pt-4 sm:pt-5">
+      <div className="gbx-live-header relative flex items-center justify-between px-4 sm:px-6 pt-4 sm:pt-5">
         <div className="flex items-center gap-2.5">
           <span className="relative flex h-3 w-3">
             <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
@@ -122,7 +122,7 @@ const LiveBiddingCardInner = ({
 
       <div className="relative grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 p-4 sm:p-6 pt-4">
         {/* Player profile (spans 2 cols on lg) */}
-        <div className="lg:col-span-2 relative flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-8 bg-gradient-to-br from-white/15 to-white/5 backdrop-blur-xl rounded-2xl p-6 sm:p-8 border border-white/20 shadow-2xl overflow-hidden">
+        <div className="gbx-live-player lg:col-span-2 relative flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-8 bg-gradient-to-br from-white/15 to-white/5 backdrop-blur-xl rounded-2xl p-6 sm:p-8 border border-white/20 shadow-2xl overflow-hidden">
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
           {/* Player photo in rounded frame */}
           <div className="relative shrink-0">
@@ -137,18 +137,18 @@ const LiveBiddingCardInner = ({
                   href={player.cricHeroesLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-amber-100 via-white to-amber-100 bg-clip-text text-transparent hover:from-amber-200 hover:to-amber-200 transition-all break-words"
+                  className="gbx-live-player-name text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-amber-100 via-white to-amber-100 bg-clip-text text-transparent hover:from-amber-200 hover:to-amber-200 transition-all break-words"
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
                   {player.name}
                 </a>
               ) : (
-                <h3 className="text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-amber-100 via-white to-amber-100 bg-clip-text text-transparent break-words">
+                <h3 className="gbx-live-player-name text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-amber-100 via-white to-amber-100 bg-clip-text text-transparent break-words">
                   {player.name}
                 </h3>
               )}
               {player.role && (
-                <span className="mt-2 self-center sm:self-start inline-block text-[10px] sm:text-xs font-bold uppercase tracking-[0.15em] px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-500/30 to-yellow-600/30 border border-white/30 backdrop-blur-sm shadow-lg">
+                <span className="gbx-live-player-role mt-2 self-center sm:self-start inline-block text-[10px] sm:text-xs font-bold uppercase tracking-[0.15em] px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-500/30 to-yellow-600/30 border border-white/30 backdrop-blur-sm shadow-lg">
                   {player.role}
                 </span>
               )}
@@ -176,7 +176,7 @@ const LiveBiddingCardInner = ({
         {/* Bid panel */}
         <div className="flex flex-col gap-3 sm:gap-4">
           {/* Current Bid - emerald hero */}
-          <div className="relative overflow-hidden rounded-2xl shadow-2xl border border-emerald-300/60 bg-gradient-to-br from-emerald-400 via-green-500 to-teal-600">
+          <div className="gbx-live-currentbid relative overflow-hidden rounded-2xl shadow-2xl border border-emerald-300/60 bg-gradient-to-br from-emerald-400 via-green-500 to-teal-600">
             <div className="absolute -top-8 -right-8 w-32 h-32 bg-white/20 rounded-full blur-2xl" />
             <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-emerald-200/30 rounded-full blur-2xl" />
             <div className="relative p-4 sm:p-5 text-center">
@@ -196,7 +196,7 @@ const LiveBiddingCardInner = ({
           </div>
 
           {/* Leading Team - amber/orange contrast */}
-          <div className="relative overflow-hidden rounded-2xl shadow-2xl border border-amber-300/60 bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500">
+          <div className="gbx-live-leadingteam relative overflow-hidden rounded-2xl shadow-2xl border border-amber-300/60 bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500">
             <div className="absolute -top-6 -left-6 w-28 h-28 bg-yellow-200/30 rounded-full blur-2xl" />
             <div className="absolute -bottom-6 -right-6 w-28 h-28 bg-rose-300/30 rounded-full blur-2xl" />
             <div className="relative p-4 sm:p-5 text-center">
@@ -227,7 +227,7 @@ const LiveBiddingCardInner = ({
       </div>
 
       {rightSlot && (
-        <div className="relative px-4 sm:px-6 pb-5 sm:pb-6">
+        <div className="gbx-live-placebid relative px-4 sm:px-6 pb-5 sm:pb-6">
           <div className="relative bg-gradient-to-br from-white/15 to-white/5 backdrop-blur-xl rounded-2xl p-3 sm:p-4 border border-white/20 shadow-2xl overflow-hidden">
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
             {rightSlot}

@@ -334,8 +334,8 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
   useEffect(() => { loadEvents(); loadOrganizers(); }, [loadEvents, loadOrganizers]);
 
   return (
-    <div className={`min-h-screen flex flex-col ${T.pageCls}`} style={T.pageStyle}>
-      <header className={`sticky top-0 z-40 border-b px-4 sm:px-6 py-3 flex items-center justify-between ${T.header}`}>
+    <div className={`gbx-console min-h-screen flex flex-col ${T.pageCls}`} style={T.pageStyle}>
+      <header className={`gbx-console-header sticky top-0 z-40 border-b px-4 sm:px-6 py-3 flex items-center justify-between ${T.header}`}>
         <a href="/" className="flex items-center gap-3 group" title="Back to home">
           <img src="/auction-logo.png" alt="" className="w-9 h-9 object-contain" />
           <div>
@@ -361,15 +361,15 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
       ) : (
       <>
       {/* Dashboard tabs */}
-      <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-5">
-        <div className={`inline-flex flex-wrap gap-1 rounded-2xl border p-1 ${T.soft}`}>
+      <div className="gbx-console-tabs-wrap max-w-6xl mx-auto px-4 sm:px-6 pt-5">
+        <div className={`gbx-console-tabs inline-flex flex-wrap gap-1 rounded-2xl border p-1 ${T.soft}`}>
           {[['events', '🗓️ Events'], ['registrations', '📋 Registrations'], ['auctions', '🔨 Auctions'], ...(isSuper ? [['organizers', '👥 Organizers']] : [])].map(([k, label]) => (
-            <button key={k} onClick={() => setView(k)} className={`rounded-xl px-4 sm:px-5 py-2 text-sm font-semibold transition ${view === k ? 'bg-amber-400 text-slate-900 shadow' : T.tabIdle}`}>{label}</button>
+            <button key={k} onClick={() => setView(k)} className={`gbx-console-tab gbx-console-tab-${k} rounded-xl px-4 sm:px-5 py-2 text-sm font-semibold transition ${view === k ? 'bg-amber-400 text-slate-900 shadow' : T.tabIdle}`}>{label}</button>
           ))}
         </div>
       </div>
 
-      <div className="max-w-6xl mx-auto p-4 sm:p-6">
+      <div className="gbx-console-content max-w-6xl mx-auto p-4 sm:p-6">
         {view === 'events' && (
           <EventsPanel canManageEvents={canManageEvents} canAssignOrganizer={canAssignOrganizer} events={events} organizers={organizers} selected={selected} onSelect={(ev) => { setSelected(ev); setView('registrations'); }} reload={loadEvents} showSuccess={showSuccess} showError={showError} showConfirm={showConfirm} T={T} />
         )}
@@ -613,10 +613,10 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
   );
 
   return (
-    <div className={`${T.card} p-5`}>
+    <div className={`gbx-events-panel ${T.card} p-5`}>
       <div className="flex items-center justify-between mb-3">
         <h2 className={`font-bold ${T.heading}`}>Events <span className={`text-xs font-normal ${T.sub}`}>({events.length})</span></h2>
-        {canManageEvents && !editing && <button onClick={creating ? closeForm : startCreate} className="rounded-full bg-amber-400 text-slate-900 px-3 py-1 text-xs font-bold hover:bg-amber-300">{creating ? 'Cancel' : '+ New event'}</button>}
+        {canManageEvents && !editing && <button onClick={creating ? closeForm : startCreate} className="gbx-btn-new-event rounded-full bg-amber-400 text-slate-900 px-3 py-1 text-xs font-bold hover:bg-amber-300">{creating ? 'Cancel' : '+ New event'}</button>}
       </div>
 
       {(events.length > 4 || (canAssignOrganizer && organizers.length > 0)) && (
@@ -674,7 +674,7 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
             </>
           )}
           <div className="flex gap-2">
-            <button disabled={busy} className="flex-1 rounded-full bg-indigo-600 text-white px-4 py-2 text-sm font-semibold hover:bg-indigo-500 disabled:opacity-50">{busy ? 'Saving…' : editing ? 'Update event' : 'Create event'}</button>
+            <button disabled={busy} className="gbx-btn-save-event flex-1 rounded-full bg-indigo-600 text-white px-4 py-2 text-sm font-semibold hover:bg-indigo-500 disabled:opacity-50">{busy ? 'Saving…' : editing ? 'Update event' : 'Create event'}</button>
             <button type="button" onClick={closeForm} className={`rounded-full border px-4 py-2 text-sm font-semibold ${T.chip}`}>Cancel</button>
           </div>
         </form>
@@ -836,7 +836,7 @@ const OrganizersPanel = ({ events, organizers, reload, showSuccess, showError, s
     : organizers;
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <div className="gbx-organizers-panel grid grid-cols-1 md:grid-cols-3 gap-6">
       <div className={`${T.card} p-5 md:col-span-1 h-fit`}>
         <h2 className={`font-bold mb-3 ${T.heading}`}>Add organizer</h2>
         <form onSubmit={create} className="space-y-2">
@@ -963,7 +963,7 @@ const RegistrationsPanel = ({ event, canImport, reloadEvents, showSuccess, showE
       : new Date(a.created_at) - new Date(b.created_at));
 
   return (
-    <div className={`${T.card} p-5`}>
+    <div className={`gbx-registrations-panel ${T.card} p-5`}>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div className="min-w-0">
           <h2 className={`font-bold ${T.heading}`}>{event.name} — Registrations</h2>

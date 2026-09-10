@@ -19,7 +19,7 @@ const IconBtn = ({ title, onClick, danger, children }) => (
       onClick={onClick}
       aria-label={title}
       title={title}
-      className={`grid place-items-center rounded-full h-8 w-8 transition text-slate-500 hover:bg-slate-500/15 hover:text-slate-800 ${danger ? 'hover:text-rose-500' : ''}`}
+      className={`gbx-icon-btn grid place-items-center rounded-full h-8 w-8 transition text-slate-500 hover:bg-slate-500/15 hover:text-slate-800 ${danger ? 'hover:text-rose-500' : ''}`}
     >
       {children}
     </button>
@@ -181,8 +181,8 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
   };
 
   return (
-    <div className="space-y-6">
-      <div className="flex justify-between items-center">
+    <div className="gbx-players-list space-y-6">
+      <div className="gbx-players-header flex justify-between items-center">
         <h3 className="text-2xl font-bold text-slate-900 tracking-tight">
           Players Management
           {auctionStatus === 'fast-track' && (
@@ -199,7 +199,7 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
       </div>
 
       {/* Search and Filter Controls */}
-      <div className="rounded-2xl border border-slate-200/70 bg-white/90 p-5 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)]">
+      <div className="gbx-players-filters rounded-2xl border border-slate-200/70 bg-white/90 p-5 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)]">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <label className="block text-[11px] uppercase tracking-[0.18em] font-semibold text-slate-500 mb-1.5">Search</label>
@@ -208,7 +208,7 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by name or role…"
-              className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all"
+              className="gbx-players-search w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all"
             />
           </div>
           
@@ -217,7 +217,7 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
             <select
               value={categoryFilter}
               onChange={(e) => setCategoryFilter(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all"
+              className="gbx-players-filter-category w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all"
             >
               <option value="all">All Categories</option>
               <option value="captain">Captain</option>
@@ -233,7 +233,7 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
             <select
               value={statusFilter}
               onChange={(e) => setStatusFilter(e.target.value)}
-              className="w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all"
+              className="gbx-players-filter-status w-full px-3.5 py-2.5 bg-white border border-slate-200 rounded-lg text-sm text-slate-900 focus:outline-none focus:ring-2 focus:ring-indigo-500/40 focus:border-indigo-400 transition-all"
             >
               <option value="all">All Status</option>
               <option value="available">Available</option>
@@ -245,7 +245,7 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
       </div>
 
       {/* Players Table */}
-      <div className="rounded-2xl border border-slate-200/70 bg-white/90 overflow-hidden shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)]">
+      <div className="gbx-players-table-card rounded-2xl border border-slate-200/70 bg-white/90 overflow-hidden shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)]">
         <div className="px-6 py-4 border-b border-slate-200/70 flex items-center justify-between pl-head">
           <h4 className="text-lg font-bold text-slate-900 tracking-tight">
             Players List
@@ -254,7 +254,7 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
         </div>
         
         <div className="overflow-x-auto">
-          <table className="min-w-full">
+          <table className="gbx-players-table min-w-full">
             <thead className="bg-slate-50/80">
               <tr>
                 <th className="px-6 py-3 text-center text-[10px] font-semibold text-slate-500 uppercase tracking-[0.18em]">
@@ -289,7 +289,7 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
                                                !currentBid;
 
                 return (
-                  <tr key={player.id} className={isCurrentlyBidding ? 'bg-amber-50/70' : 'hover:bg-slate-50/70 transition-colors'}>
+                  <tr key={player.id} className={`gbx-player-row ${isCurrentlyBidding ? 'bg-amber-50/70' : 'hover:bg-slate-50/70 transition-colors'}`}>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <div className="flex flex-col items-center">
                         <PlayerAvatar player={player} size="md" className="mb-2" />

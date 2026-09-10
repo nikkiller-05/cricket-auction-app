@@ -490,11 +490,11 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200/70 bg-white/90 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)] p-4 sm:p-6 overflow-hidden">
+    <div className="gbx-team-management rounded-2xl border border-slate-200/70 bg-white/90 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)] p-4 sm:p-6 overflow-hidden">
       <h3 className="text-2xl font-bold text-gray-900 mb-4 tracking-tight">Team Management</h3>
 
       {/* Retention Controls */}
-      <div className="mb-6 dash-subpanel p-4 shadow-sm">
+      <div className="gbx-retention-controls mb-6 dash-subpanel p-4 shadow-sm">
         <h4 className="text-xl font-semibold text-slate-800 mb-3 tracking-wide">🔐 Player Retention Controls</h4>
         
         <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-6">
@@ -592,7 +592,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
           const teamCaptain = getTeamCaptain(team.id);
           
           return (
-            <div key={team.id} className="rounded-xl border border-slate-200/70 bg-white/85 p-4 shadow-sm hover:shadow-md hover:border-slate-300 transition-[box-shadow,border-color] duration-150">
+            <div key={team.id} className="gbx-team-card rounded-xl border border-slate-200/70 bg-white/85 p-4 shadow-sm hover:shadow-md hover:border-slate-300 transition-[box-shadow,border-color] duration-150">
               {/* Team Name Section */}
               <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-4 mb-4">
                 <label className="text-lg font-bold text-gray-800 sm:w-20 whitespace-nowrap">
@@ -602,7 +602,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
                   type="text"
                   value={teamNames[team.id] || ''}
                   onChange={(e) => handleNameChange(team.id, e.target.value)}
-                  className="flex-1 min-w-0 border-2 border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm"
+                  className="gbx-team-name-input flex-1 min-w-0 border-2 border-gray-400 rounded-md px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white shadow-sm"
                   placeholder="Enter team name"
                 />
                 <div className="text-sm text-gray-600 whitespace-nowrap">
@@ -611,7 +611,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
               </div>
 
               {/* Captain Assignment Section */}
-              <div className="dash-subpanel p-3 shadow-sm relative"
+              <div className="gbx-captain-assignment dash-subpanel p-3 shadow-sm relative"
                 style={{ zIndex: captainDropdownOpen[team.id] ? 100 : 1 }}
               >
                 <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 mb-2">
@@ -696,7 +696,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
                               }, 250);
                             }}
                             placeholder="Start typing to search players..."
-                            className="w-full px-3 py-2 pr-20 border-2 border-blue-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all hover:border-blue-400"
+                            className="gbx-captain-search w-full px-3 py-2 pr-20 border-2 border-blue-300 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white shadow-sm transition-all hover:border-blue-400"
                           />
                           
                           {/* Clear button */}
@@ -755,7 +755,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
                           });
                           
                           return (
-                            <div className="dash-menu absolute z-[9999] w-full mt-1 rounded-md shadow-2xl max-h-60 overflow-y-auto">
+                            <div className="gbx-captain-menu dash-menu absolute z-[9999] w-full mt-1 rounded-md shadow-2xl max-h-60 overflow-y-auto">
                               {filteredPlayers.map((player) => (
                                 <button
                                   key={player.id}
@@ -846,7 +846,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
                         <button
                           onClick={() => assignCaptainFromDropdown(team.id)}
                           disabled={assigningCaptain || !selectedCaptains[team.id]}
-                          className="capt-assign-btn w-full bg-gradient-to-br from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 disabled:from-slate-400 disabled:to-slate-400 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 px-4 py-2 rounded-xl text-sm font-semibold shadow-md disabled:cursor-not-allowed"
+                          className="capt-assign-btn gbx-btn-assign-captain w-full bg-gradient-to-br from-sky-500 to-blue-600 hover:from-sky-400 hover:to-blue-500 disabled:from-slate-400 disabled:to-slate-400 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 px-4 py-2 rounded-xl text-sm font-semibold shadow-md disabled:cursor-not-allowed"
                         >
                           {assigningCaptain ? 'Assigning...' : '👑 Assign Captain'}
                         </button>
@@ -870,7 +870,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
         <button
           onClick={updateTeams}
           disabled={updating}
-          className="bg-gradient-to-br from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:from-slate-400 disabled:to-slate-400 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 px-4 py-2 rounded-xl text-sm font-semibold border border-indigo-500/40 shadow-md"
+          className="gbx-btn-update-teams bg-gradient-to-br from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:from-slate-400 disabled:to-slate-400 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 px-4 py-2 rounded-xl text-sm font-semibold border border-indigo-500/40 shadow-md"
         >
           {updating ? 'Updating...' : 'Update Team Names'}
         </button>
@@ -881,7 +881,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
       </div>
 
       {/* Captain Status Summary */}
-      <div className="mt-6 dash-subpanel p-4 shadow-sm">
+      <div className="gbx-captain-status mt-6 dash-subpanel p-4 shadow-sm">
         <h4 className="text-lg font-bold text-slate-800 mb-2">👑 Captain Assignment Status</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div>
@@ -915,7 +915,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
 
       {/* Player Retention Section */}
       {retentionEnabled && (
-        <div className="mt-8 dash-subpanel p-6">
+        <div className="gbx-retention-management mt-8 dash-subpanel p-6">
           <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center tracking-wide">
             🔄 Player Retention Management
             <span className="ml-2 text-sm bg-slate-100 text-slate-600 px-2 py-1 rounded-full font-semibold">
