@@ -1713,42 +1713,42 @@ const UnifiedDashboard = () => {
 
         {/* Tab Navigation */}
         <div className="mb-8">
-          <nav className="flex flex-wrap gap-2 overflow-x-auto pb-2">
+          <div className="inline-flex flex-wrap gap-1 rounded-2xl border p-1 tab-seg">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`tab-button ${activeTab === tab.id ? 'active' : ''} ${
+                className={`rounded-xl px-4 sm:px-5 py-2 font-semibold text-sm inline-flex items-center whitespace-nowrap transition ${
                   activeTab === tab.id
-                    ? 'bg-gradient-to-br from-indigo-500 to-violet-600 text-white border-transparent shadow-lg shadow-violet-600/40 -translate-y-0.5'
-                    : 'bg-white/70 text-slate-700 hover:text-slate-900 hover:bg-white border-slate-200/80 hover:border-slate-300 hover:-translate-y-0.5'
-                } whitespace-nowrap py-2.5 px-5 font-semibold text-sm flex items-center rounded-full border shadow-sm min-w-fit transition-[background-color,transform,box-shadow] duration-200`}
+                    ? 'bg-amber-400 text-slate-900 shadow'
+                    : 'tab-seg-idle'
+                }`}
               >
                 <span className="mr-2">{tab.icon}</span>
                 {tab.name}
-                
+
                 {tab.count !== undefined && tab.count > 0 && (
                   <span className={`ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                    activeTab === tab.id 
-                      ? 'bg-white/20 text-white' 
-                      : 'bg-slate-100 text-slate-600'
+                    activeTab === tab.id
+                      ? 'bg-amber-900/15 text-amber-900'
+                      : 'bg-amber-500/15 text-amber-700'
                   }`}>
                     {tab.count}
                   </span>
                 )}
-                
+
                 {tab.badge !== undefined && tab.badge > 0 && (
                   <span className={`ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                    activeTab === tab.id 
-                      ? 'bg-rose-400 text-white' 
-                      : 'bg-rose-100 text-rose-700'
+                    activeTab === tab.id
+                      ? 'bg-rose-500 text-white'
+                      : 'bg-rose-500/20 text-rose-300'
                   }`}>
                     {tab.badge}
                   </span>
                 )}
               </button>
             ))}
-          </nav>
+          </div>
         </div>
 
         {/* Tab Content */}

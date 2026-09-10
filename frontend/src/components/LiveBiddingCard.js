@@ -18,8 +18,7 @@ const formatCurrency = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
  *   - rightSlot: optional ReactNode rendered below the bid panel (e.g. team bid buttons)
  */
 const Stat = ({ label, value }) => (
-  <div className="group relative flex flex-col items-center justify-center text-center rounded-xl px-2.5 py-1.5 sm:py-2 min-w-[58px] bg-gradient-to-br from-white/20 to-white/5 border border-white/25 shadow-md hover:shadow-lg hover:from-white/30 hover:-translate-y-0.5 transition-all duration-300">
-    <div className="absolute inset-x-2 top-0 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+  <div className="flex flex-col items-center justify-center text-center rounded-xl px-2.5 py-1.5 sm:py-2 min-w-[58px] bg-white/[0.07] border border-white/10 hover:bg-white/[0.12] transition-colors duration-200">
     <div className="text-sm sm:text-base md:text-lg font-extrabold leading-tight text-white drop-shadow-sm">
       {value}
     </div>

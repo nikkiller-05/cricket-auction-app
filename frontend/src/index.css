@@ -233,7 +233,10 @@
 .dash-root[data-theme="light"] .border-slate-200\/70,
 .dash-root[data-theme="light"] .border-slate-200\/80,
 .dash-root[data-theme="light"] .border-slate-200,
-.dash-root[data-theme="light"] .border-white\/60 { border-color: rgba(180, 140, 40, 0.18) !important; }
+.dash-root[data-theme="light"] .border-slate-300,
+.dash-root[data-theme="light"] .border-gray-200,
+.dash-root[data-theme="light"] .border-white\/60,
+.dash-root[data-theme="light"] .border-white\/15 { border-color: rgba(160, 120, 30, 0.12) !important; }
 
 /* ===== DARK theme: catch the remaining bright slash-opacity light patches ===== */
 .dash-root[data-theme="dark"] .bg-slate-50\/80,
@@ -266,6 +269,33 @@
 .dash-root[data-theme="dark"] .download-dropdown-item:hover,
 .dash-root[data-theme="dark"] .menu-option:hover { background: rgba(253, 224, 71, 0.10) !important; }
 .dash-root[data-theme="dark"] .menu-divider { background: linear-gradient(90deg, transparent, rgba(253,224,71,0.18), transparent) !important; }
+
+/* ===== Inputs on dark: legible text + neutral gold field (fixes invisible text) ===== */
+.dash-root[data-theme="dark"] input:not([type="checkbox"]):not([type="radio"]):not([type="file"]),
+.dash-root[data-theme="dark"] select,
+.dash-root[data-theme="dark"] textarea {
+  background-color: rgba(255, 255, 255, 0.06) !important;
+  border-color: rgba(253, 224, 71, 0.20) !important;
+  color: #f1ede2 !important;
+}
+.dash-root[data-theme="dark"] input::placeholder,
+.dash-root[data-theme="dark"] textarea::placeholder { color: rgba(255, 255, 255, 0.42) !important; }
+.dash-root[data-theme="dark"] select option { color: #0f172a; }
+
+/* Neutralize pastel input borders. */
+.dash-root[data-theme="light"] .border-blue-300 { border-color: rgba(180, 140, 40, 0.30) !important; }
+.dash-root[data-theme="light"] .border-gray-400,
+.dash-root[data-theme="light"] .border-gray-300 { border-color: rgba(160, 120, 30, 0.22) !important; }
+.dash-root .hover\:border-blue-400:hover { border-color: rgba(217, 119, 6, 0.5) !important; }
+.dash-root .hover\:border-blue-500:hover { border-color: #d97706 !important; }
+
+/* ===== Segmented tab control (matches the organizer console) ===== */
+.dash-root[data-theme="dark"] .tab-seg { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.10); }
+.dash-root[data-theme="light"] .tab-seg { background: rgba(253, 230, 180, 0.5); border-color: rgba(202, 138, 4, 0.28); }
+.dash-root[data-theme="dark"] .tab-seg-idle { color: rgba(233, 228, 214, 0.62); }
+.dash-root[data-theme="dark"] .tab-seg-idle:hover { color: #ffffff; }
+.dash-root[data-theme="light"] .tab-seg-idle { color: #64748b; }
+.dash-root[data-theme="light"] .tab-seg-idle:hover { color: #0f172a; }
 
 /* Inactive nav-tab count chip on dark. */
 .dash-root[data-theme="dark"] .bg-slate-50,

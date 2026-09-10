@@ -648,7 +648,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
                     </span>
                   </div>
                 ) : (
-                  <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                  <div className="mt-3 pt-3 border-t border-gray-200">
                     <h5 className="text-md font-bold text-gray-800 mb-3">🆕 Assign Captain:</h5>
                     
                     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 items-end">
@@ -981,7 +981,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
 
                   {/* Add New Retention */}
                   {canRetainMore && availableForRetention.length > 0 && (
-                    <div className="bg-gray-50 rounded-lg p-4 border border-gray-200">
+                    <div className="mt-3 pt-3 border-t border-gray-200">
                       <h5 className="text-lg font-bold text-gray-800 mb-3">🆕 Add New Retention:</h5>
                       
                       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 items-end">
