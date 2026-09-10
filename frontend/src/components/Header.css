@@ -104,7 +104,7 @@
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  flex: 1 1 0;
+  flex: 1 1 auto;
   min-width: 0;
   justify-content: flex-start;
 }
@@ -192,14 +192,14 @@
 }
 
 /* Center Section - Auction Status. Sits in normal flow as the middle flex
-   column (left/right columns flex-grow equally) so it stays centred without
-   absolute positioning and never overlaps the logo or the controls. */
+   column; the left/right columns size to their own content (flex-basis auto)
+   so neither side can overflow and cover the badge. */
 .header-center {
   position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 0 0 auto;
+  flex: 0 1 auto;
   min-width: 0;
   z-index: 1;
 }
@@ -405,7 +405,7 @@
   display: flex;
   align-items: center;
   gap: 1rem;
-  flex: 1 1 0;
+  flex: 1 1 auto;
   min-width: 0;
   justify-content: flex-end;
   margin-right: 1rem;

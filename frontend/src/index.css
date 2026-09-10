@@ -528,9 +528,6 @@
   background: rgba(255, 255, 255, 0.35);
   transform: translateX(-50%);
 }
-/* Horizontally scrollable tab bar on small screens (hide the scrollbar). */
-.gbx-tab-scroller { -ms-overflow-style: none; scrollbar-width: none; -webkit-overflow-scrolling: touch; }
-.gbx-tab-scroller::-webkit-scrollbar { display: none; }
 @keyframes gbxPop { 0% { transform: scale(0.6); opacity: 0; } 60% { transform: scale(1.08); opacity: 1; } 100% { transform: scale(1); } }
 .gbx-sold-text { animation: gbxPop 0.5s ease-out 0.55s both; }
 .gbx-unsold-text { animation: gbxPop 0.5s ease-out 0.7s both; }
