@@ -1752,7 +1752,7 @@ const UnifiedDashboard = () => {
         </div>
 
         {/* Tab Content */}
-        <div className="tab-content rounded-2xl p-6 sm:p-8 mt-4 border border-white/60 bg-white/65 backdrop-blur-xl shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_20px_50px_-30px_rgba(15,23,42,0.25)]">
+        <div className="tab-content rounded-2xl p-6 sm:p-8 mt-4 bg-white/65 backdrop-blur-xl shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_20px_50px_-30px_rgba(15,23,42,0.25)]">
           {/* Live Status Tab - Available to everyone */}
           {activeTab === 'live' && (
             <div className="space-y-6">

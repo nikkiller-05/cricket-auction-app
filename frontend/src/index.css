@@ -115,6 +115,7 @@
 /* Slash-opacity glass cards → warm golden-dark glass. */
 .dash-root[data-theme="dark"] .bg-white\/95,
 .dash-root[data-theme="dark"] .bg-white\/90,
+.dash-root[data-theme="dark"] .bg-white\/85,
 .dash-root[data-theme="dark"] .bg-white\/80,
 .dash-root[data-theme="dark"] .bg-white\/75,
 .dash-root[data-theme="dark"] .bg-white\/70,
@@ -210,14 +211,14 @@
 .dash-root .shadow-blue-500\/30 { --tw-shadow-color: rgba(217, 119, 6, 0.35) !important; }
 
 /* ===== Reusable sub-panel token (replaces pastel blue/purple info boxes) =====
-   One calm, on-brand nested surface for both themes. */
+   One calm, on-brand nested surface for both themes — borderless (just a tint). */
 .dash-subpanel {
   border-radius: 0.6rem;
-  border: 1px solid rgba(120, 80, 10, 0.16);
+  border: 1px solid transparent;
   background: rgba(120, 80, 10, 0.05);
 }
 .dash-root[data-theme="dark"] .dash-subpanel {
-  border: 1px solid rgba(253, 224, 71, 0.14);
+  border: 1px solid transparent;
   background: rgba(255, 255, 255, 0.04);
 }
 
@@ -235,8 +236,13 @@
 .dash-root[data-theme="light"] .border-slate-200,
 .dash-root[data-theme="light"] .border-slate-300,
 .dash-root[data-theme="light"] .border-gray-200,
-.dash-root[data-theme="light"] .border-white\/60,
-.dash-root[data-theme="light"] .border-white\/15 { border-color: rgba(160, 120, 30, 0.12) !important; }
+.dash-root[data-theme="light"] .border-white\/60 { border-color: rgba(160, 120, 30, 0.12) !important; }
+
+/* ===== Inner cards are borderless (only the outer page card + Live Bid card keep a border) =====
+   Separation comes from background + shadow, so nested content stops reading as
+   stacked, outlined boxes. */
+.dash-root[data-theme="light"] .border-slate-200\/70,
+.dash-root[data-theme="dark"] .border-slate-200\/70 { border-color: transparent !important; }
 
 /* ===== DARK theme: catch the remaining bright slash-opacity light patches ===== */
 .dash-root[data-theme="dark"] .bg-slate-50\/80,

@@ -1250,7 +1250,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
 
       {/* Show message when retention is not enabled */}
       {!retentionEnabled && (
-        <div className="mt-8 bg-gray-50 rounded-lg p-6 border border-gray-200">
+        <div className="mt-8 bg-gray-50 rounded-lg p-6">
           <h3 className="text-lg font-medium text-gray-900 mb-4 flex items-center">
             🔄 Player Retention 
             <span className="ml-2 text-sm bg-red-100 text-red-700 px-2 py-1 rounded-full">
