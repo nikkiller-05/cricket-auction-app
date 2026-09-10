@@ -494,8 +494,8 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
       <h3 className="text-2xl font-bold text-gray-900 mb-4 tracking-tight">Team Management</h3>
 
       {/* Retention Controls */}
-      <div className="mb-6 bg-purple-50 border-2 border-purple-300 border-opacity-70 rounded-lg p-4 shadow-lg">
-        <h4 className="text-xl font-semibold text-purple-900 mb-3 tracking-wide">🔐 Player Retention Controls</h4>
+      <div className="mb-6 dash-subpanel p-4 shadow-sm">
+        <h4 className="text-xl font-semibold text-slate-800 mb-3 tracking-wide">🔐 Player Retention Controls</h4>
         
         <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-6">
           <div className="flex items-center space-x-2">
@@ -512,14 +512,14 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
               }}
               className="h-4 w-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
             />
-            <label htmlFor="enableRetentionToggle" className="text-base font-semibold text-purple-900">
+            <label htmlFor="enableRetentionToggle" className="text-base font-semibold text-slate-800">
               Enable Player Retention
             </label>
           </div>
 
           {retentionEnabled && (
             <div className="flex items-center space-x-2">
-              <label htmlFor="retentionCount" className="text-sm text-purple-700 whitespace-nowrap">
+              <label htmlFor="retentionCount" className="text-sm text-slate-600 whitespace-nowrap">
                 Retentions per team:
               </label>
               <select
@@ -569,7 +569,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
         </div>
 
         {retentionEnabled && (
-          <div className="mt-3 text-sm text-purple-700">
+          <div className="mt-3 text-sm text-slate-600">
             <div className="flex flex-wrap items-center gap-4">
               <p>✓ Each team can retain up to {retentionsPerTeam} player(s)</p>
               <p>✓ Total retention slots: {teams.length * retentionsPerTeam}</p>
@@ -611,7 +611,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
               </div>
 
               {/* Captain Assignment Section */}
-              <div className="bg-blue-50 border-2 border-blue-300 border-opacity-60 rounded-md p-3 shadow-sm relative"
+              <div className="dash-subpanel p-3 shadow-sm relative"
                 style={{ zIndex: captainDropdownOpen[team.id] ? 100 : 1 }}
               >
                 <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 mb-2">
@@ -628,7 +628,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
                 </div>
                 
                 {teamCaptain ? (
-                  <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 bg-blue-100 rounded px-3 py-2">
+                  <div className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 bg-slate-100 rounded px-3 py-2">
                     <div className="flex flex-col space-y-1 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2">
                       <span className="text-xl">👑</span>
                       <span className="text-lg font-bold text-gray-900">{teamCaptain.name}</span>
@@ -881,12 +881,12 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
       </div>
 
       {/* Captain Status Summary */}
-      <div className="mt-6 bg-blue-50 border-2 border-blue-300 border-opacity-70 rounded-lg p-4 shadow-lg">
-        <h4 className="text-lg font-bold text-blue-900 mb-2">👑 Captain Assignment Status</h4>
+      <div className="mt-6 dash-subpanel p-4 shadow-sm">
+        <h4 className="text-lg font-bold text-slate-800 mb-2">👑 Captain Assignment Status</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
           <div>
-            <span className="font-bold text-blue-800">Assigned Captains:</span>
-            <ul className="list-disc list-inside text-blue-600 ml-4">
+            <span className="font-bold text-slate-700">Assigned Captains:</span>
+            <ul className="list-disc list-inside text-slate-600 ml-4">
               {teams.map(team => {
                 const captain = getTeamCaptain(team.id);
                 return captain ? (
@@ -900,8 +900,8 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
             </ul>
           </div>
           <div>
-            <span className="font-bold text-blue-800">Teams Without Captains:</span>
-            <ul className="list-disc list-inside text-blue-600 ml-4">
+            <span className="font-bold text-slate-700">Teams Without Captains:</span>
+            <ul className="list-disc list-inside text-slate-600 ml-4">
               {teams.filter(t => !getTeamCaptain(t.id)).map(team => (
                 <li key={team.id}>{team.name || `Team ${team.id}`}</li>
               ))}
@@ -915,10 +915,10 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
 
       {/* Player Retention Section */}
       {retentionEnabled && (
-        <div className="mt-8 bg-purple-50 rounded-lg p-6 border border-purple-200">
-          <h3 className="text-2xl font-bold text-purple-900 mb-4 flex items-center tracking-wide">
+        <div className="mt-8 dash-subpanel p-6">
+          <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center tracking-wide">
             🔄 Player Retention Management
-            <span className="ml-2 text-sm bg-purple-100 text-purple-700 px-2 py-1 rounded-full font-semibold">
+            <span className="ml-2 text-sm bg-slate-100 text-slate-600 px-2 py-1 rounded-full font-semibold">
               {retentionsPerTeam} per team
             </span>
           </h3>
@@ -947,7 +947,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
                       <h5 className="text-lg font-bold text-gray-800 mb-2">Currently Retained:</h5>
                       <div className="space-y-2">
                         {teamRetainedPlayers.map(player => (
-                          <div key={player.id} className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 bg-purple-50 rounded px-3 py-2">
+                          <div key={player.id} className="flex flex-col space-y-2 sm:flex-row sm:items-center sm:justify-between sm:space-y-0 bg-slate-100 rounded px-3 py-2">
                             <div className="flex flex-col space-y-1 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-2">
                               <span className="text-lg font-bold text-gray-900">{player.name}</span>
                               <span className="text-sm text-gray-600">({player.role})</span>

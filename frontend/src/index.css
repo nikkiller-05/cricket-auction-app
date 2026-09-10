@@ -195,6 +195,7 @@
 .dash-root .to-indigo-500,
 .dash-root .to-purple-500,
 .dash-root .to-purple-700 { --tw-gradient-to: #b45309 var(--tw-gradient-to-position) !important; }
+.dash-root .hover\:from-sky-400:hover,
 .dash-root .hover\:from-purple-700:hover { --tw-gradient-from: #d97706 var(--tw-gradient-from-position) !important; --tw-gradient-to: rgb(217 119 6 / 0) var(--tw-gradient-to-position) !important; }
 .dash-root .hover\:to-purple-800:hover { --tw-gradient-to: #92400e var(--tw-gradient-to-position) !important; }
 
@@ -207,6 +208,64 @@
 .dash-root .shadow-violet-600\/40,
 .dash-root .shadow-violet-600\/30,
 .dash-root .shadow-blue-500\/30 { --tw-shadow-color: rgba(217, 119, 6, 0.35) !important; }
+
+/* ===== Reusable sub-panel token (replaces pastel blue/purple info boxes) =====
+   One calm, on-brand nested surface for both themes. */
+.dash-subpanel {
+  border-radius: 0.6rem;
+  border: 1px solid rgba(120, 80, 10, 0.16);
+  background: rgba(120, 80, 10, 0.05);
+}
+.dash-root[data-theme="dark"] .dash-subpanel {
+  border: 1px solid rgba(253, 224, 71, 0.14);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* ===== LIGHT theme: warm the stark-white cards so they harmonise with gold ===== */
+.dash-root[data-theme="light"] .bg-white\/95,
+.dash-root[data-theme="light"] .bg-white\/90,
+.dash-root[data-theme="light"] .bg-white\/85,
+.dash-root[data-theme="light"] .bg-white\/80,
+.dash-root[data-theme="light"] .bg-white\/70,
+.dash-root[data-theme="light"] .bg-white\/65,
+.dash-root[data-theme="light"] .bg-white\/60,
+.dash-root[data-theme="light"] .bg-white\/55 { background-color: rgba(253, 250, 243, 0.92) !important; }
+.dash-root[data-theme="light"] .border-slate-200\/70,
+.dash-root[data-theme="light"] .border-slate-200\/80,
+.dash-root[data-theme="light"] .border-slate-200,
+.dash-root[data-theme="light"] .border-white\/60 { border-color: rgba(180, 140, 40, 0.18) !important; }
+
+/* ===== DARK theme: catch the remaining bright slash-opacity light patches ===== */
+.dash-root[data-theme="dark"] .bg-slate-50\/80,
+.dash-root[data-theme="dark"] .bg-slate-50\/70,
+.dash-root[data-theme="dark"] .hover\:bg-slate-50\/70:hover,
+.dash-root[data-theme="dark"] .hover\:bg-slate-50\/60:hover { background-color: rgba(255, 255, 255, 0.035) !important; }
+.dash-root[data-theme="dark"] .bg-amber-50\/70 { background-color: rgba(245, 200, 90, 0.10) !important; }
+.dash-root[data-theme="dark"] .divide-slate-100 > :not([hidden]) ~ :not([hidden]) { border-color: rgba(253, 224, 71, 0.10) !important; }
+/* Purple count/chip surfaces that stay saturated on dark → calm neutral.
+   (bg-blue-100 is intentionally left alone: it's the batter category pill.) */
+.dash-root[data-theme="dark"] .bg-purple-100 { background-color: rgba(255, 255, 255, 0.06) !important; }
+.dash-root[data-theme="dark"] .border-blue-300,
+.dash-root[data-theme="dark"] .border-purple-300,
+.dash-root[data-theme="dark"] .border-purple-200,
+.dash-root[data-theme="dark"] .border-gray-400 { border-color: rgba(253, 224, 71, 0.14) !important; }
+
+/* ===== Header popover menus (download + user/hamburger) → theme-aware ===== */
+.dash-root[data-theme="dark"] .dropdown-menu,
+.dash-root[data-theme="dark"] .download-dropdown-menu {
+  background: #17130b !important;
+  border-color: rgba(253, 224, 71, 0.18) !important;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.6) !important;
+}
+.dash-root[data-theme="dark"] .user-info { background: rgba(255, 255, 255, 0.05) !important; }
+.dash-root[data-theme="dark"] .user-name,
+.dash-root[data-theme="dark"] .download-item-title { color: #f3efe4 !important; }
+.dash-root[data-theme="dark"] .user-role,
+.dash-root[data-theme="dark"] .download-item-subtitle { color: #b8b19c !important; }
+.dash-root[data-theme="dark"] .download-dropdown-item { color: #e7e2d4 !important; }
+.dash-root[data-theme="dark"] .download-dropdown-item:hover,
+.dash-root[data-theme="dark"] .menu-option:hover { background: rgba(253, 224, 71, 0.10) !important; }
+.dash-root[data-theme="dark"] .menu-divider { background: linear-gradient(90deg, transparent, rgba(253,224,71,0.18), transparent) !important; }
 
 /* Inactive nav-tab count chip on dark. */
 .dash-root[data-theme="dark"] .bg-slate-50,
