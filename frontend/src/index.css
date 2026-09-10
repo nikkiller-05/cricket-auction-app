@@ -367,6 +367,11 @@
 .dash-root[data-theme="light"] .gbx-tab-content table tbody tr:not(.gbx-row-active):nth-child(even) { background-color: rgba(120, 90, 20, 0.07) !important; }
 .dash-root[data-theme="light"] .gbx-tab-content table tbody tr:not(.gbx-row-active):hover { background-color: rgba(120, 90, 20, 0.11) !important; }
 
+/* ===== Console (organizer dashboard): recolor indigo primary buttons to gold ===== */
+.gbx-console .bg-indigo-600 { background-color: #f59e0b !important; color: #1a1206 !important; }
+.gbx-console .hover\:bg-indigo-500:hover { background-color: #fbbf24 !important; }
+.gbx-console .border-indigo-600 { border-color: #f59e0b !important; }
+
 /* ===== Assign Captain button: dark text in light theme (white washed out on the yellow) ===== */
 .dash-root[data-theme="light"] .capt-assign-btn { color: #3a2a06 !important; }
 

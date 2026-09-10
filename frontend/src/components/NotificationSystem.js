@@ -122,7 +122,7 @@ const Notification = ({ notification, onRemove, onConfirm, onCancel }) => {
       case NOTIFICATION_TYPES.INFO:
         return `${baseStyles} bg-blue-600 bg-opacity-95 border-blue-400 text-white ring-blue-300 shadow-blue-500/30`;
       case NOTIFICATION_TYPES.CONFIRM:
-        return `${baseStyles} bg-purple-600 bg-opacity-95 border-purple-400 text-white ring-purple-300 shadow-purple-500/30`;
+        return `${baseStyles} bg-amber-600 bg-opacity-95 border-amber-400 text-white ring-amber-300 shadow-amber-500/30`;
       default:
         return `${baseStyles} bg-gray-600 bg-opacity-95 border-gray-400 text-white ring-gray-300 shadow-gray-500/30`;
     }
