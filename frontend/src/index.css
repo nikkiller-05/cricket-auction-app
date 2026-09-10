@@ -92,6 +92,46 @@
 .dash-root[data-theme="dark"] .border-opacity-60,
 .dash-root[data-theme="dark"] .border-opacity-70 { --tw-border-opacity: 0.14 !important; }
 
+/* Slate text (used across cards/tabs). */
+.dash-root[data-theme="dark"] .text-slate-900,
+.dash-root[data-theme="dark"] .text-slate-800 { color: #f3f1ea !important; }
+.dash-root[data-theme="dark"] .text-slate-700,
+.dash-root[data-theme="dark"] .text-slate-600 { color: #d8d3c2 !important; }
+.dash-root[data-theme="dark"] .text-slate-500,
+.dash-root[data-theme="dark"] .text-slate-400 { color: #a8a28f !important; }
+
+/* Slash-opacity glass cards → warm golden-dark glass. */
+.dash-root[data-theme="dark"] .bg-white\/95,
+.dash-root[data-theme="dark"] .bg-white\/90,
+.dash-root[data-theme="dark"] .bg-white\/80,
+.dash-root[data-theme="dark"] .bg-white\/75,
+.dash-root[data-theme="dark"] .bg-white\/70,
+.dash-root[data-theme="dark"] .bg-white\/65,
+.dash-root[data-theme="dark"] .bg-white\/60,
+.dash-root[data-theme="dark"] .bg-white\/55,
+.dash-root[data-theme="dark"] .bg-white\/50 {
+  background-color: rgba(26, 22, 13, 0.66) !important;
+}
+
+/* Gold hairline borders in place of white/slate hairlines. */
+.dash-root[data-theme="dark"] .border-white\/60,
+.dash-root[data-theme="dark"] .border-white\/50,
+.dash-root[data-theme="dark"] .border-white\/40,
+.dash-root[data-theme="dark"] .border-slate-200\/70,
+.dash-root[data-theme="dark"] .border-slate-200\/80,
+.dash-root[data-theme="dark"] .border-slate-200,
+.dash-root[data-theme="dark"] .border-slate-300 {
+  border-color: rgba(253, 224, 71, 0.16) !important;
+}
+
+/* Light gradient info panels → warm dark. */
+.dash-root[data-theme="dark"] .from-blue-50,
+.dash-root[data-theme="dark"] .from-green-50 { --tw-gradient-from: rgba(255,255,255,0.05) var(--tw-gradient-from-position) !important; }
+.dash-root[data-theme="dark"] .to-indigo-50,
+.dash-root[data-theme="dark"] .to-teal-50 { --tw-gradient-to: rgba(255,255,255,0.03) var(--tw-gradient-to-position) !important; }
+.dash-root[data-theme="dark"] .border-blue-200,
+.dash-root[data-theme="dark"] .border-green-200 { border-color: rgba(253, 224, 71, 0.16) !important; }
+
 /* --- LIGHT --- warmer than before; fixes flat header/select feel --- */
 .dash-root[data-theme="light"] {
   background:

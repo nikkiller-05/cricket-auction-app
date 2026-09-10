@@ -22,6 +22,29 @@
      clipped by overflow-x:hidden. */
 }
 
+/* Theme-aware golden header (overrides the base gradient above). */
+.dash-root[data-theme="dark"] .header {
+  background:
+    radial-gradient(60% 100% at 100% 50%, rgba(232, 184, 75, 0.16) 0%, transparent 70%),
+    radial-gradient(70% 100% at 0% 0%, rgba(202, 138, 4, 0.22) 0%, transparent 65%),
+    linear-gradient(135deg, #0b0a06 0%, #1c1608 55%, #2a1f08 100%);
+  border-bottom: 1px solid rgba(253, 224, 71, 0.18);
+  box-shadow:
+    0 1px 0 rgba(253, 224, 71, 0.08) inset,
+    0 8px 24px -12px rgba(0, 0, 0, 0.7);
+}
+
+.dash-root[data-theme="light"] .header {
+  background:
+    radial-gradient(60% 100% at 100% 50%, rgba(255, 215, 120, 0.30) 0%, transparent 70%),
+    radial-gradient(60% 100% at 0% 0%, rgba(202, 138, 4, 0.28) 0%, transparent 65%),
+    linear-gradient(135deg, #7c4a02 0%, #a16207 50%, #b45309 100%);
+  border-bottom: 1px solid rgba(120, 80, 10, 0.35);
+  box-shadow:
+    0 1px 0 rgba(255, 255, 255, 0.12) inset,
+    0 8px 22px -12px rgba(120, 80, 10, 0.5);
+}
+
 .header-container {
   display: flex;
   align-items: center;
