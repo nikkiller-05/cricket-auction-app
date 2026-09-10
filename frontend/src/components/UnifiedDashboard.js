@@ -1398,7 +1398,7 @@ const UnifiedDashboard = () => {
         </div>
       )}
       
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 rounded-2xl border border-white/60 bg-white/55 backdrop-blur-xl shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_12px_28px_-16px_rgba(15,23,42,0.18)]">
+      <div className="max-w-7xl mx-auto mt-5 sm:mt-6 px-4 sm:px-6 lg:px-8 py-8 rounded-2xl border border-white/60 bg-white/55 backdrop-blur-xl shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_12px_28px_-16px_rgba(15,23,42,0.18)]">
         {/* SINGLE Live Bidding Section - Visible to everyone */}
         {auctionData.currentBid && currentPlayer && (
           <LiveBiddingCard
