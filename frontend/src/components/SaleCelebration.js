@@ -49,6 +49,8 @@ const SaleCelebration = ({ celebration, onDone }) => {
     >
       <div className="absolute inset-0 bg-black/75 gbx-modal-backdrop" />
 
+      {!sold && <div className="gbx-stamp-flash" aria-hidden="true" />}
+
       {sold && (
         <>
           {glitter.map((g) => (

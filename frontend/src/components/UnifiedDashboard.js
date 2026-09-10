@@ -846,14 +846,8 @@ const UnifiedDashboard = () => {
       action: async () => {
         setUndoLoading(true);
         try {
-          const response = await axios.post(`${API_BASE_URL}/api/auction/undo/sale`);
-          
-          if (response.data.type === 'sale') {
-            showWarning(`Sale Undone: ${response.data.player} - Refunded ₹${response.data.refundedAmount} to ${response.data.team}`);
-          } else if (response.data.type === 'unsold') {
-            showWarning(`Unsold Action Undone: ${response.data.player} is now available again`);
-          }
-          
+          // Socket 'saleUndone' broadcasts the single notification to everyone.
+          await axios.post(`${API_BASE_URL}/api/auction/undo/sale`);
           fetchActionHistory();
         } catch (error) {
           showError(error.response?.data?.error || 'Failed to undo action');
@@ -863,7 +857,7 @@ const UnifiedDashboard = () => {
       }
     });
     setShowUndoConfirmModal(true);
-  }, [actionHistory, showError, showWarning, fetchActionHistory]);
+  }, [actionHistory, showError, fetchActionHistory]);
 
   const handleUndoCurrentBid = useCallback(async () => {
     setUndoConfirmAction({
@@ -872,12 +866,8 @@ const UnifiedDashboard = () => {
       action: async () => {
         setUndoLoading(true);
         try {
-          const response = await axios.post(`${API_BASE_URL}/api/auction/undo/bid`);
-          if (response.data.revertedToTeam) {
-            showWarning(`Bid Reverted: ${response.data.player} - Back to ${response.data.revertedToTeam} (₹${response.data.revertedToAmount})`);
-          } else {
-            showWarning(`Bid Reverted: ${response.data.player} - Back to base price (₹${response.data.revertedToAmount})`);
-          }
+          // Socket 'bidUndone' broadcasts the single notification to everyone.
+          await axios.post(`${API_BASE_URL}/api/auction/undo/bid`);
         } catch (error) {
           showError(error.response?.data?.error || 'Failed to undo bid');
         } finally {
@@ -886,7 +876,7 @@ const UnifiedDashboard = () => {
       }
     });
     setShowUndoConfirmModal(true);
-  }, [showWarning, showError]);
+  }, [showError]);
 
   const executeUndoAction = async () => {
     setShowUndoConfirmModal(false);
@@ -1774,25 +1764,6 @@ const UnifiedDashboard = () => {
                   </svg>
                   Share
                 </button>
-              </div>
-              
-              {/* Overview Stats */}
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                {[
-                  { label: 'Sold', value: soldPlayers.length, accent: 'from-emerald-500 to-teal-500' },
-                  { label: 'Unsold', value: unsoldPlayers.length, accent: 'from-rose-500 to-red-500' },
-                  { label: 'Available', value: availablePlayers.length, accent: 'from-sky-500 to-cyan-500' },
-                  { label: 'Captains', value: captains.length, accent: 'from-amber-500 to-orange-500' },
-                ].map((stat) => (
-                  <div
-                    key={stat.label}
-                    className="group relative overflow-hidden rounded-xl border border-slate-200/70 bg-white/90 p-4 text-left shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_6px_16px_-10px_rgba(15,23,42,0.18)] hover:-translate-y-0.5 transition-[transform,box-shadow,border-color] duration-200"
-                  >
-                    <span className={`absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r ${stat.accent}`} />
-                    <div className="text-[11px] uppercase tracking-[0.18em] font-semibold text-slate-500">{stat.label}</div>
-                    <div className={`mt-1 text-2xl font-bold bg-gradient-to-br ${stat.accent} bg-clip-text text-transparent`}>{stat.value}</div>
-                  </div>
-                ))}
               </div>
               
               {auctionData.auctionStatus === 'stopped' && !auctionData.currentBid && (

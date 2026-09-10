@@ -4,7 +4,7 @@ import { useNotification } from './NotificationSystem';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
 const ResetControls = memo(({ auctionData, onReset }) => {
-  const { showSuccess, showError, showWarning, showInfo, confirm } = useNotification();
+  const { showSuccess, showError, showWarning, confirm } = useNotification();
   const [loading, setLoading] = useState(false);
 
   const resetAuction = async () => {
@@ -51,8 +51,8 @@ const ResetControls = memo(({ auctionData, onReset }) => {
 
     setLoading(true);
     try {
-  const response = await axios.post(`${API_BASE_URL}/api/auction/fast-track/start`);
-      showInfo(response.data.message, 'Fast Track Started');
+      // Socket 'fastTrackStarted' broadcasts the single notification to everyone.
+      await axios.post(`${API_BASE_URL}/api/auction/fast-track/start`);
     } catch (error) {
       console.error('Error starting fast track:', error);
       showError(error.response?.data?.error || 'Error starting fast track auction', 'Fast Track Failed');
@@ -75,15 +75,8 @@ const ResetControls = memo(({ auctionData, onReset }) => {
 
     setLoading(true);
     try {
-  const response = await axios.post(`${API_BASE_URL}/api/auction/fast-track/end`);
-      showInfo(response.data.message, 'Fast Track Ended');
-      
-      // Show additional info about next status
-      if (response.data.nextStatus === 'finished') {
-        showSuccess('🎉 Entire auction completed! All done.', 'Auction Complete');
-      } else if (response.data.availablePlayers > 0) {
-        showInfo(`Fast track ended. ${response.data.availablePlayers} players still available for main auction.`, 'Fast Track Complete');
-      }
+      // Socket 'fastTrackEnded' broadcasts the single notification to everyone.
+      await axios.post(`${API_BASE_URL}/api/auction/fast-track/end`);
     } catch (error) {
       console.error('Error ending fast track:', error);
       showError(error.response?.data?.error || 'Error ending fast track auction', 'End Fast Track Failed');

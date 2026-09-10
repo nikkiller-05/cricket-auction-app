@@ -70,6 +70,8 @@
 /* Solid white surfaces (modals, panels, inputs) → opaque dark so text stays
    legible. Translucent backdrops (bg-white + bg-opacity-*) keep their opacity. */
 .dash-root[data-theme="dark"] .bg-white:not([class*="bg-opacity"]) { background-color: #262230 !important; }
+/* Any bg-white + bg-opacity-* (any value) → subtle dark glass, never light. */
+.dash-root[data-theme="dark"] .bg-white[class*="bg-opacity"] { background-color: rgba(255, 255, 255, 0.06) !important; }
 .dash-root[data-theme="dark"] .bg-gray-50,
 .dash-root[data-theme="dark"] .bg-gray-100,
 .dash-root[data-theme="dark"] .bg-gray-200 { background-color: rgba(255, 255, 255, 0.07) !important; }
@@ -457,8 +459,27 @@
 @keyframes gbxStamp {
   0% { transform: translate(-50%, -50%) scale(3.4) rotate(-32deg); opacity: 0; }
   55% { transform: translate(-50%, -50%) scale(0.88) rotate(-14deg); opacity: 1; }
-  70% { transform: translate(-50%, -50%) scale(1.08) rotate(-14deg); }
+  62% { transform: translate(-50%, -50%) scale(0.94) rotate(-11deg); }
+  70% { transform: translate(-50%, -50%) scale(1.08) rotate(-16deg); }
   100% { transform: translate(-50%, -50%) scale(1) rotate(-14deg); opacity: 0.95; }
+}
+/* Red impact flash the instant the stamp lands (mirrors the sold hammer hit). */
+@keyframes gbxStampFlash {
+  0%, 45% { opacity: 0; transform: translate(-50%, -50%) scale(0.5); }
+  53% { opacity: 0.85; transform: translate(-50%, -50%) scale(1); }
+  78%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.55); }
+}
+.gbx-stamp-flash {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 21rem;
+  height: 21rem;
+  border-radius: 9999px;
+  background: radial-gradient(circle, rgba(239, 68, 68, 0.55) 0%, rgba(220, 38, 38, 0.22) 40%, transparent 70%);
+  animation: gbxStampFlash 0.95s ease-out 0.5s both;
+  z-index: 5;
+  pointer-events: none;
 }
 .gbx-stamp {
   position: absolute;

@@ -25,6 +25,7 @@ const Header = memo(({
   onEditSettings = null
 }) => {
   const { theme, toggleTheme } = useTheme();
+  const isSpectator = userRole === 'spectator';
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isDownloadDropdownOpen, setIsDownloadDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -107,12 +108,12 @@ const Header = memo(({
         
         {/* Left Section - Logo */}
         <div className="header-left">
-          <div className="logo">
+          <a href="/" className="logo" title="Go to Home">
             <img src="/auction-logo.png" alt="GoldenBidX" className="logo-img" />
             <span className="logo-text">
               <span className="logo-gold">Golden</span><span className="logo-white">Bid</span><span className="logo-gold">X</span>
             </span>
-          </div>
+          </a>
           <button type="button" onClick={toggleTheme} className="theme-toggle-btn" title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} aria-label="Toggle theme">
             {theme === 'dark' ? '☀️' : '🌙'}
           </button>
@@ -174,7 +175,7 @@ const Header = memo(({
           )}
 
           {/* Download Button with Dropdown */}
-          {showDownloadOptions && (
+          {showDownloadOptions && !isSpectator && (
             <div className="download-dropdown-container" ref={downloadDropdownRef}>
               <button
                 onClick={() => setIsDownloadDropdownOpen(!isDownloadDropdownOpen)}
@@ -256,6 +257,9 @@ const Header = memo(({
           )}
 
           {/* User Menu Dropdown */}
+          {isSpectator ? (
+            <span className="spectator-pill">👁️ Spectator</span>
+          ) : (
           <div className="user-menu" ref={dropdownRef}>
             <button
               ref={menuButtonRef}
@@ -344,6 +348,7 @@ const Header = memo(({
               </div>
             )}
           </div>
+          )}
 
         </div>
       </div>
