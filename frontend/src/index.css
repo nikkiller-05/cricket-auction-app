@@ -85,12 +85,24 @@
 .dash-root[data-theme="dark"] .border-white { border-color: rgba(255, 255, 255, 0.12) !important; }
 
 /* Backdrop cards (bg-white bg-opacity-*) → subtle glass on dark. */
+.dash-root[data-theme="dark"] .bg-opacity-15,
+.dash-root[data-theme="dark"] .bg-opacity-20,
 .dash-root[data-theme="dark"] .bg-opacity-25,
 .dash-root[data-theme="dark"] .bg-opacity-30,
-.dash-root[data-theme="dark"] .bg-opacity-35 { --tw-bg-opacity: 0.06 !important; }
+.dash-root[data-theme="dark"] .bg-opacity-35,
+.dash-root[data-theme="dark"] .bg-opacity-40 { --tw-bg-opacity: 0.06 !important; }
 .dash-root[data-theme="dark"] .border-opacity-50,
 .dash-root[data-theme="dark"] .border-opacity-60,
 .dash-root[data-theme="dark"] .border-opacity-70 { --tw-border-opacity: 0.14 !important; }
+
+/* Tinted player/status cards → subtle warm dark glass (keep accent borders/text). */
+.dash-root[data-theme="dark"] .bg-green-50,
+.dash-root[data-theme="dark"] .bg-yellow-50,
+.dash-root[data-theme="dark"] .bg-red-50,
+.dash-root[data-theme="dark"] .bg-purple-50,
+.dash-root[data-theme="dark"] .bg-blue-50,
+.dash-root[data-theme="dark"] .bg-cyan-50,
+.dash-root[data-theme="dark"] .bg-cyan-100 { background-color: rgba(255, 255, 255, 0.05) !important; }
 
 /* Slate text (used across cards/tabs). */
 .dash-root[data-theme="dark"] .text-slate-900,

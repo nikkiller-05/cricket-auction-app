@@ -2129,7 +2129,7 @@ const UnifiedDashboard = () => {
                       // Filter logic based on selected filter
                       if (spectatorPlayerFilter === 'captains') {
                         return captains.length > 0 && (
-                          <div className="bg-white bg-opacity-30 rounded-lg shadow-xl p-6 border-2 border-yellow-300 border-opacity-60">
+                          <div className="mb-6">
                             <h4 className="text-lg font-medium text-gray-900 mb-4">
                               Captains ({captains.length})
                             </h4>
@@ -2170,7 +2170,7 @@ const UnifiedDashboard = () => {
                       
                       if (spectatorPlayerFilter === 'sold') {
                         return soldPlayers.length > 0 && (
-                          <div className="bg-white bg-opacity-30 rounded-lg shadow-xl p-6 border-2 border-green-300 border-opacity-60">
+                          <div className="mb-6">
                             <h4 className="text-lg font-bold text-gray-900 mb-6">
                               Players Sold Through Bidding ({soldPlayers.length})
                             </h4>
@@ -2205,7 +2205,7 @@ const UnifiedDashboard = () => {
                       
                       if (spectatorPlayerFilter === 'available') {
                         return availablePlayers.length > 0 && (
-                          <div className="bg-white bg-opacity-25 rounded-lg shadow-xl p-6 border border-white border-opacity-20">
+                          <div className="mb-6">
                             <h4 className="text-lg font-medium text-gray-900 mb-4">
                               Available for Bidding ({availablePlayers.length})
                             </h4>
@@ -2236,7 +2236,7 @@ const UnifiedDashboard = () => {
                       
                       if (spectatorPlayerFilter === 'unsold') {
                         return unsoldPlayers.length > 0 && (
-                          <div className="bg-white bg-opacity-25 rounded-lg shadow-xl p-6 border border-white border-opacity-20">
+                          <div className="mb-6">
                             <h4 className="text-lg font-medium text-gray-900 mb-4">
                               Unsold Players ({unsoldPlayers.length})
                             </h4>
@@ -2265,7 +2265,7 @@ const UnifiedDashboard = () => {
                       
                       if (spectatorPlayerFilter === 'retained') {
                         return retainedPlayers.length > 0 ? (
-                          <div className="bg-white bg-opacity-25 rounded-lg shadow-xl p-6 border-2 border-cyan-300 border-opacity-60">
+                          <div className="mb-6">
                             <h4 className="text-lg font-medium text-gray-900 mb-6">
                               Retained Players - Team-wise Overview ({retainedPlayers.length} total)
                             </h4>
@@ -2406,7 +2406,7 @@ const UnifiedDashboard = () => {
                         <>
                           {/* Captains Section */}
                           {captains.length > 0 && (
-                            <div className="bg-white bg-opacity-20 rounded-xl shadow-2xl p-6 border-2 border-yellow-400 border-opacity-70 hover:bg-opacity-30 transition-colors duration-200">
+                            <div className="mb-8">
                               <h4 className="text-lg font-medium text-gray-900 mb-4">
                                 Captains ({captains.length})
                               </h4>
@@ -2454,7 +2454,7 @@ const UnifiedDashboard = () => {
                             if (players.length === 0) return null;
                             
                             return (
-                              <div key={status} className="bg-white bg-opacity-20 rounded-xl shadow-2xl p-6 border-2 border-indigo-400 border-opacity-70 hover:bg-opacity-30 transition-colors duration-200">
+                              <div key={status} className="mb-8">
                                 <h4 className="text-lg font-medium text-gray-900 mb-4">
                                   {title} ({players.length})
                                 </h4>
