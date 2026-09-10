@@ -122,7 +122,7 @@ const LiveBiddingCardInner = ({
 
       <div className="relative grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 p-4 sm:p-6 pt-4">
         {/* Player profile (spans 2 cols on lg) */}
-        <div className="gbx-live-player lg:col-span-2 relative flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-8 bg-gradient-to-br from-white/15 to-white/5 backdrop-blur-xl rounded-2xl p-6 sm:p-8 border border-white/20 shadow-2xl overflow-hidden">
+        <div className="gbx-live-player lg:col-span-2 relative flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-8 bg-gradient-to-br from-white/15 to-white/5 rounded-2xl p-6 sm:p-8 border border-white/20 shadow-2xl overflow-hidden">
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
           {/* Player photo in rounded frame */}
           <div className="relative shrink-0">
@@ -148,7 +148,7 @@ const LiveBiddingCardInner = ({
                 </h3>
               )}
               {player.role && (
-                <span className="gbx-live-player-role mt-2 self-center sm:self-start inline-block text-[10px] sm:text-xs font-bold uppercase tracking-[0.15em] px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-500/30 to-yellow-600/30 border border-white/30 backdrop-blur-sm shadow-lg">
+                <span className="gbx-live-player-role mt-2 self-center sm:self-start inline-block text-[10px] sm:text-xs font-bold uppercase tracking-[0.15em] px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-500/30 to-yellow-600/30 border border-white/30 shadow-lg">
                   {player.role}
                 </span>
               )}
@@ -214,7 +214,7 @@ const LiveBiddingCardInner = ({
                 )}
               </p>
               {leadingTeamBudget != null && leadingTeamName && (
-                <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/25 backdrop-blur-sm border border-white/20">
+                <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/25 border border-white/20">
                   <span className="text-[10px] sm:text-[11px] uppercase tracking-wider font-semibold text-white/90">
                     Budget
                   </span>
@@ -228,7 +228,7 @@ const LiveBiddingCardInner = ({
 
       {rightSlot && (
         <div className="gbx-live-placebid relative px-4 sm:px-6 pb-5 sm:pb-6">
-          <div className="relative bg-gradient-to-br from-white/15 to-white/5 backdrop-blur-xl rounded-2xl p-3 sm:p-4 border border-white/20 shadow-2xl overflow-hidden">
+          <div className="relative bg-gradient-to-br from-white/15 to-white/5 rounded-2xl p-3 sm:p-4 border border-white/20 shadow-2xl overflow-hidden">
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
             {rightSlot}
           </div>
