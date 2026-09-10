@@ -17,6 +17,7 @@ import PlayerNameLink from './PlayerNameLink';
 import PlayerAvatar from './PlayerAvatar';
 import ShareAuctionModal from './ShareAuctionModal';
 import BrandFooter from './BrandFooter';
+import SaleCelebration from './SaleCelebration';
 import { useNotification } from './NotificationSystem';
 import { useTheme } from '../ThemeContext';
 
@@ -468,6 +469,8 @@ const UnifiedDashboard = () => {
   const navigate = useNavigate();
   const { showSuccess, showError, showWarning, showInfo, confirm } = useNotification();
   const { theme } = useTheme();
+  // Full-screen SOLD/UNSOLD celebration overlay
+  const [celebration, setCelebration] = useState(null);
   
   const [isAdmin, setIsAdmin] = useState(false);
   const [userRole, setUserRole] = useState('spectator');
@@ -602,6 +605,7 @@ const UnifiedDashboard = () => {
     socketConnection.on('playerSold', (data) => {
       if (data.player && data.team) {
         addTransaction(data.player, 'sold', data.team, data.finalBid);
+        setCelebration({ type: 'sold', player: data.player, team: data.team, amount: data.finalBid });
         showSuccess(`${data.player.name} sold to ${cleanTeamName(data.team.name)} for ₹${data.finalBid}`);
       }
     });
@@ -609,6 +613,7 @@ const UnifiedDashboard = () => {
     socketConnection.on('playerUnsold', (data) => {
       if (data.player) {
         addTransaction(data.player, 'unsold');
+        setCelebration({ type: 'unsold', player: data.player });
         showWarning(`${data.player.name} marked as unsold`);
       }
     });
@@ -1322,6 +1327,8 @@ const UnifiedDashboard = () => {
 
   return (
     <div className="gbx-dashboard dash-root min-h-screen overflow-x-hidden" data-theme={theme}>
+      {/* SOLD / UNSOLD celebration overlay */}
+      <SaleCelebration celebration={celebration} onDone={() => setCelebration(null)} />
       {/* Notifications */}
       {notifications.length > 0 && (
         <div className="fixed top-4 right-4 left-4 sm:left-auto space-y-2 z-50 max-w-sm sm:max-w-sm">

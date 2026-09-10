@@ -22,6 +22,24 @@
      clipped by overflow-x:hidden. */
 }
 
+/* Signature: a slow gold shimmer line under the header. */
+.header::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 2px;
+  background: linear-gradient(90deg, transparent 0%, rgba(253, 224, 71, 0.75) 50%, transparent 100%);
+  background-size: 220% 100%;
+  animation: gbxHeaderShimmer 6.5s linear infinite;
+  pointer-events: none;
+}
+@keyframes gbxHeaderShimmer {
+  0% { background-position: 220% 0; }
+  100% { background-position: -220% 0; }
+}
+
 /* Theme-aware golden header (overrides the base gradient above). */
 .dash-root[data-theme="dark"] .header {
   background:
@@ -732,12 +750,13 @@
   position: absolute;
   top: calc(100% + 0.5rem);
   right: 0;
-  min-width: 220px;
+  min-width: 244px;
   max-width: calc(100vw - 2rem);
   background: white;
   border: 1px solid #e2e8f0;
-  border-radius: 0.75rem;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  border-radius: 1rem;
+  padding: 0.375rem;
+  box-shadow: 0 18px 40px -12px rgba(0, 0, 0, 0.22);
   z-index: 1100;
   animation: dropdownSlide 0.2s ease-out;
   overflow: hidden;
@@ -807,14 +826,15 @@
   align-items: center;
   gap: 0.75rem;
   width: 100%;
-  padding: 0.75rem 1rem;
+  padding: 0.7rem 0.85rem;
+  border-radius: 0.65rem;
   background: none;
   border: none;
   color: #374151;
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.18s ease;
   text-align: left;
 }
 
