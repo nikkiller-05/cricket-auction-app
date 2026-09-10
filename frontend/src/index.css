@@ -22,6 +22,24 @@
   .gbx-bg { animation: none; }
 }
 
+/* Light-theme counterpart: warm cream with subtle gold, gently drifting. */
+.gbx-bg-light {
+  background:
+    radial-gradient(58% 55% at 8% -10%, rgba(232, 184, 75, 0.22) 0%, rgba(232, 184, 75, 0.06) 36%, transparent 62%),
+    radial-gradient(52% 55% at 110% 4%, rgba(214, 170, 70, 0.16) 0%, transparent 54%),
+    linear-gradient(160deg, #fbf8f1 0%, #f4efe4 58%, #f8f3e9 100%);
+  background-size: 170% 170%, 165% 165%, 100% 100%;
+  background-position: 0% 0%, 100% 0%, 0 0;
+  animation: gbxDriftLight 28s ease-in-out infinite alternate;
+}
+@keyframes gbxDriftLight {
+  0%   { background-position: 0% 0%, 100% 0%, 0 0; }
+  100% { background-position: 16% 12%, 84% 14%, 0 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .gbx-bg-light { animation: none; }
+}
+
 /* ------------------------------------------------------------------
    Design tokens — single source of truth for the modern palette.
    The whole app skews toward an "obsidian → indigo → fuchsia" twilight

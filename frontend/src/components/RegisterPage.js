@@ -159,7 +159,7 @@ const RegisterPage = () => {
   return (
     <div className="min-h-screen flex flex-col gbx-bg">
       {/* Branding header (static, full-width like the console) */}
-      <header className="border-b border-white/10 bg-white/[0.04] backdrop-blur-xl">
+      <header className="border-b border-amber-300/20 bg-white/[0.05] backdrop-blur-xl shadow-[0_16px_34px_-18px_rgba(0,0,0,0.95)]">
         <div className="px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 shrink-0">
             <img src="/auction-logo.png" alt="" className="h-8 w-auto drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]" />

@@ -207,7 +207,7 @@ const HomePage = () => {
 
       <div className="relative z-10 min-h-screen flex flex-col">
         {/* Top nav */}
-        <nav className="sticky top-0 z-30 backdrop-blur-xl bg-gradient-to-b from-black/70 to-black/15 border-b border-amber-300/25 shadow-[0_12px_30px_-16px_rgba(0,0,0,0.95)]">
+        <nav className="sticky top-0 z-30 backdrop-blur-xl bg-gradient-to-b from-black/70 to-black/15 border-b border-amber-300/25 shadow-[0_16px_34px_-18px_rgba(0,0,0,0.95)]">
           <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
             <div className="flex items-center gap-2">
               <img src="/auction-logo.png" alt="" className="h-10 w-auto drop-shadow-[0_1px_3px_rgba(0,0,0,0.55)]" />
