@@ -1270,7 +1270,7 @@ const UnifiedDashboard = () => {
           </p>
           <button
             onClick={() => navigate('/')}
-            className="bg-gradient-to-br from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 px-6 py-3 rounded-xl font-semibold transition-[background-color,box-shadow,transform,border-color] duration-150 hover:-translate-y-0.5 active:translate-y-0"
+            className="bg-gradient-to-br from-amber-400 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-slate-900 hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 px-6 py-3 rounded-xl font-semibold transition-[background-color,box-shadow,transform,border-color] duration-150 hover:-translate-y-0.5 active:translate-y-0"
           >
             Go Home
           </button>
@@ -1767,7 +1767,7 @@ const UnifiedDashboard = () => {
                 <h3 className="text-2xl font-bold text-slate-900 tracking-tight">Live Auction Status</h3>
                 <button
                   onClick={() => setShowShareModal(true)}
-                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-indigo-500 to-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-md shadow-violet-600/30 hover:-translate-y-0.5 active:translate-y-0 transition"
+                  className="inline-flex items-center gap-2 rounded-full bg-gradient-to-b from-amber-400 to-amber-600 px-4 py-2 text-sm font-semibold text-slate-900 shadow-md shadow-amber-600/30 hover:-translate-y-0.5 active:translate-y-0 transition"
                 >
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24" aria-hidden="true">
                     <path strokeLinecap="round" strokeLinejoin="round" d="M8.7 10.7l6.6-3.4M8.7 13.3l6.6 3.4M18 8a3 3 0 100-6 3 3 0 000 6zM6 15a3 3 0 100-6 3 3 0 000 6zm12 7a3 3 0 100-6 3 3 0 000 6z" />
@@ -2053,7 +2053,7 @@ const UnifiedDashboard = () => {
               </p>
               <button
                 onClick={() => setActiveTab('live')}
-                className="bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 border border-indigo-500/40 shadow-md transition-all"
+                className="bg-amber-500 text-slate-900 px-6 py-3 rounded-xl hover:bg-amber-400 border border-amber-600/40 shadow-md font-semibold transition-all"
               >
                 Go to Live Status
               </button>
@@ -2070,7 +2070,7 @@ const UnifiedDashboard = () => {
               </p>
               <button
                 onClick={() => setActiveTab('live')}
-                className="bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 border border-indigo-500/40 shadow-md transition-all"
+                className="bg-amber-500 text-slate-900 px-6 py-3 rounded-xl hover:bg-amber-400 border border-amber-600/40 shadow-md font-semibold transition-all"
               >
                 Go to Live Status
               </button>
@@ -2567,7 +2567,7 @@ const UnifiedDashboard = () => {
                   {isAdmin && canConfigure && (
                     <button
                       onClick={() => setShowUploadModal(true)}
-                      className="gbx-btn-upload-players mt-4 bg-indigo-600 text-white px-6 py-3 rounded-xl hover:bg-indigo-700 border border-indigo-500/40 shadow-md"
+                      className="gbx-btn-upload-players mt-4 bg-amber-500 text-slate-900 px-6 py-3 rounded-xl hover:bg-amber-400 border border-amber-600/40 shadow-md font-semibold"
                     >
                       Upload Players
                     </button>
@@ -2960,7 +2960,7 @@ const UnifiedDashboard = () => {
               <button
                 onClick={handleSaveSettings}
                 disabled={settingsSaveLoading}
-                className="w-full sm:w-auto px-5 sm:px-6 py-2 bg-gradient-to-b from-indigo-500 to-blue-600 text-white rounded-full hover:from-indigo-400 hover:to-blue-500 shadow-md shadow-blue-500/30 hover:-translate-y-0.5 active:translate-y-0 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm sm:text-base"
+                className="w-full sm:w-auto px-5 sm:px-6 py-2 bg-gradient-to-b from-amber-400 to-amber-600 text-slate-900 rounded-full hover:from-amber-300 hover:to-amber-500 shadow-md shadow-amber-600/30 hover:-translate-y-0.5 active:translate-y-0 transition-all font-semibold disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 text-sm sm:text-base"
               >
                 {settingsSaveLoading ? (
                   <>

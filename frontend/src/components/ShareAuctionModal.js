@@ -60,7 +60,7 @@ const ShareAuctionModal = ({ isOpen, onClose, url }) => {
           <span className="flex-1 truncate text-sm text-slate-600 text-left">{shareUrl}</span>
           <button
             onClick={copyLink}
-            className="shrink-0 rounded-full bg-indigo-600 px-3 py-1 text-xs font-semibold text-white hover:bg-indigo-500 active:scale-95 transition"
+            className="shrink-0 rounded-full bg-amber-500 px-3 py-1 text-xs font-semibold text-slate-900 hover:bg-amber-400 active:scale-95 transition"
           >
             {copied ? 'Copied!' : 'Copy'}
           </button>
@@ -70,7 +70,7 @@ const ShareAuctionModal = ({ isOpen, onClose, url }) => {
           {typeof navigator !== 'undefined' && navigator.share && (
             <button
               onClick={nativeShare}
-              className="rounded-full bg-gradient-to-b from-indigo-500 to-violet-600 px-4 py-2 text-sm font-semibold text-white shadow-md hover:-translate-y-0.5 active:translate-y-0 transition"
+              className="rounded-full bg-gradient-to-b from-amber-400 to-amber-600 px-4 py-2 text-sm font-semibold text-slate-900 shadow-md hover:-translate-y-0.5 active:translate-y-0 transition"
             >
               Share…
             </button>

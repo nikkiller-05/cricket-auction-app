@@ -215,7 +215,7 @@ const PlayerFormModal = ({ isOpen, mode = 'add', player = null, onClose, onSubmi
             <button
               type="submit"
               disabled={saving}
-              className="px-6 py-2.5 rounded-lg text-sm font-bold text-white bg-gradient-to-br from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:opacity-50 shadow-md shadow-indigo-500/30 transition-[background-color,transform] duration-150 hover:-translate-y-0.5 active:translate-y-0"
+              className="px-6 py-2.5 rounded-lg text-sm font-bold text-slate-900 bg-gradient-to-br from-amber-400 to-amber-600 hover:from-amber-300 hover:to-amber-500 disabled:opacity-50 shadow-md shadow-amber-500/30 transition-[background-color,transform] duration-150 hover:-translate-y-0.5 active:translate-y-0"
             >
               {saving ? 'Saving…' : mode === 'edit' ? 'Save Changes' : 'Add Player'}
             </button>

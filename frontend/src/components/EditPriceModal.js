@@ -71,7 +71,7 @@ const EditPriceModal = ({ isOpen, player, onClose, onSave, saving = false }) => 
           <button
             onClick={submit}
             disabled={!changed || saving}
-            className="rounded-full bg-gradient-to-b from-indigo-500 to-violet-600 px-5 py-2 text-sm font-semibold text-white shadow-md hover:-translate-y-0.5 active:translate-y-0 transition disabled:opacity-40 disabled:hover:translate-y-0"
+            className="rounded-full bg-gradient-to-b from-amber-400 to-amber-600 px-5 py-2 text-sm font-semibold text-slate-900 shadow-md hover:-translate-y-0.5 active:translate-y-0 transition disabled:opacity-40 disabled:hover:translate-y-0"
           >
             {saving ? 'Saving…' : 'Save Price'}
           </button>

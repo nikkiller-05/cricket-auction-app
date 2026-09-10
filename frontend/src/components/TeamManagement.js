@@ -870,7 +870,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
         <button
           onClick={updateTeams}
           disabled={updating}
-          className="gbx-btn-update-teams bg-gradient-to-br from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:from-slate-400 disabled:to-slate-400 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 px-4 py-2 rounded-xl text-sm font-semibold border border-indigo-500/40 shadow-md"
+          className="gbx-btn-update-teams bg-gradient-to-br from-amber-400 to-amber-600 hover:from-amber-300 hover:to-amber-500 disabled:from-slate-400 disabled:to-slate-400 text-slate-900 hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 px-4 py-2 rounded-xl text-sm font-semibold border border-amber-600/40 shadow-md"
         >
           {updating ? 'Updating...' : 'Update Team Names'}
         </button>

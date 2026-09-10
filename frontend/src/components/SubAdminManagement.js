@@ -74,7 +74,7 @@ const SubAdminManagement = memo(({ userRole }) => {
         <h3 className="text-2xl font-bold text-gray-900">Sub-Admin Management</h3>
         <button
           onClick={() => setShowCreateForm(true)}
-          className="bg-gradient-to-br from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 px-4 py-2 rounded-xl font-semibold border border-indigo-500/40 shadow-md"
+          className="bg-gradient-to-br from-amber-400 to-amber-600 hover:from-amber-300 hover:to-amber-500 text-slate-900 hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 px-4 py-2 rounded-xl font-semibold border border-amber-600/40 shadow-md"
         >
           + Create Sub-Admin
         </button>
@@ -135,7 +135,7 @@ const SubAdminManagement = memo(({ userRole }) => {
               <button
                 type="submit"
                 disabled={loading}
-                className="flex-1 bg-gradient-to-br from-indigo-600 to-violet-600 hover:from-indigo-500 hover:to-violet-500 disabled:opacity-50 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 py-2 px-4 rounded-xl border border-indigo-500/40 shadow-md"
+                className="flex-1 bg-gradient-to-br from-amber-400 to-amber-600 hover:from-amber-300 hover:to-amber-500 disabled:opacity-50 text-slate-900 hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 py-2 px-4 rounded-xl border border-amber-600/40 shadow-md"
               >
                 {loading ? 'Creating...' : 'Create Sub-Admin'}
               </button>
