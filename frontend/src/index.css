@@ -48,21 +48,13 @@
 
 /* --- DARK (default) --- */
 .dash-root[data-theme="dark"] {
+  /* Static gradient (no background-position animation — that repaints the whole
+     viewport every frame and made the UI feel laggy). */
   background:
     radial-gradient(48% 38% at 12% -6%, rgba(232, 184, 75, 0.15) 0%, transparent 60%),
     radial-gradient(44% 38% at 108% 4%, rgba(206, 158, 52, 0.10) 0%, transparent 55%),
     linear-gradient(160deg, #141119 0%, #1a1724 55%, #15131e 100%);
-  background-size: 140% 140%, 140% 140%, 100% 100%;
-  background-position: 0% 0%, 100% 0%, 0 0;
-  animation: gbxDriftMin 48s ease-in-out infinite alternate;
   color: #e9e9ee;
-}
-@keyframes gbxDriftMin {
-  0%   { background-position: 0% 0%, 100% 0%, 0 0; }
-  100% { background-position: 9% 7%, 91% 9%, 0 0; }
-}
-@media (prefers-reduced-motion: reduce) {
-  .dash-root[data-theme="dark"] { animation: none; }
 }
 
 /* Dark skin: remap the dashboard's hardcoded light utility classes. */

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, createContext, useContext } from 'react';
+import React, { useState, useEffect, useCallback, useRef, createContext, useContext } from 'react';
 
 // Add CSS animations for notifications
 const notificationStyles = `
@@ -260,8 +260,17 @@ const NotificationContainer = ({ notifications, removeNotification, confirmNotif
 export const NotificationProvider = ({ children }) => {
   const [notifications, setNotifications] = useState([]);
   const [confirmCallbacks, setConfirmCallbacks] = useState({});
+  // De-dupe: ignore an identical toast fired again within a short window.
+  const recentRef = useRef({});
 
   const addNotification = useCallback((type, message, title = null, options = {}) => {
+    if (type !== NOTIFICATION_TYPES.CONFIRM) {
+      const key = `${type}::${title || ''}::${message}`;
+      const now = Date.now();
+      const last = recentRef.current[key];
+      if (last && now - last < 1800) return null;
+      recentRef.current[key] = now;
+    }
     const id = Date.now() + Math.random();
     const notification = {
       id,

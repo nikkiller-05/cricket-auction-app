@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo } from 'react';
+import React, { useEffect, useMemo, useRef } from 'react';
 import PlayerAvatar from './PlayerAvatar';
 
 const GLITTER_COLORS = ['#fde047', '#facc15', '#f59e0b', '#fbbf24', '#fff7cc', '#eab308'];
@@ -11,7 +11,7 @@ const SaleCelebration = ({ celebration, onDone }) => {
 
   const glitter = useMemo(
     () =>
-      Array.from({ length: 46 }).map((_, i) => ({
+      Array.from({ length: 40 }).map((_, i) => ({
         id: i,
         left: Math.random() * 100,
         delay: Math.random() * 0.9,
@@ -24,11 +24,18 @@ const SaleCelebration = ({ celebration, onDone }) => {
     [celebration?.player?.id, celebration?.type]
   );
 
+  // Keep the latest onDone without re-arming the timer on every parent render.
+  const onDoneRef = useRef(onDone);
+  onDoneRef.current = onDone;
+
   useEffect(() => {
     if (!celebration) return undefined;
-    const t = setTimeout(onDone, sold ? 4300 : 3300);
+    // ~3s hold after the entrance animation finishes.
+    const ms = celebration.type === 'sold' ? 4500 : 3500;
+    const t = setTimeout(() => onDoneRef.current(), ms);
     return () => clearTimeout(t);
-  }, [celebration, sold, onDone]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [celebration?.player?.id, celebration?.type]);
 
   if (!celebration) return null;
   const { player, team, amount } = celebration;
