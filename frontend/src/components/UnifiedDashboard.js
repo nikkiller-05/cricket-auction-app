@@ -1713,12 +1713,12 @@ const UnifiedDashboard = () => {
 
         {/* Tab Navigation */}
         <div className="mb-8">
-          <div className="inline-flex flex-wrap gap-1 rounded-2xl border p-1 tab-seg">
+          <div className="flex w-full flex-wrap gap-1 rounded-2xl border p-1 tab-seg">
             {tabs.map((tab) => (
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`rounded-xl px-4 sm:px-5 py-2 font-semibold text-sm inline-flex items-center whitespace-nowrap transition ${
+                className={`flex-1 min-w-[7.5rem] rounded-xl px-3 sm:px-4 py-2 font-semibold text-sm flex items-center justify-center whitespace-nowrap transition ${
                   activeTab === tab.id
                     ? 'bg-amber-400 text-slate-900 shadow'
                     : 'tab-seg-idle'
