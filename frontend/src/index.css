@@ -124,12 +124,30 @@
 
 /* Tinted player/status cards → subtle warm dark glass (keep accent borders/text). */
 .dash-root[data-theme="dark"] .bg-green-50,
+.dash-root[data-theme="dark"] .bg-emerald-50,
 .dash-root[data-theme="dark"] .bg-yellow-50,
+.dash-root[data-theme="dark"] .bg-amber-50,
 .dash-root[data-theme="dark"] .bg-red-50,
+.dash-root[data-theme="dark"] .bg-rose-50,
+.dash-root[data-theme="dark"] .bg-orange-50,
 .dash-root[data-theme="dark"] .bg-purple-50,
+.dash-root[data-theme="dark"] .bg-violet-50,
+.dash-root[data-theme="dark"] .bg-fuchsia-50,
+.dash-root[data-theme="dark"] .bg-pink-50,
+.dash-root[data-theme="dark"] .bg-indigo-50,
 .dash-root[data-theme="dark"] .bg-blue-50,
+.dash-root[data-theme="dark"] .bg-sky-50,
+.dash-root[data-theme="dark"] .bg-teal-50,
 .dash-root[data-theme="dark"] .bg-cyan-50,
 .dash-root[data-theme="dark"] .bg-cyan-100 { background-color: rgba(255, 255, 255, 0.05) !important; }
+/* Their -600 accent text stays readable on the dark tiles. */
+.dash-root[data-theme="dark"] .text-blue-600 { color: #93c5fd !important; }
+.dash-root[data-theme="dark"] .text-purple-600 { color: #d8b4fe !important; }
+.dash-root[data-theme="dark"] .text-orange-600 { color: #fdba74 !important; }
+.dash-root[data-theme="dark"] .text-green-600 { color: #86efac !important; }
+
+/* Content wrapper blends with the page (no distinct card-vs-background shade). */
+.gbx-dashboard-content { background: transparent !important; border-color: transparent !important; box-shadow: none !important; }
 
 /* Slate text (used across cards/tabs). */
 .dash-root[data-theme="dark"] .text-slate-900,
@@ -399,49 +417,54 @@
 }
 .gbx-sold-photo { animation: gbxSoldPhoto 0.95s cubic-bezier(0.2, 0.8, 0.2, 1) both; }
 
-/* Wooden auction gavel drops and bangs the sound block, then bounces. */
-@keyframes gbxGavel {
-  0% { transform: translate(-50%, -230%) rotate(-16deg); opacity: 0; }
-  22% { opacity: 1; }
-  44% { transform: translate(-50%, 0%) rotate(6deg); }
-  56% { transform: translate(-50%, -34%) rotate(-4deg); }
-  68% { transform: translate(-50%, -4%) rotate(3deg); }
-  100% { transform: translate(-50%, -230%) rotate(-12deg); opacity: 0; }
-}
-.gbx-gavel {
+/* Gavel + block share a centered stage so they align relative to each other. */
+.gbx-gavel-stage {
   position: absolute;
-  top: 18%;
+  top: 22%;
   left: 50%;
-  width: 9rem;
-  transform-origin: center bottom;
-  animation: gbxGavel 1.15s cubic-bezier(0.5, 0, 0.6, 1) 0.1s both;
-  filter: drop-shadow(0 12px 16px rgba(0, 0, 0, 0.55));
+  transform: translateX(-50%);
+  width: 16rem;
+  height: 10rem;
   z-index: 20;
   pointer-events: none;
 }
-.gbx-gavel-svg { width: 100%; height: auto; display: block; }
-
-/* Wooden sound block the gavel strikes (squashes on impact). */
 @keyframes gbxBlockHit {
-  0%, 42% { transform: translate(-50%, 0) scaleY(1); }
-  47% { transform: translate(-50%, 0) scaleY(0.76); }
-  60% { transform: translate(-50%, 0) scaleY(1.06); }
-  100% { transform: translate(-50%, 0) scaleY(1); }
+  0%, 44% { transform: translateX(-50%) scaleY(1); }
+  49% { transform: translateX(-50%) scaleY(0.72); }
+  62% { transform: translateX(-50%) scaleY(1.06); }
+  100% { transform: translateX(-50%) scaleY(1); }
 }
 .gbx-soundblock {
   position: absolute;
-  top: 33%;
+  bottom: 0;
   left: 50%;
-  transform: translate(-50%, 0);
-  width: 9rem;
+  width: 9.5rem;
   height: 1.7rem;
   border-radius: 0.5rem;
   background: linear-gradient(180deg, #a9743c 0%, #7c5227 60%, #5c3a1a 100%);
   box-shadow: 0 8px 18px -6px rgba(0, 0, 0, 0.6), inset 0 2px 0 rgba(255, 255, 255, 0.18);
   transform-origin: center bottom;
   animation: gbxBlockHit 1.15s ease-out 0.1s both;
-  z-index: 18;
-  pointer-events: none;
+}
+/* Gavel pivots around its grip (right end) so the head arcs onto the block. */
+@keyframes gbxGavel {
+  0% { transform: rotate(-62deg); opacity: 0; }
+  22% { opacity: 1; }
+  46% { transform: rotate(11deg); }
+  58% { transform: rotate(-20deg); }
+  70% { transform: rotate(5deg); }
+  82% { transform: rotate(-7deg); }
+  100% { transform: rotate(-58deg); opacity: 0; }
+}
+.gbx-gavel-svg {
+  position: absolute;
+  top: 0.2rem;
+  left: 1.6rem;
+  width: 12.5rem;
+  height: auto;
+  transform-origin: 86% 52%;
+  animation: gbxGavel 1.15s cubic-bezier(0.45, 0, 0.55, 1) 0.1s both;
+  filter: drop-shadow(0 12px 16px rgba(0, 0, 0, 0.55));
 }
 /* Impact flash at the moment the hammer lands (~0.5s). */
 @keyframes gbxImpact {
@@ -489,12 +512,13 @@
 }
 .gbx-unsold-photo { animation: gbxUnsoldPhoto 0.8s ease-out both; }
 
-/* Unsold red rubber stamp slams down (circle + diagonal stripe). */
+/* Unsold red rubber stamp descends from above and presses onto the photo. */
 @keyframes gbxStamp {
-  0% { transform: translate(-50%, -50%) scale(3.4) rotate(-32deg); opacity: 0; }
-  55% { transform: translate(-50%, -50%) scale(0.88) rotate(-14deg); opacity: 1; }
-  62% { transform: translate(-50%, -50%) scale(0.94) rotate(-11deg); }
-  70% { transform: translate(-50%, -50%) scale(1.08) rotate(-16deg); }
+  0% { transform: translate(-50%, -185%) scale(2.6) rotate(-30deg); opacity: 0; }
+  30% { opacity: 1; }
+  55% { transform: translate(-50%, -50%) scale(0.9) rotate(-14deg); opacity: 1; }
+  64% { transform: translate(-50%, -60%) scale(1) rotate(-12deg); }
+  74% { transform: translate(-50%, -50%) scale(1.06) rotate(-15deg); }
   100% { transform: translate(-50%, -50%) scale(1) rotate(-14deg); opacity: 0.95; }
 }
 /* Red impact flash the instant the stamp lands (mirrors the sold hammer hit). */
@@ -570,7 +594,7 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .gbx-sold-photo, .gbx-unsold-photo, .gbx-hammer, .gbx-glitter, .gbx-impact-flash,
+  .gbx-sold-photo, .gbx-unsold-photo, .gbx-gavel-svg, .gbx-soundblock, .gbx-glitter, .gbx-impact-flash, .gbx-stamp-flash,
   .gbx-sold-text, .gbx-unsold-text, .gbx-stamp { animation-duration: 0.01ms !important; }
 }
 

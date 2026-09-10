@@ -4,6 +4,39 @@ import PlayerAvatar from './PlayerAvatar';
 const GLITTER_COLORS = ['#fde047', '#facc15', '#f59e0b', '#fbbf24', '#fff7cc', '#eab308'];
 const formatCurrency = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
 
+// Synthesized wooden "bang"/"thud" via Web Audio — no asset needed.
+function playImpactSound(sold) {
+  try {
+    const AC = window.AudioContext || window.webkitAudioContext;
+    if (!AC) return;
+    const ctx = new AC();
+    if (ctx.state === 'suspended') ctx.resume();
+    const now = ctx.currentTime;
+    const osc = ctx.createOscillator();
+    const g = ctx.createGain();
+    osc.type = 'sine';
+    osc.frequency.setValueAtTime(sold ? 185 : 135, now);
+    osc.frequency.exponentialRampToValueAtTime(sold ? 55 : 48, now + 0.18);
+    g.gain.setValueAtTime(0.0001, now);
+    g.gain.exponentialRampToValueAtTime(sold ? 0.6 : 0.45, now + 0.01);
+    g.gain.exponentialRampToValueAtTime(0.0001, now + 0.3);
+    osc.connect(g); g.connect(ctx.destination);
+    osc.start(now); osc.stop(now + 0.32);
+    const len = Math.floor(ctx.sampleRate * 0.06);
+    const buf = ctx.createBuffer(1, len, ctx.sampleRate);
+    const d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 2.2);
+    const noise = ctx.createBufferSource();
+    noise.buffer = buf;
+    const ng = ctx.createGain();
+    ng.gain.setValueAtTime(sold ? 0.5 : 0.35, now);
+    ng.gain.exponentialRampToValueAtTime(0.0001, now + 0.09);
+    noise.connect(ng); ng.connect(ctx.destination);
+    noise.start(now);
+    setTimeout(() => { try { ctx.close(); } catch (e) { /* ignore */ } }, 600);
+  } catch (e) { /* audio blocked — ignore */ }
+}
+
 // Full-screen celebration when a player is sold (hammer bang + spin/expand + glitter)
 // or unsold (spin + red rubber-stamp slam). Auto-dismisses; click to skip.
 const SaleCelebration = ({ celebration, onDone }) => {
@@ -33,7 +66,9 @@ const SaleCelebration = ({ celebration, onDone }) => {
     // ~3s hold after the entrance animation finishes.
     const ms = celebration.type === 'sold' ? 4500 : 3500;
     const t = setTimeout(() => onDoneRef.current(), ms);
-    return () => clearTimeout(t);
+    // Play the wooden bang/thud timed to the moment of impact.
+    const sfx = setTimeout(() => playImpactSound(celebration.type === 'sold'), 560);
+    return () => { clearTimeout(t); clearTimeout(sfx); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [celebration?.player?.id, celebration?.type]);
 
@@ -68,30 +103,30 @@ const SaleCelebration = ({ celebration, onDone }) => {
               }}
             />
           ))}
-          {/* Wooden auction gavel that drops and bangs the sound block */}
-          <div className="gbx-gavel" aria-hidden="true">
-            <svg viewBox="0 0 180 150" className="gbx-gavel-svg">
+          {/* Wooden auction gavel arcs down and bangs the sound block */}
+          <div className="gbx-gavel-stage" aria-hidden="true">
+            <div className="gbx-soundblock" />
+            <svg viewBox="0 0 230 130" className="gbx-gavel-svg">
               <defs>
                 <linearGradient id="gvHead" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="0" stopColor="#b07d40" />
                   <stop offset="0.5" stopColor="#8a5a2b" />
                   <stop offset="1" stopColor="#6b4420" />
                 </linearGradient>
-                <linearGradient id="gvHandle" x1="0" y1="0" x2="1" y2="0">
-                  <stop offset="0" stopColor="#7c5227" />
-                  <stop offset="0.5" stopColor="#b5834f" />
-                  <stop offset="1" stopColor="#7c5227" />
+                <linearGradient id="gvHandle" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0" stopColor="#b5834f" />
+                  <stop offset="0.5" stopColor="#8a5a2b" />
+                  <stop offset="1" stopColor="#6b4420" />
                 </linearGradient>
               </defs>
-              <rect x="81" y="6" width="18" height="92" rx="9" fill="url(#gvHandle)" />
-              <ellipse cx="90" cy="6" rx="13" ry="8" fill="#8a5a2b" />
-              <rect x="26" y="92" width="128" height="42" rx="13" fill="url(#gvHead)" />
-              <rect x="30" y="88" width="18" height="50" rx="7" fill="#5c3a1a" />
-              <rect x="132" y="88" width="18" height="50" rx="7" fill="#5c3a1a" />
-              <rect x="34" y="98" width="112" height="7" rx="3.5" fill="rgba(255,255,255,0.20)" />
+              <rect x="92" y="55" width="122" height="17" rx="8.5" fill="url(#gvHandle)" />
+              <ellipse cx="212" cy="63" rx="13" ry="12" fill="#7c5227" />
+              <rect x="16" y="28" width="82" height="72" rx="15" fill="url(#gvHead)" />
+              <rect x="12" y="24" width="18" height="80" rx="7" fill="#5c3a1a" />
+              <rect x="84" y="24" width="18" height="80" rx="7" fill="#5c3a1a" />
+              <rect x="22" y="38" width="70" height="8" rx="4" fill="rgba(255,255,255,0.20)" />
             </svg>
           </div>
-          <div className="gbx-soundblock" aria-hidden="true" />
           <div className="gbx-impact-flash" aria-hidden="true" />
         </>
       )}
