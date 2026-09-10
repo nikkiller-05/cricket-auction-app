@@ -51,7 +51,7 @@
   background:
     radial-gradient(48% 38% at 12% -6%, rgba(232, 184, 75, 0.15) 0%, transparent 60%),
     radial-gradient(44% 38% at 108% 4%, rgba(206, 158, 52, 0.10) 0%, transparent 55%),
-    linear-gradient(160deg, #18161f 0%, #201c2b 55%, #191722 100%);
+    linear-gradient(160deg, #141119 0%, #1a1724 55%, #15131e 100%);
   background-size: 140% 140%, 140% 140%, 100% 100%;
   background-position: 0% 0%, 100% 0%, 0 0;
   animation: gbxDriftMin 48s ease-in-out infinite alternate;
@@ -112,7 +112,8 @@
 .dash-root[data-theme="dark"] .text-slate-500,
 .dash-root[data-theme="dark"] .text-slate-400 { color: #a8a28f !important; }
 
-/* Slash-opacity glass cards → warm golden-dark glass. */
+/* Slash-opacity glass cards → subtle warm LIGHT lift so they read as elevated
+   surfaces and track the page tone (instead of a fixed dark fill). */
 .dash-root[data-theme="dark"] .bg-white\/95,
 .dash-root[data-theme="dark"] .bg-white\/90,
 .dash-root[data-theme="dark"] .bg-white\/85,
@@ -123,7 +124,7 @@
 .dash-root[data-theme="dark"] .bg-white\/60,
 .dash-root[data-theme="dark"] .bg-white\/55,
 .dash-root[data-theme="dark"] .bg-white\/50 {
-  background-color: rgba(26, 22, 13, 0.66) !important;
+  background-color: rgba(255, 249, 235, 0.055) !important;
 }
 
 /* Gold hairline borders in place of white/slate hairlines. */
@@ -311,8 +312,8 @@
 .dash-root[data-theme="dark"] .dash-menu > button:focus { background: rgba(253, 224, 71, 0.10) !important; }
 
 /* ===== Players List: tinted header bar + shadow to separate it from the rows ===== */
-.pl-head { background: rgba(160, 120, 30, 0.06); box-shadow: 0 1px 0 rgba(160, 120, 30, 0.20), 0 4px 10px -8px rgba(120, 90, 20, 0.35); }
-.dash-root[data-theme="dark"] .pl-head { background: rgba(255, 255, 255, 0.035); box-shadow: 0 1px 0 rgba(253, 224, 71, 0.12); }
+.pl-head { background: rgba(150, 110, 25, 0.12); box-shadow: 0 2px 0 rgba(150, 110, 25, 0.28), 0 6px 14px -8px rgba(120, 90, 20, 0.5); }
+.dash-root[data-theme="dark"] .pl-head { background: rgba(255, 255, 255, 0.05); box-shadow: 0 1px 0 rgba(253, 224, 71, 0.14), 0 6px 14px -10px rgba(0, 0, 0, 0.6); }
 
 /* ===== Assign Captain button: dark text in light theme (white washed out on the yellow) ===== */
 .dash-root[data-theme="light"] .capt-assign-btn { color: #3a2a06 !important; }

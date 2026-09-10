@@ -66,7 +66,7 @@ const THEMES = {
   light: {
     isDark: false,
     pageStyle: undefined, pageCls: 'text-slate-900 gbx-bg-light',
-    header: 'bg-gradient-to-r from-amber-200/85 via-amber-100/75 to-amber-200/85 border-amber-300/60 backdrop-blur-xl shadow-[0_14px_30px_-16px_rgba(150,110,30,0.45)]',
+    header: 'bg-gradient-to-r from-amber-300/90 via-amber-200/80 to-amber-300/90 border-amber-500/50 backdrop-blur-xl shadow-[0_16px_30px_-14px_rgba(110,75,12,0.55)]',
     card: 'rounded-2xl border border-amber-900/10 bg-white/90 backdrop-blur-sm shadow-[0_12px_34px_-20px_rgba(120,90,20,0.45)]',
     menu: 'bg-white border border-amber-200/60 shadow-2xl',
     cardSel: 'border-amber-400 bg-amber-50',
