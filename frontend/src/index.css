@@ -322,6 +322,18 @@
 .pl-head { background: rgba(150, 110, 25, 0.12); box-shadow: 0 2px 0 rgba(150, 110, 25, 0.28), 0 6px 14px -8px rgba(120, 90, 20, 0.5); }
 .dash-root[data-theme="dark"] .pl-head { background: rgba(255, 255, 255, 0.05); box-shadow: 0 1px 0 rgba(253, 224, 71, 0.14), 0 6px 14px -10px rgba(0, 0, 0, 0.6); }
 
+/* ===== Tables: zebra rows + darker header (dashboard content, both themes) =====
+   .gbx-row-active (live bidding) keeps its own highlight. */
+.dash-root[data-theme="dark"] .gbx-tab-content table thead { background: rgba(0, 0, 0, 0.3) !important; }
+.dash-root[data-theme="dark"] .gbx-tab-content table tbody tr:not(.gbx-row-active):nth-child(odd) { background-color: rgba(255, 255, 255, 0.02) !important; }
+.dash-root[data-theme="dark"] .gbx-tab-content table tbody tr:not(.gbx-row-active):nth-child(even) { background-color: rgba(255, 255, 255, 0.055) !important; }
+.dash-root[data-theme="dark"] .gbx-tab-content table tbody tr:not(.gbx-row-active):hover { background-color: rgba(255, 255, 255, 0.09) !important; }
+
+.dash-root[data-theme="light"] .gbx-tab-content table thead { background: rgba(120, 90, 20, 0.13) !important; }
+.dash-root[data-theme="light"] .gbx-tab-content table tbody tr:not(.gbx-row-active):nth-child(odd) { background-color: rgba(120, 90, 20, 0.02) !important; }
+.dash-root[data-theme="light"] .gbx-tab-content table tbody tr:not(.gbx-row-active):nth-child(even) { background-color: rgba(120, 90, 20, 0.07) !important; }
+.dash-root[data-theme="light"] .gbx-tab-content table tbody tr:not(.gbx-row-active):hover { background-color: rgba(120, 90, 20, 0.11) !important; }
+
 /* ===== Assign Captain button: dark text in light theme (white washed out on the yellow) ===== */
 .dash-root[data-theme="light"] .capt-assign-btn { color: #3a2a06 !important; }
 

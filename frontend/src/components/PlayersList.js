@@ -289,7 +289,7 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
                                                !currentBid;
 
                 return (
-                  <tr key={player.id} className={`gbx-player-row ${isCurrentlyBidding ? 'bg-amber-50/70' : 'hover:bg-slate-50/70 transition-colors'}`}>
+                  <tr key={player.id} className={`gbx-player-row ${isCurrentlyBidding ? 'gbx-row-active bg-amber-50/70' : 'transition-colors'}`}>
                     <td className="px-6 py-4 whitespace-nowrap text-center">
                       <div className="flex flex-col items-center">
                         <PlayerAvatar player={player} size="md" className="mb-2" />
