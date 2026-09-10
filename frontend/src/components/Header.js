@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect, memo } from 'react';
 import './Header.css';
 import AuctionToggleButton from './AuctionToggleButton';
+import { useTheme } from '../ThemeContext';
 
 const Header = memo(({ 
   username = "Super Admin", 
@@ -23,6 +24,7 @@ const Header = memo(({
   undoLoading = false,
   onEditSettings = null
 }) => {
+  const { theme, toggleTheme } = useTheme();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isDownloadDropdownOpen, setIsDownloadDropdownOpen] = useState(false);
   const dropdownRef = useRef(null);
@@ -111,6 +113,9 @@ const Header = memo(({
               <span className="logo-gold">Golden</span><span className="logo-white">Bid</span><span className="logo-gold">X</span>
             </span>
           </div>
+          <button type="button" onClick={toggleTheme} className="theme-toggle-btn" title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} aria-label="Toggle theme">
+            {theme === 'dark' ? '☀️' : '🌙'}
+          </button>
         </div>
 
         {/* Center Section - Auction Status */}

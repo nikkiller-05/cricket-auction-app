@@ -40,11 +40,65 @@
   .gbx-bg-light { animation: none; }
 }
 
-/* ------------------------------------------------------------------
-   Design tokens — single source of truth for the modern palette.
-   The whole app skews toward an "obsidian → indigo → fuchsia" twilight
-   accent on a near-white canvas, echoing the LiveBiddingCard hero.
-   ------------------------------------------------------------------ */
+/* ==================================================================
+   AUCTION DASHBOARD THEME (single source of truth)
+   Scoped to .dash-root[data-theme]. Change colors here → applies
+   across the whole dashboard. Default is dark/gold branding.
+   ================================================================== */
+
+/* --- DARK (default) --- */
+.dash-root[data-theme="dark"] {
+  background:
+    radial-gradient(48% 38% at 12% -6%, rgba(232, 184, 75, 0.16) 0%, transparent 60%),
+    radial-gradient(44% 38% at 108% 4%, rgba(206, 158, 52, 0.11) 0%, transparent 55%),
+    linear-gradient(160deg, #0a0a0f 0%, #100e17 55%, #0b0b11 100%);
+  background-size: 140% 140%, 140% 140%, 100% 100%;
+  background-position: 0% 0%, 100% 0%, 0 0;
+  animation: gbxDriftMin 48s ease-in-out infinite alternate;
+  color: #e9e9ee;
+}
+@keyframes gbxDriftMin {
+  0%   { background-position: 0% 0%, 100% 0%, 0 0; }
+  100% { background-position: 9% 7%, 91% 9%, 0 0; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .dash-root[data-theme="dark"] { animation: none; }
+}
+
+/* Dark skin: remap the dashboard's hardcoded light utility classes. */
+.dash-root[data-theme="dark"] .text-gray-900,
+.dash-root[data-theme="dark"] .text-gray-800 { color: #f2f2f6 !important; }
+.dash-root[data-theme="dark"] .text-gray-700,
+.dash-root[data-theme="dark"] .text-gray-600 { color: #cbcdd8 !important; }
+.dash-root[data-theme="dark"] .text-gray-500,
+.dash-root[data-theme="dark"] .text-gray-400 { color: #9aa0b0 !important; }
+.dash-root[data-theme="dark"] .text-blue-200,
+.dash-root[data-theme="dark"] .text-blue-300 { color: #c7d2fe !important; }
+
+.dash-root[data-theme="dark"] .bg-white { background-color: rgba(255, 255, 255, 0.05) !important; }
+.dash-root[data-theme="dark"] .bg-gray-50,
+.dash-root[data-theme="dark"] .bg-gray-100,
+.dash-root[data-theme="dark"] .bg-gray-200 { background-color: rgba(255, 255, 255, 0.07) !important; }
+
+.dash-root[data-theme="dark"] .border-gray-200,
+.dash-root[data-theme="dark"] .border-gray-300,
+.dash-root[data-theme="dark"] .border-white { border-color: rgba(255, 255, 255, 0.12) !important; }
+
+/* Backdrop cards (bg-white bg-opacity-*) → subtle glass on dark. */
+.dash-root[data-theme="dark"] .bg-opacity-25,
+.dash-root[data-theme="dark"] .bg-opacity-30,
+.dash-root[data-theme="dark"] .bg-opacity-35 { --tw-bg-opacity: 0.06 !important; }
+.dash-root[data-theme="dark"] .border-opacity-50,
+.dash-root[data-theme="dark"] .border-opacity-60,
+.dash-root[data-theme="dark"] .border-opacity-70 { --tw-border-opacity: 0.14 !important; }
+
+/* --- LIGHT --- warmer than before; fixes flat header/select feel --- */
+.dash-root[data-theme="light"] {
+  background:
+    radial-gradient(52% 42% at 8% -8%, rgba(232, 184, 75, 0.14) 0%, transparent 60%),
+    linear-gradient(160deg, #fbf8f1 0%, #f5f0e6 60%, #f9f4ea 100%);
+  color: #0f172a;
+}
 :root {
   --canvas: #f7f5ef;
   --canvas-soft: #fdfbf6;

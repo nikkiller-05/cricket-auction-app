@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { NotificationProvider } from './components/NotificationSystem';
+import { ThemeProvider } from './ThemeContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import './index.css';
 import './App.css';
@@ -27,9 +28,10 @@ function App() {
   return (
     <ErrorBoundary>
       <NotificationProvider>
-        <Router>
-          <Suspense fallback={<LoadingSpinner />}>
-            <Routes>
+        <ThemeProvider>
+          <Router>
+            <Suspense fallback={<LoadingSpinner />}>
+              <Routes>
               {/* Home page with login options */}
               <Route path="/" element={<HomePage />} />
               
@@ -53,7 +55,8 @@ function App() {
               <Route path="*" element={<Navigate to="/" replace />} />
             </Routes>
           </Suspense>
-        </Router>
+          </Router>
+        </ThemeProvider>
       </NotificationProvider>
     </ErrorBoundary>
   );

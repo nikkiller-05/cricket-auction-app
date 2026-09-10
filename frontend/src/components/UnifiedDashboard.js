@@ -18,6 +18,7 @@ import PlayerAvatar from './PlayerAvatar';
 import ShareAuctionModal from './ShareAuctionModal';
 import BrandFooter from './BrandFooter';
 import { useNotification } from './NotificationSystem';
+import { useTheme } from '../ThemeContext';
 
 // Use environment variable for backend URL, fallback to localhost for dev
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
@@ -466,6 +467,7 @@ const UnifiedDashboard = () => {
   const location = useLocation();
   const navigate = useNavigate();
   const { showSuccess, showError, showWarning, showInfo, confirm } = useNotification();
+  const { theme } = useTheme();
   
   const [isAdmin, setIsAdmin] = useState(false);
   const [userRole, setUserRole] = useState('spectator');
@@ -1319,7 +1321,7 @@ const UnifiedDashboard = () => {
   const tabs = isAdmin ? adminTabs : spectatorTabs;
 
   return (
-    <div className="min-h-screen overflow-x-hidden">
+    <div className="dash-root min-h-screen overflow-x-hidden" data-theme={theme}>
       {/* Notifications */}
       {notifications.length > 0 && (
         <div className="fixed top-4 right-4 left-4 sm:left-auto space-y-2 z-50 max-w-sm sm:max-w-sm">
