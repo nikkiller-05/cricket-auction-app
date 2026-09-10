@@ -539,11 +539,18 @@ const playerController = {
       players.push(player);
       dataService.setPlayers(players);
 
+      // First player added manually starts the auction: create default teams
+      // (from settings.teamCount) and mark it populated so the tabs render.
+      const teams = dataService.ensureTeamsInitialized();
+      dataService.updateAuctionData({ fileUploaded: true });
+
       const stats = calculateStats(dataService.getPlayers());
       dataService.updateStats(stats);
 
       socketService.emit('playersUpdated', dataService.getPlayers());
+      socketService.emit('teamsUpdated', teams);
       socketService.emit('statsUpdated', stats);
+      socketService.emit('fileUploaded', { fileName: 'Manual entry', playerCount: dataService.getPlayers().length });
 
       console.log(`➕ Player added manually: ${name} (${player.category})`);
       res.json({ message: 'Player added successfully', player });

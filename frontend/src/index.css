@@ -151,6 +151,47 @@
     linear-gradient(160deg, #fbf8f1 0%, #f5f0e6 60%, #f9f4ea 100%);
   color: #0f172a;
 }
+
+/* ===== Golden accent recolor (both themes) =====
+   Primary buttons, active nav tab, selected chips, focus rings were
+   indigo/violet/blue → recolor to the gold brand. Semantic colors
+   (green=sold, red=unsold, cyan=retained) are intentionally left alone. */
+.dash-root .from-indigo-600,
+.dash-root .from-indigo-500 {
+  --tw-gradient-from: #f59e0b var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgb(245 158 11 / 0) var(--tw-gradient-to-position) !important;
+}
+.dash-root .to-violet-600,
+.dash-root .to-violet-500,
+.dash-root .to-blue-600 { --tw-gradient-to: #b45309 var(--tw-gradient-to-position) !important; }
+.dash-root .hover\:from-indigo-500:hover,
+.dash-root .hover\:from-indigo-400:hover {
+  --tw-gradient-from: #fbbf24 var(--tw-gradient-from-position) !important;
+  --tw-gradient-to: rgb(251 191 36 / 0) var(--tw-gradient-to-position) !important;
+}
+.dash-root .hover\:to-violet-500:hover,
+.dash-root .hover\:to-blue-500:hover { --tw-gradient-to: #d97706 var(--tw-gradient-to-position) !important; }
+
+.dash-root .bg-indigo-600 { background-color: #d97706 !important; }
+.dash-root .hover\:bg-indigo-700:hover { background-color: #b45309 !important; }
+.dash-root .border-indigo-500\/40 { border-color: rgba(217, 119, 6, 0.4) !important; }
+
+.dash-root .bg-blue-500 { background-color: #d97706 !important; }
+.dash-root .border-blue-600 { border-color: #b45309 !important; }
+
+.dash-root .focus\:ring-cyan-400\/60:focus,
+.dash-root .focus\:ring-blue-500:focus { --tw-ring-color: rgba(245, 158, 11, 0.6) !important; }
+.dash-root .focus\:border-blue-500:focus { border-color: #d97706 !important; }
+
+.dash-root .shadow-violet-600\/40,
+.dash-root .shadow-violet-600\/30,
+.dash-root .shadow-blue-500\/30 { --tw-shadow-color: rgba(217, 119, 6, 0.35) !important; }
+
+/* Inactive nav-tab count chip on dark. */
+.dash-root[data-theme="dark"] .bg-slate-50,
+.dash-root[data-theme="dark"] .bg-slate-100,
+.dash-root[data-theme="dark"] .bg-slate-200 { background-color: rgba(255, 255, 255, 0.08) !important; }
+
 :root {
   --canvas: #f7f5ef;
   --canvas-soft: #fdfbf6;

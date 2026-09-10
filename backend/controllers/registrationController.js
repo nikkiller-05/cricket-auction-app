@@ -389,9 +389,11 @@ const registrationController = {
       const event = await registrationService.getEventById(eventId);
       const fileName = event?.name ? `${event.name} (registrations)` : 'Registrations import';
       dataService.updateAuctionData({ fileUploaded: true, fileName });
+      const teams = dataService.ensureTeamsInitialized();
       const stats = calculateStats(players);
       dataService.updateStats(stats);
       socketService.emit('playersUpdated', players);
+      socketService.emit('teamsUpdated', teams);
       socketService.emit('statsUpdated', stats);
       socketService.emit('fileUploaded', { fileName, playerCount: players.length });
 

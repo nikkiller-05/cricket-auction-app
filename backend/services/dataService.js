@@ -125,6 +125,29 @@ const dataService = {
     return teams;
   },
 
+  // Create default teams from settings.teamCount when none exist yet.
+  // Used by flows that start an auction without an Excel upload (manual add,
+  // registrations import). Returns the current teams either way.
+  ensureTeamsInitialized() {
+    if (Array.isArray(auctionData.teams) && auctionData.teams.length > 0) {
+      return auctionData.teams;
+    }
+    const teams = [];
+    for (let i = 1; i <= settings.teamCount; i++) {
+      teams.push({
+        id: i,
+        name: `Team ${i}`,
+        budget: settings.startingBudget,
+        players: [],
+        captain: null,
+        captainAmount: 0
+      });
+    }
+    auctionData.teams = teams;
+    scheduleSnapshot();
+    return teams;
+  },
+
   // Current bid management
   getCurrentBid() {
     return auctionData.currentBid;
