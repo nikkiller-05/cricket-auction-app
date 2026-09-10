@@ -489,6 +489,11 @@ const UnifiedDashboard = () => {
   
   // Upload Players modal state
   const [showUploadModal, setShowUploadModal] = useState(false);  
+  // Import from Registrations modal state
+  const [showRegImport, setShowRegImport] = useState(false);
+  const [regEvents, setRegEvents] = useState([]);
+  const [regSelected, setRegSelected] = useState('');
+  const [regBusy, setRegBusy] = useState(false);
   // Add Player (manual, from empty state) modal
   const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
   // Designed team squads (PDF/PNG) modal
@@ -969,6 +974,33 @@ const UnifiedDashboard = () => {
     showSuccess(`Successfully uploaded ${data.playerCount} players from ${data.fileName}`);
     // Refresh auction data after successful upload
     fetchAuctionData();
+  };
+
+  // Open the "From Registrations" import modal and load available events.
+  const openRegImport = async () => {
+    setShowRegImport(true);
+    try {
+      const res = await axios.get(`${API_BASE_URL}/api/registrations/events`);
+      setRegEvents(res.data.events || []);
+    } catch (e) {
+      showError(e.response?.data?.error || 'Could not load registration events');
+    }
+  };
+
+  const doRegImport = async () => {
+    if (!regSelected) return;
+    setRegBusy(true);
+    try {
+      const res = await axios.post(`${API_BASE_URL}/api/registrations/events/${regSelected}/import-to-auction`);
+      showSuccess(res.data.message || 'Imported players from registrations');
+      setShowRegImport(false);
+      setRegSelected('');
+      fetchAuctionData();
+    } catch (e) {
+      showError(e.response?.data?.error || 'Import failed');
+    } finally {
+      setRegBusy(false);
+    }
   };
 
   const fetchAuctionData = async () => {
@@ -2539,6 +2571,14 @@ const UnifiedDashboard = () => {
                       ➕ Add Player Manually
                     </button>
                   )}
+                  {isAdmin && canConfigure && (
+                    <button
+                      onClick={openRegImport}
+                      className="mt-4 ml-3 bg-amber-500 text-slate-900 px-6 py-3 rounded-xl hover:bg-amber-400 border border-amber-400/40 shadow-md font-semibold"
+                    >
+                      📋 From Registrations
+                    </button>
+                  )}
                 </div>
               )}
             </div>
@@ -2675,6 +2715,26 @@ const UnifiedDashboard = () => {
         onUploadSuccess={handleUploadSuccess}
         onDataRefresh={fetchAuctionData}
       />
+
+      {/* Import from Registrations Modal */}
+      {showRegImport && (
+        <div className="fixed inset-0 z-[3000] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60" onClick={() => setShowRegImport(false)} />
+          <div className="relative w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl">
+            <h3 className="text-lg font-bold text-gray-900">Import from Registrations</h3>
+            <p className="text-sm text-gray-500 mb-4">Bring in approved players from a registration event into this auction.</p>
+            <select value={regSelected} onChange={(e) => setRegSelected(e.target.value)} className="w-full rounded-lg border border-gray-300 px-3 py-2 mb-4 text-gray-900">
+              <option value="">Select an event…</option>
+              {regEvents.map((ev) => <option key={ev.id} value={ev.id}>{ev.name}{ev.counts ? ` (${ev.counts.verified || 0} approved)` : ''}</option>)}
+            </select>
+            {regEvents.length === 0 && <p className="text-xs text-gray-400 mb-4">No registration events found. Create one in the organizer console.</p>}
+            <div className="flex justify-end gap-2">
+              <button onClick={() => setShowRegImport(false)} className="rounded-full border border-gray-300 px-4 py-2 text-sm font-semibold text-gray-700 hover:bg-gray-50">Cancel</button>
+              <button onClick={doRegImport} disabled={regBusy || !regSelected} className="rounded-full bg-emerald-600 text-white px-5 py-2 text-sm font-semibold hover:bg-emerald-500 disabled:opacity-50">{regBusy ? 'Importing…' : 'Import players'}</button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Add Player Manually Modal (from empty state) */}
       <PlayerFormModal
