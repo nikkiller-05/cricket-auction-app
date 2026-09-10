@@ -245,6 +245,13 @@
 .dash-root[data-theme="light"] .border-slate-200\/70,
 .dash-root[data-theme="dark"] .border-slate-200\/70 { border-color: transparent !important; }
 
+/* ===== Kill glossy edges: thin white shine lines + the white top-highlight in
+   card shadows → replace with a clean theme-aware drop shadow separator
+   (darker in light, softer in dark). ===== */
+.dash-root .h-px[class*="via-white"] { display: none !important; }
+.dash-root[data-theme="light"] [class*="255,255,255,0.7)_inset"] { box-shadow: 0 12px 30px -16px rgba(120, 90, 20, 0.55) !important; }
+.dash-root[data-theme="dark"] [class*="255,255,255,0.7)_inset"] { box-shadow: 0 12px 30px -18px rgba(0, 0, 0, 0.5) !important; }
+
 /* ===== DARK theme: catch the remaining bright slash-opacity light patches ===== */
 .dash-root[data-theme="dark"] .bg-slate-50\/80,
 .dash-root[data-theme="dark"] .bg-slate-50\/70,
