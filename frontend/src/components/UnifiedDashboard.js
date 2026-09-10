@@ -1306,7 +1306,7 @@ const UnifiedDashboard = () => {
 
   const commonTabs = [
     { id: 'players', name: 'Players', icon: '👥', count: auctionData.players?.length || 0 },
-    { id: 'teams', name: 'Team Management', icon: '⚙️', count: auctionData.teams?.length || 0 },
+    { id: 'teams', name: 'Teams', icon: '⚙️', count: auctionData.teams?.length || 0 },
     { id: 'teamsquads', name: 'Team Squads', icon: '🏏', count: auctionData.teams?.length || 0 },
     { id: 'stats', name: 'Statistics', icon: '📊' }
   ];
