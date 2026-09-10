@@ -385,10 +385,15 @@ const registrationController = {
       });
 
       dataService.setPlayers(players);
+      // Mark the auction as populated so the Players tab renders (mirrors the upload flow).
+      const event = await registrationService.getEventById(eventId);
+      const fileName = event?.name ? `${event.name} (registrations)` : 'Registrations import';
+      dataService.updateAuctionData({ fileUploaded: true, fileName });
       const stats = calculateStats(players);
       dataService.updateStats(stats);
       socketService.emit('playersUpdated', players);
       socketService.emit('statsUpdated', stats);
+      socketService.emit('fileUploaded', { fileName, playerCount: players.length });
 
       res.json({ message: `Imported ${imported} player(s)`, imported, skipped: verified.length - imported });
     } catch (e) {

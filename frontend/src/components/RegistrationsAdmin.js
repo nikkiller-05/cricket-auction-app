@@ -309,6 +309,7 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
   const [organizers, setOrganizers] = useState([]);
   const [selected, setSelected] = useState(null);
   const [modal, setModal] = useState(null); // 'password' | 'profile'
+  const [loading, setLoading] = useState(true);
 
   const loadEvents = useCallback(async () => {
     try {
@@ -319,6 +320,8 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
       setSelected((cur) => list.find((e) => e.id === cur?.id) || list[0] || null);
     } catch (err) {
       showError(err.response?.data?.error || 'Could not load events');
+    } finally {
+      setLoading(false);
     }
   }, [showError]);
 
@@ -336,7 +339,9 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
         <a href="/" className="flex items-center gap-3 group" title="Back to home">
           <img src="/auction-logo.png" alt="" className="w-9 h-9 object-contain" />
           <div>
-            <h1 className={`text-lg font-bold tracking-tight ${T.heading}`}>GoldenBidX</h1>
+            <h1 className="text-lg font-bold tracking-tight">
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-400">Golden</span><span className={T.heading}>Bid</span><span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-400">X</span>
+            </h1>
             <p className={`text-xs ${T.sub}`}>Organizer dashboard</p>
           </div>
         </a>
@@ -349,6 +354,12 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
       </header>
 
       <div className="flex-1">
+      {loading ? (
+        <div className="flex items-center justify-center py-28">
+          <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-amber-300" />
+        </div>
+      ) : (
+      <>
       {/* Dashboard tabs */}
       <div className="max-w-6xl mx-auto px-4 sm:px-6 pt-5">
         <div className={`inline-flex flex-wrap gap-1 rounded-2xl border p-1 ${T.soft}`}>
@@ -396,6 +407,8 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
           <OrganizersPanel events={events} organizers={organizers} reload={loadOrganizers} showSuccess={showSuccess} showError={showError} showConfirm={showConfirm} T={T} />
         )}
       </div>
+      </>
+      )}
       </div>
 
       <BrandFooter theme={theme} />
