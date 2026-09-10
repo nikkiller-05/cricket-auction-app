@@ -997,8 +997,14 @@
   }
   
   .header-center {
+    position: static;
+    transform: none;
     flex: 0 1 auto;
     min-width: 0;
+    pointer-events: auto;
+    display: flex;
+    justify-content: center;
+    overflow: hidden;
   }
   
   .logo-text {
@@ -1083,7 +1089,11 @@
   }
   
   .header-center {
+    position: static;
+    transform: none;
     flex: 0 1 auto;
+    min-width: 0;
+    pointer-events: auto;
   }
   
   .logo {

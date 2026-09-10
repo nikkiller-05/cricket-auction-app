@@ -84,8 +84,6 @@ const SaleCelebration = ({ celebration, onDone }) => {
     >
       <div className="absolute inset-0 bg-black/75 gbx-modal-backdrop" />
 
-      {!sold && <div className="gbx-stamp-flash" aria-hidden="true" />}
-
       {sold && (
         <>
           {glitter.map((g) => (
@@ -119,12 +117,12 @@ const SaleCelebration = ({ celebration, onDone }) => {
                   <stop offset="1" stopColor="#6b4420" />
                 </linearGradient>
               </defs>
-              <rect x="92" y="55" width="122" height="17" rx="8.5" fill="url(#gvHandle)" />
-              <ellipse cx="212" cy="63" rx="13" ry="12" fill="#7c5227" />
-              <rect x="16" y="28" width="82" height="72" rx="15" fill="url(#gvHead)" />
-              <rect x="12" y="24" width="18" height="80" rx="7" fill="#5c3a1a" />
-              <rect x="84" y="24" width="18" height="80" rx="7" fill="#5c3a1a" />
-              <rect x="22" y="38" width="70" height="8" rx="4" fill="rgba(255,255,255,0.20)" />
+              <rect x="92" y="56" width="120" height="16" rx="8" fill="url(#gvHandle)" />
+              <rect x="200" y="50" width="26" height="28" rx="9" fill="#6b4420" />
+              <rect x="22" y="20" width="84" height="88" rx="22" fill="url(#gvHead)" />
+              <ellipse cx="30" cy="64" rx="11" ry="44" fill="#5c3a1a" />
+              <ellipse cx="98" cy="64" rx="11" ry="44" fill="#7c5227" />
+              <rect x="34" y="34" width="58" height="9" rx="4.5" fill="rgba(255,255,255,0.22)" />
             </svg>
           </div>
           <div className="gbx-impact-flash" aria-hidden="true" />
@@ -136,12 +134,6 @@ const SaleCelebration = ({ celebration, onDone }) => {
           <div className="rounded-3xl overflow-hidden ring-4 ring-amber-300/60 shadow-[0_20px_60px_-15px_rgba(0,0,0,0.8)]">
             <PlayerAvatar player={player} size="3xl" shape="rounded" position="top" />
           </div>
-          {!sold && (
-            <div className="gbx-stamp" aria-hidden="true">
-              <span className="gbx-stamp-grip" />
-              <span>UNSOLD</span>
-            </div>
-          )}
         </div>
 
         {sold ? (
@@ -156,7 +148,10 @@ const SaleCelebration = ({ celebration, onDone }) => {
           </div>
         ) : (
           <div className="gbx-unsold-text mt-7">
-            <div className="text-xl sm:text-2xl font-bold text-white">{player?.name}</div>
+            <div className="text-5xl sm:text-7xl font-black tracking-[0.15em] text-transparent bg-clip-text bg-gradient-to-b from-rose-300 via-rose-400 to-red-600 drop-shadow-[0_4px_18px_rgba(244,63,94,0.5)]">
+              UNSOLD
+            </div>
+            <div className="mt-3 text-xl sm:text-2xl font-bold text-white">{player?.name}</div>
             <div className="mt-1 text-sm uppercase tracking-[0.25em] text-rose-300 font-semibold">No bids</div>
           </div>
         )}

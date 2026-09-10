@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import io from 'socket.io-client';
 import axios from 'axios';
@@ -770,12 +770,15 @@ const UnifiedDashboard = () => {
     setTransactionHistory(transactions);
   }, []); // useCallback dependency array
 
-  // Initialize transaction history when auction data changes
+  // Initialize transaction history once from data; afterwards the socket events
+  // are the source of truth (re-running here re-added undone sales via a race).
+  const hasInitedTx = useRef(false);
   useEffect(() => {
-    if (auctionData && transactionHistory.length === 0) {
+    if (auctionData && !hasInitedTx.current) {
+      hasInitedTx.current = true;
       initializeTransactionHistory(auctionData);
     }
-  }, [auctionData, transactionHistory.length, initializeTransactionHistory]);
+  }, [auctionData, initializeTransactionHistory]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -1723,7 +1726,7 @@ const UnifiedDashboard = () => {
               <button
                 key={tab.id}
                 onClick={() => setActiveTab(tab.id)}
-                className={`gbx-tab-btn gbx-tab-${tab.id} flex-1 min-w-[7.5rem] rounded-xl px-3 sm:px-4 py-2 font-semibold text-sm flex items-center justify-center whitespace-nowrap transition ${
+                className={`gbx-tab-btn gbx-tab-${tab.id} flex-1 min-w-[5.5rem] sm:min-w-[7.5rem] rounded-xl px-2.5 sm:px-4 py-2 font-semibold text-xs sm:text-sm flex items-center justify-center whitespace-nowrap transition ${
                   activeTab === tab.id
                     ? 'bg-amber-400 text-slate-900 shadow'
                     : 'tab-seg-idle'
