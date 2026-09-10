@@ -110,26 +110,58 @@ const Notification = ({ notification, onRemove, onConfirm, onCancel }) => {
   };
 
   const getStyles = () => {
-    const baseStyles = 'backdrop-blur-xl border-2 shadow-2xl rounded-xl ring-2 ring-opacity-50';
+    // Softer toast surface — single hairline + shadow, no heavy ring/blur.
+    const baseStyles = 'border shadow-xl rounded-xl';
     
     switch (type) {
       case NOTIFICATION_TYPES.SUCCESS:
-        return `${baseStyles} bg-green-600 bg-opacity-95 border-green-400 text-white ring-green-300 shadow-green-500/30`;
+        return `${baseStyles} bg-green-600 bg-opacity-95 border-green-400/60 text-white`;
       case NOTIFICATION_TYPES.ERROR:
-        return `${baseStyles} bg-red-600 bg-opacity-95 border-red-400 text-white ring-red-300 shadow-red-500/30`;
+        return `${baseStyles} bg-red-600 bg-opacity-95 border-red-400/60 text-white`;
       case NOTIFICATION_TYPES.WARNING:
-        return `${baseStyles} bg-yellow-600 bg-opacity-95 border-yellow-400 text-white ring-yellow-300 shadow-yellow-500/30`;
+        return `${baseStyles} bg-amber-600 bg-opacity-95 border-amber-400/60 text-white`;
       case NOTIFICATION_TYPES.INFO:
-        return `${baseStyles} bg-blue-600 bg-opacity-95 border-blue-400 text-white ring-blue-300 shadow-blue-500/30`;
+        return `${baseStyles} bg-blue-600 bg-opacity-95 border-blue-400/60 text-white`;
       case NOTIFICATION_TYPES.CONFIRM:
-        return `${baseStyles} bg-amber-600 bg-opacity-95 border-amber-400 text-white ring-amber-300 shadow-amber-500/30`;
+        return `${baseStyles} bg-amber-600 bg-opacity-95 border-amber-400/60 text-white`;
       default:
-        return `${baseStyles} bg-gray-600 bg-opacity-95 border-gray-400 text-white ring-gray-300 shadow-gray-500/30`;
+        return `${baseStyles} bg-gray-700 bg-opacity-95 border-gray-500/60 text-white`;
     }
   };
 
+  // Confirm dialogs render as a uniform, centered branded modal (never a toast).
+  if (showConfirm) {
+    const doCancel = () => { setIsExiting(true); setTimeout(() => onCancel(id), 200); };
+    const doConfirm = () => { setIsExiting(true); setTimeout(() => onConfirm(id), 200); };
+    return (
+      <div className={`w-full max-w-md rounded-2xl border border-amber-300/25 bg-[#1b1724] text-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7)] p-6 ${isExiting ? 'gbx-modal-out' : 'gbx-modal-in'}`}>
+        <div className="flex items-start gap-3.5">
+          <span className="grid place-items-center h-10 w-10 shrink-0 rounded-full bg-amber-400/15 text-xl ring-1 ring-amber-300/30">{getIcon()}</span>
+          <div className="flex-1 min-w-0 pt-0.5">
+            {title && <h4 className="font-bold text-base tracking-tight">{title}</h4>}
+            <p className="mt-1 text-sm text-white/75 whitespace-pre-line break-words leading-relaxed">{message}</p>
+          </div>
+        </div>
+        <div className="mt-6 flex gap-2.5 justify-end">
+          <button
+            onClick={doCancel}
+            className="px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition active:scale-95"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={doConfirm}
+            className="px-5 py-2 rounded-full bg-gradient-to-b from-amber-400 to-amber-600 text-slate-900 text-sm font-bold shadow-md shadow-amber-500/30 hover:brightness-105 hover:-translate-y-0.5 active:translate-y-0 transition"
+          >
+            Confirm
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className={`p-3 ${getStyles()} transform transition-all duration-500 ease-out ${isExiting ? 'animate-slide-out' : 'animate-slide-in animate-pulse-once'}`}>
+    <div className={`p-3 ${getStyles()} transform transition-all duration-500 ease-out ${isExiting ? 'animate-slide-out' : 'animate-slide-in'}`}>
       <div className="flex items-start justify-between">
         <div className="flex items-start space-x-2 flex-1">
           <span className="text-lg flex-shrink-0 drop-shadow-lg">{getIcon()}</span>
@@ -182,26 +214,45 @@ const Notification = ({ notification, onRemove, onConfirm, onCancel }) => {
 const NotificationContainer = ({ notifications, removeNotification, confirmNotification, cancelNotification }) => {
   if (notifications.length === 0) return null;
 
+  const toasts = notifications.filter((n) => !n.showConfirm);
+  const confirms = notifications.filter((n) => n.showConfirm);
+
   return (
-    <div className="fixed top-16 left-4 right-4 sm:left-auto sm:right-4 z-[9999] w-auto sm:max-w-sm space-y-2">
-      {notifications.map((notification, index) => (
-        <div
-          key={notification.id}
-          className="transform transition-all duration-300 ease-in-out"
-          style={{
-            transform: `translateY(${index * 2}px)`,
-            zIndex: 9999 - index
-          }}
-        >
-          <Notification
-            notification={notification}
-            onRemove={removeNotification}
-            onConfirm={confirmNotification}
-            onCancel={cancelNotification}
-          />
+    <>
+      {toasts.length > 0 && (
+        <div className="fixed top-16 left-4 right-4 sm:left-auto sm:right-4 z-[9999] w-auto sm:max-w-sm space-y-2">
+          {toasts.map((notification, index) => (
+            <div
+              key={notification.id}
+              className="transform transition-all duration-300 ease-in-out"
+              style={{ transform: `translateY(${index * 2}px)`, zIndex: 9999 - index }}
+            >
+              <Notification
+                notification={notification}
+                onRemove={removeNotification}
+                onConfirm={confirmNotification}
+                onCancel={cancelNotification}
+              />
+            </div>
+          ))}
         </div>
-      ))}
-    </div>
+      )}
+
+      {/* Confirm dialogs → always a centered modal (uniform for every change/delete) */}
+      {confirms.length > 0 && (
+        <div className="fixed inset-0 z-[10000] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 gbx-modal-backdrop" onClick={() => cancelNotification(confirms[confirms.length - 1].id)} />
+          <div className="relative w-full max-w-md">
+            <Notification
+              notification={confirms[confirms.length - 1]}
+              onRemove={removeNotification}
+              onConfirm={confirmNotification}
+              onCancel={cancelNotification}
+            />
+          </div>
+        </div>
+      )}
+    </>
   );
 };
 

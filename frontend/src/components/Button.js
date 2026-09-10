@@ -8,10 +8,10 @@ import React from 'react';
 // Sizes: sm | md | lg | xl   (bigger = more important)
 const VARIANTS = {
   primary:
-    'text-white bg-gradient-to-b from-indigo-500 to-violet-600 border border-indigo-700/40 ' +
-    'shadow-[inset_0_1px_0_rgba(255,255,255,0.35),0_6px_16px_-4px_rgba(99,102,241,0.55)] ' +
-    'hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.4),0_10px_24px_-6px_rgba(99,102,241,0.65)] ' +
-    'focus-visible:ring-violet-400',
+    'text-slate-900 bg-gradient-to-b from-amber-400 to-amber-600 border border-amber-600/40 ' +
+    'shadow-[inset_0_1px_0_rgba(255,255,255,0.45),0_6px_16px_-4px_rgba(217,119,6,0.5)] ' +
+    'hover:shadow-[inset_0_1px_0_rgba(255,255,255,0.5),0_10px_24px_-6px_rgba(217,119,6,0.6)] ' +
+    'focus-visible:ring-amber-400',
   success:
     'text-white bg-gradient-to-b from-emerald-500 to-teal-600 border border-emerald-700/40 ' +
     'shadow-[inset_0_1px_0_rgba(255,255,255,0.35),0_6px_16px_-4px_rgba(16,185,129,0.55)] ' +

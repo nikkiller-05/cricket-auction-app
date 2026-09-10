@@ -372,6 +372,14 @@
 .gbx-console .hover\:bg-indigo-500:hover { background-color: #fbbf24 !important; }
 .gbx-console .border-indigo-600 { border-color: #f59e0b !important; }
 
+/* ===== Centered confirm modal transitions ===== */
+@keyframes gbxModalIn { from { opacity: 0; transform: translateY(8px) scale(0.97); } to { opacity: 1; transform: translateY(0) scale(1); } }
+@keyframes gbxModalOut { to { opacity: 0; transform: scale(0.97); } }
+@keyframes gbxBackdropIn { from { opacity: 0; } to { opacity: 1; } }
+.gbx-modal-in { animation: gbxModalIn 0.18s ease-out; }
+.gbx-modal-out { animation: gbxModalOut 0.18s ease-in forwards; }
+.gbx-modal-backdrop { animation: gbxBackdropIn 0.2s ease-out; }
+
 /* ===== Assign Captain button: dark text in light theme (white washed out on the yellow) ===== */
 .dash-root[data-theme="light"] .capt-assign-btn { color: #3a2a06 !important; }
 
@@ -427,7 +435,7 @@ body::before {
     radial-gradient(circle at 1px 1px, rgba(15, 23, 42, 0.035) 1px, transparent 0),
     radial-gradient(60rem 40rem at -5% -10%, rgba(232, 184, 75, 0.20) 0%, transparent 60%),
     radial-gradient(55rem 38rem at 105% 110%, rgba(176, 120, 32, 0.16) 0%, transparent 60%),
-    radial-gradient(40rem 28rem at 50% 50%, rgba(99, 102, 241, 0.06) 0%, transparent 65%),
+    radial-gradient(40rem 28rem at 50% 50%, rgba(232, 184, 75, 0.07) 0%, transparent 65%),
     linear-gradient(180deg, #faf9f5 0%, #f6f1e6 50%, #fbf7ee 100%);
   background-size: 22px 22px, auto, auto, auto, auto;
   background-repeat: repeat, no-repeat, no-repeat, no-repeat, no-repeat;
@@ -459,16 +467,16 @@ code {
 }
 
 .surface-ink {
-  background: radial-gradient(120% 140% at 0% 0%, #1e1b4b 0%, #0b1020 60%, #020617 100%);
-  color: #e2e8f0;
-  border: 1px solid rgba(99, 102, 241, 0.25);
-  box-shadow: 0 30px 60px -30px rgba(15, 23, 42, 0.6);
+  background: radial-gradient(120% 140% at 0% 0%, #241a07 0%, #140f06 60%, #0a0703 100%);
+  color: #f3ead4;
+  border: 1px solid rgba(232, 184, 75, 0.25);
+  box-shadow: 0 30px 60px -30px rgba(0, 0, 0, 0.6);
   border-radius: 1.25rem;
 }
 
 /* Gradient text helper for hero numbers / titles */
 .text-gradient-aurora {
-  background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 50%, #d946ef 100%);
+  background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 50%, #d97706 100%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -580,13 +588,13 @@ button:not(:disabled):active {
 }
 
 .btn-primary {
-  @apply text-white border border-indigo-500/40
-         bg-gradient-to-br from-indigo-600 to-violet-600
-         shadow-[0_6px_16px_-8px_rgba(79,70,229,0.55)];
+  @apply text-slate-900 border border-amber-500/40
+         bg-gradient-to-br from-amber-400 to-amber-600
+         shadow-[0_6px_16px_-8px_rgba(217,119,6,0.55)];
 }
 @media (hover: hover) {
   .btn-primary:not(:disabled):hover {
-    @apply from-indigo-500 to-violet-500 shadow-[0_10px_22px_-10px_rgba(79,70,229,0.65)];
+    @apply from-amber-300 to-amber-500 shadow-[0_10px_22px_-10px_rgba(217,119,6,0.65)];
   }
 }
 
@@ -642,13 +650,13 @@ button:not(:disabled):active {
 }
 
 .btn-ink {
-  @apply text-white border border-indigo-500/40
-         bg-gradient-to-br from-slate-900 via-indigo-900 to-indigo-700
-         shadow-[0_8px_20px_-10px_rgba(79,70,229,0.6)];
+  @apply text-white border border-amber-500/30
+         bg-gradient-to-br from-[#241a07] via-[#1c1408] to-[#2a1f08]
+         shadow-[0_8px_20px_-10px_rgba(0,0,0,0.6)];
 }
 @media (hover: hover) {
   .btn-ink:not(:disabled):hover {
-    @apply from-slate-800 via-indigo-800 to-indigo-600;
+    @apply from-[#2e2109] via-[#241a08] to-[#33260a];
   }
 }
 

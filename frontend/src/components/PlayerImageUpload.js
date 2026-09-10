@@ -65,7 +65,7 @@ const PlayerImageUpload = ({ playerId, onUploaded, label = '📷', className = '
         onClick={handlePick}
         disabled={uploading}
         title="Upload player photo"
-        className={`inline-flex items-center justify-center px-2 py-1 text-xs font-semibold rounded-md border border-indigo-300 bg-indigo-50 text-indigo-700 hover:bg-indigo-100 disabled:opacity-60 disabled:cursor-not-allowed transition ${className}`}
+        className={`inline-flex items-center justify-center px-2 py-1 text-xs font-semibold rounded-md border border-amber-400/40 bg-amber-400/15 text-amber-600 hover:bg-amber-400/25 disabled:opacity-60 disabled:cursor-not-allowed transition ${className}`}
       >
         {uploading ? '⏳' : label}
       </button>
