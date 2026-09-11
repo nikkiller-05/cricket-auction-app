@@ -169,7 +169,7 @@ const CategoryTag = ({ category, className = '' }) => (
 );
 
 // Enhanced TeamSquadViewer Component
-const TeamSquadViewer = ({ teams, players }) => {
+const TeamSquadViewer = ({ teams, players, enableCaptains = true, enableRetention = true }) => {
   const [selectedTeam, setSelectedTeam] = useState(teams[0]?.id || null);
 
   if (!teams || teams.length === 0) {
@@ -284,34 +284,30 @@ const TeamSquadViewer = ({ teams, players }) => {
             </div>
 
             {/* Quick Stats */}
-            <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
-              <div className="bg-purple-50 rounded-lg p-3 text-center">
-                <div className="text-2xl font-bold text-purple-600">{captain ? 1 : 0}</div>
-                <div className="text-xs text-purple-600">Captain</div>
-              </div>
-              <div className="bg-indigo-50 rounded-lg p-3 text-center">
-                <div className="text-2xl font-bold text-indigo-600">{teamRetainedPlayers.length}</div>
-                <div className="text-xs text-indigo-600">Retained</div>
-              </div>
-              <div className="bg-blue-50 rounded-lg p-3 text-center">
-                <div className="text-2xl font-bold text-blue-600">{boughtPlayers.length}</div>
-                <div className="text-xs text-blue-600">Bought</div>
-              </div>
-              <div className="bg-green-50 rounded-lg p-3 text-center">
-                <div className="text-2xl font-bold text-green-600">{formatCurrency(totalSpent)}</div>
-                <div className="text-xs text-green-600">Total Spent</div>
-              </div>
-              <div className="bg-orange-50 rounded-lg p-3 text-center">
-                <div className="text-2xl font-bold text-orange-600">
-                  {formatCurrency((boughtPlayers.length + teamRetainedPlayers.length) > 0 ? Math.round(totalSpent / (boughtPlayers.length + teamRetainedPlayers.length)) : 0)}
+            {(() => {
+              const tiles = [
+                ...(enableCaptains ? [{ key: 'captain', value: captain ? 1 : 0, label: 'Captain', wrap: 'bg-purple-50', text: 'text-purple-600' }] : []),
+                ...(enableRetention ? [{ key: 'retained', value: teamRetainedPlayers.length, label: 'Retained', wrap: 'bg-indigo-50', text: 'text-indigo-600' }] : []),
+                { key: 'bought', value: boughtPlayers.length, label: 'Bought', wrap: 'bg-blue-50', text: 'text-blue-600' },
+                { key: 'spent', value: formatCurrency(totalSpent), label: 'Total Spent', wrap: 'bg-green-50', text: 'text-green-600' },
+                { key: 'avg', value: formatCurrency((boughtPlayers.length + teamRetainedPlayers.length) > 0 ? Math.round(totalSpent / (boughtPlayers.length + teamRetainedPlayers.length)) : 0), label: 'Avg Price', wrap: 'bg-orange-50', text: 'text-orange-600' },
+              ];
+              const cols = { 3: 'md:grid-cols-3', 4: 'md:grid-cols-4', 5: 'md:grid-cols-5' }[tiles.length] || 'md:grid-cols-5';
+              return (
+                <div className={`grid grid-cols-2 ${cols} gap-4 mb-6`}>
+                  {tiles.map((t) => (
+                    <div key={t.key} className={`${t.wrap} rounded-lg p-3 text-center`}>
+                      <div className={`text-2xl font-bold ${t.text}`}>{t.value}</div>
+                      <div className={`text-xs ${t.text}`}>{t.label}</div>
+                    </div>
+                  ))}
                 </div>
-                <div className="text-xs text-orange-600">Avg Price</div>
-              </div>
-            </div>
+              );
+            })()}
           </div>
 
           {/* Captain Section */}
-          {captain && (
+          {enableCaptains && captain && (
             <div className="mb-6">
               <div className="bg-purple-50 border-2 border-purple-300 border-opacity-70 rounded-lg p-4 shadow-md">
                 <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
@@ -2623,6 +2619,8 @@ const UnifiedDashboard = () => {
                   {!isAdmin && <TeamSquadViewer 
                     teams={auctionData.teams || []}
                     players={auctionData.players || []}
+                    enableCaptains={enableCaptains}
+                    enableRetention={enableRetention}
                   />}
                   
                   {/* Message for admin when no team management access */}
@@ -2652,6 +2650,8 @@ const UnifiedDashboard = () => {
                 <TeamSquadViewer 
                   teams={auctionData.teams || []}
                   players={auctionData.players || []}
+                  enableCaptains={enableCaptains}
+                  enableRetention={enableRetention}
                 />
               ) : (
                 <div className="text-center py-12 text-gray-500 bg-white bg-opacity-25 rounded-lg border-2 border-gray-300 border-opacity-60 shadow-xl">
@@ -2789,19 +2789,19 @@ const UnifiedDashboard = () => {
           >
             <div className="sticky top-0 z-10 flex flex-col gap-3 rounded-t-2xl border-b border-slate-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
               <div className="flex items-center gap-2">
+                <button
+                  onClick={() => setShowTeamSetup(false)}
+                  aria-label="Close Team Setup"
+                  className="flex h-8 w-8 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-800"
+                >
+                  <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                </button>
                 <span className="text-xl">🛠️</span>
                 <h2 className="text-lg font-bold text-slate-900">Team Setup</h2>
               </div>
-              <button
-                onClick={() => setShowTeamSetup(false)}
-                aria-label="Close Team Setup"
-                className="absolute right-3 top-3 flex h-8 w-8 items-center justify-center rounded-full text-slate-500 hover:bg-slate-100 hover:text-slate-800 sm:right-4"
-              >
-                <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-              <div className="flex flex-wrap items-center gap-4 pr-10 sm:pr-0">
+              <div className="flex flex-wrap items-center gap-4">
                 <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 cursor-pointer">
                   <input
                     type="checkbox"
