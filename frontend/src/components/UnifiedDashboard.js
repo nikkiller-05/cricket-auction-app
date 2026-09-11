@@ -593,9 +593,11 @@ const UnifiedDashboard = () => {
     }
 
     // Coming straight from Auction Setup: open Team Setup so the admin can name
-    // teams and assign captains/retentions as the next onboarding step.
+    // teams and assign captains/retentions as the next onboarding step. Clear the
+    // history state afterwards so a page refresh doesn't reopen it.
     if (!enteredAsSpectator && location.state?.openTeamSetup) {
       setShowTeamSetup(true);
+      navigate(location.pathname, { replace: true, state: { ...location.state, openTeamSetup: false } });
     }
 
     // Initialize socket connection
