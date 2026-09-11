@@ -14,6 +14,7 @@ router.get('/data', auctionController.getAuctionData);
 router.post('/settings', verifyConfigPermission, auctionController.saveSettings);
 router.get('/config', verifyConfigPermission, auctionController.getConfig);
 router.put('/config', verifyConfigPermission, auctionController.updateConfig);
+router.post('/features', verifyConfigPermission, auctionController.updateFeatures);
 router.post('/start', verifyConfigPermission, auctionController.startAuction);
 router.post('/stop', verifyConfigPermission, auctionController.stopAuction);
 router.post('/finish', verifyConfigPermission, auctionController.finishAuction);

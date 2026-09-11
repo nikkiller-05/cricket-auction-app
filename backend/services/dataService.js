@@ -19,6 +19,7 @@ let settings = {
   startingBudget: 1000,
   maxPlayersPerTeam: 15,
   basePrice: 10,
+  enableCaptains: true,
   enableRetention: false,
   retentionsPerTeam: 0,
   biddingIncrements: [

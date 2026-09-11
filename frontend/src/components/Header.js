@@ -22,7 +22,8 @@ const Header = memo(({
   onUndoLastSale = null,
   canUndoLastSale = false,
   undoLoading = false,
-  onEditSettings = null
+  onEditSettings = null,
+  onOpenTeamSetup = null
 }) => {
   const { theme, toggleTheme } = useTheme();
   const isSpectator = userRole === 'spectator';
@@ -314,6 +315,23 @@ const Header = memo(({
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
                     </svg>
                     Edit Settings
+                  </button>
+                )}
+
+                {/* Team Setup Option - Admin only */}
+                {(userRole === 'super-admin' || userRole === 'admin') && onOpenTeamSetup && (
+                  <button 
+                    onClick={() => {
+                      onOpenTeamSetup();
+                      setIsDropdownOpen(false);
+                    }}
+                    className="menu-option"
+                    role="menuitem"
+                  >
+                    <svg className="menu-option-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 20h5v-2a4 4 0 00-3-3.87M9 20H4v-2a4 4 0 013-3.87m6-1.13a4 4 0 10-4-4 4 4 0 004 4zm6 0a3 3 0 10-3-3" />
+                    </svg>
+                    Team Setup
                   </button>
                 )}
 

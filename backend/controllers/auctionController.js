@@ -14,6 +14,7 @@ const auctionController = {
         maxPlayersPerTeam, 
         basePrice, 
         biddingIncrements, 
+        enableCaptains = true, 
         enableRetention = false, 
         retentionsPerTeam = 0 
       } = req.body;
@@ -62,6 +63,7 @@ const auctionController = {
         maxPlayersPerTeam: parseInt(maxPlayersPerTeam),
         basePrice: parseInt(basePrice),
         biddingIncrements: biddingIncrements, // Use as-is without sorting
+        enableCaptains: Boolean(enableCaptains),
         enableRetention: Boolean(enableRetention),
         retentionsPerTeam: parseInt(retentionsPerTeam) || 0
       };
@@ -1062,6 +1064,29 @@ const auctionController = {
     } catch (error) {
       console.error('Error getting auction config:', error);
       res.status(500).json({ error: 'Error getting auction configuration' });
+    }
+  },
+
+  // Toggle the captain / retention features on or off at any time.
+  // Persisted in settings and broadcast so every dashboard reacts live.
+  updateFeatures: async (req, res) => {
+    try {
+      const patch = {};
+      if (typeof req.body.enableCaptains === 'boolean') patch.enableCaptains = req.body.enableCaptains;
+      if (typeof req.body.enableRetention === 'boolean') patch.enableRetention = req.body.enableRetention;
+
+      if (Object.keys(patch).length === 0) {
+        return res.status(400).json({ error: 'No feature flags provided' });
+      }
+
+      dataService.updateSettings(patch);
+      const settings = dataService.getSettings();
+      socketService.emit('settingsUpdated', settings);
+
+      res.json({ success: true, settings });
+    } catch (error) {
+      console.error('Error updating features:', error);
+      res.status(500).json({ error: 'Error updating features' });
     }
   },
 

@@ -503,6 +503,8 @@ const UnifiedDashboard = () => {
   const [showAddPlayerModal, setShowAddPlayerModal] = useState(false);
   // Designed team squads (PDF/PNG) modal
   const [showTeamSquadsModal, setShowTeamSquadsModal] = useState(false);
+  // Team Setup modal (team naming, captains, retention) — replaces the Manage tab
+  const [showTeamSetup, setShowTeamSetup] = useState(false);
   // Edit Settings modal state
   const [showEditSettingsModal, setShowEditSettingsModal] = useState(false);
   const [settingsConfig, setSettingsConfig] = useState({
@@ -558,6 +560,11 @@ const UnifiedDashboard = () => {
     [auctionData?.players]
   );
 
+  // Feature flags: captains default ON, retention default OFF. When a feature
+  // is off we hide its stat card, player filter and Team Setup section.
+  const enableCaptains = auctionData?.settings?.enableCaptains !== false;
+  const enableRetention = auctionData?.settings?.enableRetention === true;
+
   useEffect(() => {
     // Check if user is admin from location state or localStorage
     const adminFromState = location.state?.isAdmin;
@@ -583,6 +590,12 @@ const UnifiedDashboard = () => {
       } else {
         setUserRole('admin'); // Default for state-based admin
       }
+    }
+
+    // Coming straight from Auction Setup: open Team Setup so the admin can name
+    // teams and assign captains/retentions as the next onboarding step.
+    if (!enteredAsSpectator && location.state?.openTeamSetup) {
+      setShowTeamSetup(true);
     }
 
     // Initialize socket connection
@@ -1028,6 +1041,17 @@ const UnifiedDashboard = () => {
     setAuctionData(prev => ({ ...prev, players: updatedPlayers }));
   };
 
+  // Toggle a feature flag (captains / retention). Persists + broadcasts via the
+  // backend; the socket 'settingsUpdated' also refreshes other clients.
+  const handleToggleFeature = async (key, value) => {
+    try {
+      const { data } = await axios.post(`${API_BASE_URL}/api/auction/features`, { [key]: value });
+      if (data?.settings) setAuctionData(prev => ({ ...prev, settings: data.settings }));
+    } catch (error) {
+      showError(error.response?.data?.error || 'Failed to update feature');
+    }
+  };
+
   const downloadResults = async (format = 'excel') => {
     try {
   const endpoint = format === 'csv' ? `${API_BASE_URL}/api/download-results-csv` : `${API_BASE_URL}/api/download-results`;
@@ -1306,7 +1330,6 @@ const UnifiedDashboard = () => {
 
   const commonTabs = [
     { id: 'players', name: 'Players', icon: '👥', count: auctionData.players?.length || 0 },
-    { id: 'teams', name: 'Manage', icon: '⚙️', count: auctionData.teams?.length || 0 },
     { id: 'teamsquads', name: 'Squads', icon: '🏏', count: auctionData.teams?.length || 0 },
     { id: 'stats', name: 'Statistics', icon: '📊' }
   ];
@@ -1378,6 +1401,7 @@ const UnifiedDashboard = () => {
         canBackup={isAdmin && canConfigure}
         onUploadPlayers={() => setShowUploadModal(true)}
         onEditSettings={isAdmin ? handleOpenEditSettings : null}
+        onOpenTeamSetup={isAdmin && canConfigure ? () => setShowTeamSetup(true) : null}
         onUndoLastSale={handleUndoLastSale}
         canUndoLastSale={actionHistory.some(
           (action) => action.type === 'PLAYER_SOLD' || action.type === 'PLAYER_UNSOLD'
@@ -1656,25 +1680,31 @@ const UnifiedDashboard = () => {
         )}
 
         {/* Quick Stats */}
-        <div className="gbx-stats-grid grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-3 mb-8">
-          {[
+        {(() => {
+          const statCards = [
             { label: 'Total Players', value: auctionData.players?.length || 0, accent: 'from-indigo-500 to-violet-500' },
             { label: 'Players Sold', value: soldPlayers.length, accent: 'from-emerald-500 to-teal-500' },
-            { label: 'Retained', value: retainedPlayers.length, accent: 'from-fuchsia-500 to-purple-500' },
-            { label: 'Captains', value: captains.length, accent: 'from-amber-500 to-orange-500' },
+            ...(enableRetention ? [{ label: 'Retained', value: retainedPlayers.length, accent: 'from-fuchsia-500 to-purple-500' }] : []),
+            ...(enableCaptains ? [{ label: 'Captains', value: captains.length, accent: 'from-amber-500 to-orange-500' }] : []),
             { label: 'Available', value: availablePlayers.length, accent: 'from-sky-500 to-cyan-500' },
             { label: 'Unsold', value: unsoldPlayers.length, accent: 'from-rose-500 to-red-500' },
-          ].map((stat) => (
-            <div
-              key={stat.label}
-              className="gbx-stat-card group relative overflow-hidden rounded-xl border border-slate-200/70 bg-white/90 p-4 text-left shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_6px_16px_-10px_rgba(15,23,42,0.18)] hover:-translate-y-0.5 hover:border-slate-300/80 transition-[transform,box-shadow,border-color] duration-200"
-            >
-              <span className={`absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r ${stat.accent} opacity-80`} />
-              <div className="gbx-stat-label text-[11px] uppercase tracking-[0.18em] font-semibold text-slate-500">{stat.label}</div>
-              <div className={`gbx-stat-value mt-1 text-3xl font-bold bg-gradient-to-br ${stat.accent} bg-clip-text text-transparent`}>{stat.value}</div>
+          ];
+          const colsClass = { 4: 'md:grid-cols-4', 5: 'md:grid-cols-5', 6: 'md:grid-cols-6' }[statCards.length] || 'md:grid-cols-6';
+          return (
+            <div className={`gbx-stats-grid grid grid-cols-2 sm:grid-cols-3 ${colsClass} gap-3 mb-8`}>
+              {statCards.map((stat) => (
+                <div
+                  key={stat.label}
+                  className="gbx-stat-card group relative overflow-hidden rounded-xl border border-slate-200/70 bg-white/90 p-4 text-left shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_6px_16px_-10px_rgba(15,23,42,0.18)] hover:-translate-y-0.5 hover:border-slate-300/80 transition-[transform,box-shadow,border-color] duration-200"
+                >
+                  <span className={`absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r ${stat.accent} opacity-80`} />
+                  <div className="gbx-stat-label text-[11px] uppercase tracking-[0.18em] font-semibold text-slate-500">{stat.label}</div>
+                  <div className={`gbx-stat-value mt-1 text-3xl font-bold bg-gradient-to-br ${stat.accent} bg-clip-text text-transparent`}>{stat.value}</div>
+                </div>
+              ))}
             </div>
-          ))}
-        </div>
+          );
+        })()}
 
         {/* Warning for spectators when no auction data */}
         {!auctionData.fileUploaded && !isAdmin && (
@@ -2084,8 +2114,8 @@ const UnifiedDashboard = () => {
                           { id: 'sold', name: 'Sold', icon: '✅', count: soldPlayers.length },
                           { id: 'available', name: 'Available', icon: '🔄', count: availablePlayers.length },
                           { id: 'unsold', name: 'Unsold', icon: '❌', count: unsoldPlayers.length },
-                          { id: 'captains', name: 'Captains', icon: '👑', count: captains.length },
-                          { id: 'retained', name: 'Retentions', icon: '🔒', count: retainedPlayers.length }
+                          ...(enableCaptains ? [{ id: 'captains', name: 'Captains', icon: '👑', count: captains.length }] : []),
+                          ...(enableRetention ? [{ id: 'retained', name: 'Retentions', icon: '🔒', count: retainedPlayers.length }] : [])
                         ].map((filter) => (
                           <button
                             key={filter.id}
@@ -2744,6 +2774,72 @@ const UnifiedDashboard = () => {
         teams={auctionData.teams || []}
         players={auctionData.players || []}
       />
+
+      {/* Team Setup Modal — team naming, captains, retention (replaces Manage tab) */}
+      {showTeamSetup && (
+        <div
+          className="fixed inset-0 z-[10000] flex items-start justify-center overflow-y-auto bg-black/60 p-3 sm:p-6"
+          onClick={() => setShowTeamSetup(false)}
+        >
+          <div
+            className="relative w-full max-w-5xl my-4 rounded-2xl bg-white shadow-2xl"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="sticky top-0 z-10 flex flex-col gap-3 rounded-t-2xl border-b border-slate-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+              <div className="flex items-center gap-2">
+                <span className="text-xl">🛠️</span>
+                <h2 className="text-lg font-bold text-slate-900">Team Setup</h2>
+              </div>
+              <div className="flex flex-wrap items-center gap-4">
+                <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={enableCaptains}
+                    onChange={(e) => handleToggleFeature('enableCaptains', e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 text-amber-600 focus:ring-amber-500"
+                  />
+                  👑 Captains
+                </label>
+                <label className="flex items-center gap-2 text-sm font-semibold text-slate-700 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={enableRetention}
+                    onChange={(e) => handleToggleFeature('enableRetention', e.target.checked)}
+                    className="h-4 w-4 rounded border-gray-300 text-purple-600 focus:ring-purple-500"
+                  />
+                  🔒 Retention
+                </label>
+                <button
+                  onClick={() => setShowTeamSetup(false)}
+                  className="rounded-full bg-slate-100 px-4 py-1.5 text-sm font-semibold text-slate-700 hover:bg-slate-200"
+                >
+                  Done
+                </button>
+              </div>
+            </div>
+            <div className="p-3 sm:p-5">
+              <p className="mb-3 text-xs text-slate-500">
+                Toggles control whether the Captains / Retained cards appear on the dashboards. You can still assign below at any time.
+              </p>
+              {auctionData.fileUploaded ? (
+                <TeamManagement
+                  teams={auctionData.teams || []}
+                  auctionData={auctionData}
+                  onTeamsUpdate={handleTeamsUpdate}
+                  onPlayersUpdate={handlePlayersUpdate}
+                  enableCaptains={enableCaptains}
+                  enableRetention={enableRetention}
+                />
+              ) : (
+                <div className="py-10 text-center text-slate-500">
+                  <div className="mb-3 text-5xl">⚙️</div>
+                  <p className="font-semibold">Upload players first to set up teams.</p>
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
 
       <ShareAuctionModal
         isOpen={showShareModal}

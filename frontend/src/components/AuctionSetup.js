@@ -17,6 +17,8 @@ const AuctionSetup = () => {
     startingBudget: 1000,
     maxPlayersPerTeam: 15,
     basePrice: 10,
+    enableCaptains: true,
+    enableRetention: false,
     biddingIncrements: [
       { threshold: 50, increment: 5 },
       { threshold: 100, increment: 10 },
@@ -172,6 +174,8 @@ const AuctionSetup = () => {
         startingBudget: typeof config.startingBudget === 'number' ? config.startingBudget : 1000,
         maxPlayersPerTeam: typeof config.maxPlayersPerTeam === 'number' ? config.maxPlayersPerTeam : 15,
         basePrice: typeof config.basePrice === 'number' ? config.basePrice : 10,
+        enableCaptains: config.enableCaptains !== false,
+        enableRetention: config.enableRetention === true,
         biddingIncrements: config.biddingIncrements
       };
 
@@ -191,8 +195,9 @@ const AuctionSetup = () => {
         await axios.post(`${API_BASE_URL}/api/registrations/events/${selectedRegEvent}/import-to-auction`);
       }
 
-      // Navigate to unified dashboard
-      navigate('/dashboard', { state: { isAdmin: true } });
+      // Navigate to unified dashboard; open Team Setup so the admin can name
+      // teams and assign captains/retentions right after setup.
+      navigate('/dashboard', { state: { isAdmin: true, openTeamSetup: true } });
 
     } catch (error) {
       console.error('Setup error:', error);
@@ -376,6 +381,35 @@ const AuctionSetup = () => {
                   </div>
 
 
+
+                  <div className="bg-white bg-opacity-5 rounded-lg p-4 border border-white border-opacity-20">
+                    <h4 className="text-white font-medium mb-3">Auction Features</h4>
+                    <div className="space-y-3">
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={config.enableCaptains !== false}
+                          onChange={(e) => handleConfigChange('enableCaptains', e.target.checked)}
+                          className="h-5 w-5 rounded border-white/40 text-amber-500 focus:ring-amber-400"
+                        />
+                        <span className="text-blue-100 text-sm">
+                          <span className="font-semibold text-white">👑 Captains</span> — assign a captain per team (shows the Captains card)
+                        </span>
+                      </label>
+                      <label className="flex items-center gap-3 cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={config.enableRetention === true}
+                          onChange={(e) => handleConfigChange('enableRetention', e.target.checked)}
+                          className="h-5 w-5 rounded border-white/40 text-purple-500 focus:ring-purple-400"
+                        />
+                        <span className="text-blue-100 text-sm">
+                          <span className="font-semibold text-white">🔒 Retention</span> — retain players before the auction (shows the Retained card)
+                        </span>
+                      </label>
+                    </div>
+                    <p className="mt-2 text-xs text-blue-200/70">You can change these later in Team Setup.</p>
+                  </div>
 
                   <div className="bg-blue-500 bg-opacity-20 rounded-lg p-4 border border-blue-400 border-opacity-30">
                     <h4 className="text-white font-medium mb-2">Preview:</h4>
