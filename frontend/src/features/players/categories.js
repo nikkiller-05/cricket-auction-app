@@ -1,4 +1,5 @@
 import React from 'react';
+import { getSportPack } from '../../sports';
 
 // Player category taxonomy + styling. NOTE: currently cricket-specific; this is
 // the seam that becomes the per-sport "Sport Pack" in a later phase.
@@ -107,15 +108,9 @@ export const getCategoryStyle = (category) => {
   }
 };
 
-// Readable category label (e.g. "wicket-keeper" -> "Keeper")
-const CATEGORY_LABELS = {
-  batter: 'Batter',
-  bowler: 'Bowler',
-  allrounder: 'All-rounder',
-  'wicket-keeper': 'Keeper',
-  captain: 'Captain',
-  other: 'Other',
-};
+// Readable category label (e.g. "wicket-keeper" -> "Keeper"), sourced from the
+// active Sport Pack so other sports supply their own labels.
+const CATEGORY_LABELS = getSportPack('cricket').categoryLabels;
 
 export const formatCategoryLabel = (c) =>
   CATEGORY_LABELS[c] || (c ? c.charAt(0).toUpperCase() + c.slice(1) : 'Other');
