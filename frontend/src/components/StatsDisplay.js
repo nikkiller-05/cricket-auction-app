@@ -1,6 +1,7 @@
 import React, { useMemo } from 'react';
 import PlayerAvatar from './PlayerAvatar';
 import { formatCurrency } from '../lib/format';
+import { getTeamIcon } from '../sports';
 
 const CATEGORY_LABELS = {
   batter: 'Batter',
@@ -176,7 +177,7 @@ const StatsDisplay = ({ stats, teams, players, settings }) => {
                   <div className="text-sm text-slate-600">{stats.highestBid.player.role} · {formatCategoryLabel(stats.highestBid.player.category)}</div>
                   {stats.highestBid.player.team && (
                     <div className="text-sm font-medium text-slate-700">
-                      🏏 {teams?.find(t => t.id === stats.highestBid.player.team)?.name || 'Unknown'}
+                      {getTeamIcon()} {teams?.find(t => t.id === stats.highestBid.player.team)?.name || 'Unknown'}
                     </div>
                   )}
                 </div>
@@ -199,7 +200,7 @@ const StatsDisplay = ({ stats, teams, players, settings }) => {
                   <div className="text-sm text-slate-600">{stats.lowestBid.player.role} · {formatCategoryLabel(stats.lowestBid.player.category)}</div>
                   {stats.lowestBid.player.team && (
                     <div className="text-sm font-medium text-slate-700">
-                      🏏 {teams?.find(t => t.id === stats.lowestBid.player.team)?.name || 'Unknown'}
+                      {getTeamIcon()} {teams?.find(t => t.id === stats.lowestBid.player.team)?.name || 'Unknown'}
                     </div>
                   )}
                 </div>

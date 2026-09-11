@@ -3,6 +3,7 @@ import PlayerAvatar from '../../components/PlayerAvatar';
 import PlayerNameLink from '../../components/PlayerNameLink';
 import { formatCurrency, cleanTeamName } from '../../lib/format';
 import { getTeamStyle, CategoryTag } from './categories';
+import { getTeamIcon } from '../../sports';
 import RetainedTeamsTable from './RetainedTeamsTable';
 
 // Spectator player groups: renders the grid/table for the selected filter,
@@ -56,7 +57,7 @@ const SpectatorPlayerGroups = ({
                             <span
                               className={`px-3 py-1 rounded-full text-xs font-bold ${getTeamStyle(player.team || team?.id, teams)}`}
                             >
-                              🏏 {cleanTeamName(team?.name) || 'No Team'}
+                              {getTeamIcon()} {cleanTeamName(team?.name) || 'No Team'}
                             </span>
                           </div>
                         </div>
@@ -103,7 +104,7 @@ const SpectatorPlayerGroups = ({
                             <span
                               className={`px-3 py-1 rounded-full text-xs font-bold ml-1 ${getTeamStyle(player.team, teams)}`}
                             >
-                              🏏 {cleanTeamName(team?.name)}
+                              {getTeamIcon()} {cleanTeamName(team?.name)}
                             </span>
                           </div>
                         </div>
@@ -230,7 +231,7 @@ const SpectatorPlayerGroups = ({
                             <span
                               className={`px-3 py-1 rounded-full text-xs font-bold ${getTeamStyle(player.team || team?.id, teams)}`}
                             >
-                              🏏 {cleanTeamName(team?.name) || 'No Team'}
+                              {getTeamIcon()} {cleanTeamName(team?.name) || 'No Team'}
                             </span>
                           </div>
                         </div>
@@ -294,7 +295,7 @@ const SpectatorPlayerGroups = ({
                                 <span
                                   className={`px-3 py-1 rounded-full text-xs font-bold ${getTeamStyle(player.team, teams)}`}
                                 >
-                                  🏏 {cleanTeamName(team?.name)}
+                                  {getTeamIcon()} {cleanTeamName(team?.name)}
                                 </span>
                               </div>
                             </div>
@@ -308,7 +309,7 @@ const SpectatorPlayerGroups = ({
                                 <span
                                   className={`px-3 py-1 rounded-full text-xs font-bold ${getTeamStyle(player.team, teams)}`}
                                 >
-                                  🏏 {cleanTeamName(team?.name)}
+                                  {getTeamIcon()} {cleanTeamName(team?.name)}
                                 </span>
                               </div>
                             </div>
@@ -320,7 +321,7 @@ const SpectatorPlayerGroups = ({
                                 <span
                                   className={`px-3 py-1 rounded-full text-xs font-bold ${getTeamStyle(player.team, teams)}`}
                                 >
-                                  🏏 {cleanTeamName(team?.name)}
+                                  {getTeamIcon()} {cleanTeamName(team?.name)}
                                 </span>
                               </div>
                             </div>

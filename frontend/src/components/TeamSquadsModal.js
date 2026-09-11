@@ -2,6 +2,7 @@ import React, { useRef } from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import { formatCurrency } from '../lib/format';
+import { getTeamIcon } from '../sports';
 import { useNotification } from './NotificationSystem';
 import Button from './Button';
 
@@ -54,7 +55,7 @@ const TeamCard = React.forwardRef(({ team, players, accent }, ref) => {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 26 }}>🏏</span>
+          <span style={{ fontSize: 26 }}>{getTeamIcon()}</span>
           <span style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.02em' }}>
             {cleanTeamName(team.name)}
           </span>

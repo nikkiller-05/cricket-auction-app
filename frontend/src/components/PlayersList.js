@@ -2,6 +2,7 @@ import React, { useState, memo, useMemo, useCallback, useEffect } from 'react';
 import axios from 'axios';
 import { useNotification } from './NotificationSystem';
 import { formatCurrency } from '../lib/format';
+import { getTeamIcon } from '../sports';
 import PlayerAvatar from './PlayerAvatar';
 import PlayerImageUpload from './PlayerImageUpload';
 import PlayerFormModal from './PlayerFormModal';
@@ -361,7 +362,7 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
                       <div className="flex items-center justify-center">
                         {team ? (
                           <span className={`px-3 py-1 rounded-full text-xs font-bold inline-block ${getTeamStyle(player.team, teams)}`}>
-                            🏏 {cleanTeamName(team.name)}
+                            {getTeamIcon()} {cleanTeamName(team.name)}
                           </span>
                         ) : <span className="text-slate-300">—</span>}
                       </div>
