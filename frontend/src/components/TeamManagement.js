@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNotification } from './NotificationSystem';
 const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
 
-const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdate }) => {
+const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdate, enableCaptains = true, enableRetention = true }) => {
   const { showSuccess, showError, showWarning, showInfo, confirm } = useNotification();
   const [teamNames, setTeamNames] = useState(
     teams.reduce((acc, team) => {
@@ -111,6 +111,11 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
       localStorage.setItem('retentionConfig', JSON.stringify(config));
     }
   }, [retentionEnabled, retentionsPerTeam, retentionConfigSaved]);
+
+  // Keep the local retention workflow in sync with the global feature toggle.
+  useEffect(() => {
+    setRetentionEnabled(enableRetention);
+  }, [enableRetention]);
 
   // Get retention-related data
   const nonCaptainPlayers = allPlayers.filter(p => p.category !== 'captain');
@@ -494,6 +499,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
       <h3 className="text-2xl font-bold text-gray-900 mb-4 tracking-tight">Team Management</h3>
 
       {/* Retention Controls */}
+      {enableRetention && (
       <div className="gbx-retention-controls mb-6 dash-subpanel p-4 shadow-sm">
         <h4 className="text-xl font-semibold text-slate-800 mb-3 tracking-wide">🔐 Player Retention Controls</h4>
         
@@ -586,6 +592,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
           </div>
         )}
       </div>
+      )}
 
       <div className="space-y-6">
         {teams.map(team => {
@@ -611,6 +618,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
               </div>
 
               {/* Captain Assignment Section */}
+              {enableCaptains && (
               <div className="gbx-captain-assignment dash-subpanel p-3 shadow-sm relative"
                 style={{ zIndex: captainDropdownOpen[team.id] ? 100 : 1 }}
               >
@@ -861,6 +869,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
                   </div>
                 )}
               </div>
+              )}
             </div>
           );
         })}
@@ -881,6 +890,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
       </div>
 
       {/* Captain Status Summary */}
+      {enableCaptains && (
       <div className="gbx-captain-status mt-6 dash-subpanel p-4 shadow-sm">
         <h4 className="text-lg font-bold text-slate-800 mb-2">👑 Captain Assignment Status</h4>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm">
@@ -910,11 +920,12 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
           </div>
         </div>
       </div>
+      )}
 
 
 
       {/* Player Retention Section */}
-      {retentionEnabled && (
+      {enableRetention && retentionEnabled && (
         <div className="gbx-retention-management mt-8 dash-subpanel p-6">
           <h3 className="text-2xl font-bold text-slate-800 mb-4 flex items-center tracking-wide">
             🔄 Player Retention Management

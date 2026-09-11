@@ -2819,7 +2819,7 @@ const UnifiedDashboard = () => {
             </div>
             <div className="p-3 sm:p-5">
               <p className="mb-3 text-xs text-slate-500">
-                Toggles control whether the Captains / Retained cards appear on the dashboards. You can still assign below at any time.
+                Turn a feature on to show its card on the dashboards and reveal its assignment section below.
               </p>
               {auctionData.fileUploaded ? (
                 <TeamManagement
