@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import PlayerNameLink from '../../components/PlayerNameLink';
+import { getSportPack } from '../../sports';
 import { formatCurrency, cleanTeamName } from '../../lib/format';
 import { getCategoryStyle, formatCategoryLabel } from '../players/categories';
 
@@ -86,7 +87,7 @@ const TeamSquadViewer = ({ teams, players, enableCaptains = true, enableRetentio
                     : 'bg-white bg-opacity-20 text-gray-800 hover:text-gray-900 hover:bg-white hover:bg-opacity-30 border-white border-opacity-30'
                 } whitespace-nowrap py-2 px-4 font-medium text-sm flex items-center rounded-lg border shadow-lg min-w-fit`}
               >
-                🏏 {cleanTeamName(team.name)}
+                {getSportPack('cricket').teamIcon} {cleanTeamName(team.name)}
                 {teamPlayerCount > 0 && (
                   <span
                     className={`ml-2 text-xs font-medium px-2 py-1 rounded-full ${

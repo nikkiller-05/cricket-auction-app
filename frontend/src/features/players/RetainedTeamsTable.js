@@ -1,7 +1,8 @@
 import React from 'react';
 import PlayerNameLink from '../../components/PlayerNameLink';
-import { formatCurrency, cleanTeamName } from '../../lib/format';
-import { getTeamStyle, formatCategoryLabel } from './categories';
+import { formatCurrency } from '../../lib/format';
+import { formatCategoryLabel } from './categories';
+import TeamChip from '../teams/TeamChip';
 
 // Spectator retained-players view: per-team tables + an overall summary.
 const RetainedTeamsTable = ({ retainedPlayers = [], teams = [] }) => {
@@ -42,11 +43,12 @@ const RetainedTeamsTable = ({ retainedPlayers = [], teams = [] }) => {
               <div className="px-6 py-4 bg-cyan-100 bg-opacity-30 border-b-2 border-cyan-300 border-opacity-60 rounded-t-xl">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
-                    <span
-                      className={`px-4 py-2 rounded-full text-sm font-bold ${getTeamStyle(team.id, teams)}`}
-                    >
-                      🏏 {cleanTeamName(team.name)}
-                    </span>
+                    <TeamChip
+                      teamId={team.id}
+                      teams={teams}
+                      name={team.name}
+                      className="px-4 py-2 rounded-full text-sm font-bold"
+                    />
                     <span className="text-sm text-gray-700 font-medium">
                       ({teamRetainedPlayers.length} player
                       {teamRetainedPlayers.length !== 1 ? 's' : ''})
