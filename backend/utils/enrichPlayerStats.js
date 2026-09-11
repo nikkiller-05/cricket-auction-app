@@ -4,7 +4,7 @@ require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') }
 
 const axios = require('axios');
 const cheerio = require('cheerio');
-const XLSX = require('xlsx');
+const ExcelJS = require('exceljs');
 const path = require('path');
 const { getCachedStats, setCachedStats, setCachedFailure } = require('../services/cricHeroesCache');
 
@@ -337,11 +337,38 @@ async function enrichExcel(inputFilePath) {
     console.log('\n🏏 Cricket Auction - Player Stats Enricher\n');
     console.log(`📂 Reading: ${inputFilePath}\n`);
 
-    // Read Excel file
-    const workbook = XLSX.readFile(inputFilePath);
-    const sheetName = workbook.SheetNames[0];
-    const worksheet = workbook.Sheets[sheetName];
-    const data = XLSX.utils.sheet_to_json(worksheet);
+    // Read the input workbook (xlsx or csv) with exceljs.
+    const isCsv = /\.csv$/i.test(inputFilePath);
+    const workbook = new ExcelJS.Workbook();
+    let worksheet;
+    if (isCsv) {
+      worksheet = await workbook.csv.readFile(inputFilePath);
+    } else {
+      await workbook.xlsx.readFile(inputFilePath);
+      worksheet = workbook.worksheets[0];
+    }
+    const sheetName = worksheet?.name || 'Sheet1';
+
+    // Map the header row, then build one plain object per data row.
+    const headers = [];
+    worksheet.getRow(1).eachCell((cell, col) => {
+      headers[col - 1] = String(cell.value ?? '').trim();
+    });
+    const data = [];
+    worksheet.eachRow((row, rowNumber) => {
+      if (rowNumber === 1) return;
+      const obj = {};
+      row.eachCell((cell, col) => {
+        const key = headers[col - 1];
+        if (!key) return;
+        let value = cell.value;
+        if (value && typeof value === 'object') {
+          value = value.hyperlink || value.text || value.result || '';
+        }
+        obj[key] = value ?? '';
+      });
+      data.push(obj);
+    });
 
     if (data.length === 0) {
       console.log('❌ No data found in Excel file');
@@ -390,12 +417,18 @@ async function enrichExcel(inputFilePath) {
     const endTime = Date.now();
     const duration = ((endTime - startTime) / 1000).toFixed(1);
 
-    // Save enriched Excel
+    // Save enriched workbook back out, matching the input format.
     const outputFilePath = inputFilePath.replace(/(\.[^.]+)$/, '_enriched$1');
-    const newWorksheet = XLSX.utils.json_to_sheet(data);
-    const newWorkbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(newWorkbook, newWorksheet, sheetName);
-    XLSX.writeFile(newWorkbook, outputFilePath);
+    const outWorkbook = new ExcelJS.Workbook();
+    const outWorksheet = outWorkbook.addWorksheet(sheetName);
+    const outHeaders = Object.keys(data[0] || {});
+    outWorksheet.columns = outHeaders.map((header) => ({ header, key: header }));
+    data.forEach((row) => outWorksheet.addRow(row));
+    if (isCsv) {
+      await outWorkbook.csv.writeFile(outputFilePath);
+    } else {
+      await outWorkbook.xlsx.writeFile(outputFilePath);
+    }
 
     const successCount = results.filter(r => r.stats).length;
     
