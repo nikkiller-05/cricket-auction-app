@@ -1,13 +1,14 @@
 import React from 'react';
+import { getSportPack } from '../sports';
 
 /**
  * PlayerNameLink
- * Renders the player's name as a link to their CricHeroes profile when one
- * exists, otherwise plain text. Use this everywhere the player's name is
- * displayed so users can always click through to verify stats.
+ * Renders the player's name as a link to their external profile (provider comes
+ * from the active Sport Pack — CricHeroes for cricket) when one exists,
+ * otherwise plain text. Use this everywhere the player's name is displayed.
  *
  * Props:
- *   - player: { name, cricHeroesLink }
+ *   - player: { name, [pack.externalProfile.urlKey] }
  *   - className: optional Tailwind classes for the underlying element
  *   - linkClassName: classes applied only when rendering as <a>
  *   - children: optional - if provided, replaces the default {name} content
@@ -21,13 +22,15 @@ const PlayerNameLink = ({
 }) => {
   if (!player) return null;
   const content = children ?? player.name;
-  if (player.cricHeroesLink) {
+  const profile = getSportPack('cricket').externalProfile;
+  const profileUrl = player[profile.urlKey];
+  if (profileUrl) {
     return (
       <a
-        href={player.cricHeroesLink}
+        href={profileUrl}
         target="_blank"
         rel="noopener noreferrer"
-        title={`View ${player.name} on CricHeroes`}
+        title={`View ${player.name} on ${profile.label}`}
         className={`${linkClassName} ${className}`.trim()}
         style={{ WebkitTapHighlightColor: 'transparent' }}
         onClick={(e) => e.stopPropagation()}

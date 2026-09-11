@@ -14,6 +14,7 @@ const auctionController = {
         maxPlayersPerTeam, 
         basePrice, 
         biddingIncrements, 
+        currency = 'INR', 
         enableCaptains = true, 
         enableRetention = false, 
         retentionsPerTeam = 0 
@@ -63,6 +64,7 @@ const auctionController = {
         maxPlayersPerTeam: parseInt(maxPlayersPerTeam),
         basePrice: parseInt(basePrice),
         biddingIncrements: biddingIncrements, // Use as-is without sorting
+        currency: typeof currency === 'string' ? currency : 'INR',
         enableCaptains: Boolean(enableCaptains),
         enableRetention: Boolean(enableRetention),
         retentionsPerTeam: parseInt(retentionsPerTeam) || 0
@@ -1100,7 +1102,8 @@ const auctionController = {
         startingBudget, 
         maxPlayersPerTeam, 
         basePrice, 
-        biddingIncrements 
+        biddingIncrements, 
+        currency 
       } = req.body;
       
       // Validate settings
@@ -1130,8 +1133,9 @@ const auctionController = {
         startingBudget,
         maxPlayersPerTeam,
         basePrice,
-        biddingIncrements
+        biddingIncrements,
       };
+      if (typeof currency === 'string') newConfig.currency = currency;
       
       dataService.updateConfig(newConfig);
       

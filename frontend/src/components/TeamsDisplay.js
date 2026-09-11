@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import PlayerNameLink from './PlayerNameLink';
+import { formatCurrency } from '../lib/format';
 
 const TeamsDisplay = ({ teams, players }) => {
   const getCategoryColor = (category) => {
@@ -44,7 +45,7 @@ const TeamsDisplay = ({ teams, players }) => {
                 <h4 className="text-xl font-bold text-gray-900">{teamData.name}</h4>
                 <div className="text-right">
                   <div className="text-sm text-gray-600">Budget Left</div>
-                  <div className="text-lg font-bold text-green-600">₹{teamData.budget}</div>
+                  <div className="text-lg font-bold text-green-600">{formatCurrency(teamData.budget)}</div>
                 </div>
               </div>
 
@@ -82,7 +83,7 @@ const TeamsDisplay = ({ teams, players }) => {
                                 {player.category}
                               </span>
                             </div>
-                            <span className="font-medium text-green-600">₹{player.finalBid}</span>
+                            <span className="font-medium text-green-600">{formatCurrency(player.finalBid)}</span>
                           </div>
                         ))}
                       </div>
@@ -94,7 +95,7 @@ const TeamsDisplay = ({ teams, players }) => {
               <div className="mt-4 pt-3 border-t border-gray-200">
                 <div className="flex justify-between text-sm">
                   <span>Total Players: {soldPlayers.length}</span>
-                  <span>Total Spent: ₹{totalSpent}</span>
+                  <span>Total Spent: {formatCurrency(totalSpent)}</span>
                 </div>
               </div>
             </div>

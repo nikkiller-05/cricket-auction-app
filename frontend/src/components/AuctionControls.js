@@ -2,8 +2,8 @@ import React, { useState, memo } from 'react';
 import axios from 'axios';
 import { useNotification } from './NotificationSystem';
 import Button from './Button';
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-const formatCurrency = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
+import { API_BASE_URL } from '../config';
+import { formatCurrency } from '../lib/format';
 
 const AuctionControls = memo(({ auctionData, socket }) => {
   const [loading, setLoading] = useState(false);

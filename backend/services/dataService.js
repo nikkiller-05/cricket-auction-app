@@ -19,6 +19,7 @@ let settings = {
   startingBudget: 1000,
   maxPlayersPerTeam: 15,
   basePrice: 10,
+  currency: 'INR',
   enableCaptains: true,
   enableRetention: false,
   retentionsPerTeam: 0,
@@ -86,6 +87,7 @@ const dataService = {
       startingBudget: settings.startingBudget,
       maxPlayersPerTeam: settings.maxPlayersPerTeam,
       basePrice: settings.basePrice,
+      currency: settings.currency,
       biddingIncrements: settings.biddingIncrements
     };
   },

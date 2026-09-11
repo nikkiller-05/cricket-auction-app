@@ -2,7 +2,7 @@ import React, { useRef, useState } from 'react';
 import axios from 'axios';
 import { useNotification } from './NotificationSystem';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+import { API_BASE_URL } from '../config';
 const MAX_BYTES = 10 * 1024 * 1024; // 10 MB
 const ACCEPT = 'image/jpeg,image/jpg,image/png,image/webp';
 

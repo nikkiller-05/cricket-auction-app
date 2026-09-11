@@ -1,6 +1,7 @@
 import React, { useRef } from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
+import { formatCurrency } from '../lib/format';
 import { useNotification } from './NotificationSystem';
 import Button from './Button';
 
@@ -60,7 +61,7 @@ const TeamCard = React.forwardRef(({ team, players, accent }, ref) => {
         </div>
         <div style={{ textAlign: 'right', fontSize: 12, lineHeight: 1.4 }}>
           <div style={{ opacity: 0.85 }}>Budget Left</div>
-          <div style={{ fontSize: 20, fontWeight: 800 }}>₹{team.budget}</div>
+          <div style={{ fontSize: 20, fontWeight: 800 }}>{formatCurrency(team.budget)}</div>
         </div>
       </div>
 
@@ -87,7 +88,7 @@ const TeamCard = React.forwardRef(({ team, players, accent }, ref) => {
               <div style={{ fontSize: 12, color: '#a855f7' }}>{captain.role || catLabel(captain.category)}</div>
             </div>
             <div style={{ fontSize: 14, fontWeight: 700, color: '#7e22ce' }}>
-              {captain.captainAmount || team.captainAmount ? `₹${captain.captainAmount || team.captainAmount}` : ''}
+              {captain.captainAmount || team.captainAmount ? formatCurrency(captain.captainAmount || team.captainAmount) : ''}
             </div>
           </div>
         )}
@@ -115,7 +116,7 @@ const TeamCard = React.forwardRef(({ team, players, accent }, ref) => {
                 <td style={{ padding: '8px 4px', fontWeight: 600, color: '#0f172a' }}>{p.name}</td>
                 <td style={{ padding: '8px 4px', color: '#475569' }}>{catLabel(p.category)}</td>
                 <td style={{ padding: '8px 4px', textAlign: 'right', fontWeight: 700, color: '#059669' }}>
-                  {p.finalBid ? `₹${p.finalBid}` : '—'}
+                  {p.finalBid ? formatCurrency(p.finalBid) : '—'}
                 </td>
               </tr>
             ))}
@@ -135,7 +136,7 @@ const TeamCard = React.forwardRef(({ team, players, accent }, ref) => {
           <span style={{ color: '#64748b' }}>
             {squad.length} player{squad.length === 1 ? '' : 's'}
           </span>
-          <span style={{ fontWeight: 800, color: '#0f172a' }}>Total Spent: ₹{spent}</span>
+          <span style={{ fontWeight: 800, color: '#0f172a' }}>Total Spent: {formatCurrency(spent)}</span>
         </div>
       </div>
 
