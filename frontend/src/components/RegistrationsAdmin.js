@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNotification } from './NotificationSystem';
 import BrandFooter from './BrandFooter';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+import { API_BASE_URL } from '../config';
 
 // Isolated axios instance so this page's auth never clobbers the dashboard's.
 const api = axios.create({ baseURL: API_BASE_URL, timeout: 25000 });

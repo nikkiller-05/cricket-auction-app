@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNotification } from './NotificationSystem';
 import BrandFooter from './BrandFooter';
 
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+import { API_BASE_URL } from '../config';
 const api = axios.create({ baseURL: API_BASE_URL });
 
 const DARK_BG = { background: 'radial-gradient(58rem 40rem at -8% -18%, rgba(232,184,75,0.16) 0%, transparent 60%), radial-gradient(54rem 40rem at 112% 116%, rgba(176,120,32,0.18) 0%, transparent 60%), linear-gradient(160deg, #0a0a0f 0%, #12101b 46%, #0b0b11 100%)' };

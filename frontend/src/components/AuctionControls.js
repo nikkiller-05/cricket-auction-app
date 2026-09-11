@@ -2,7 +2,7 @@ import React, { useState, memo } from 'react';
 import axios from 'axios';
 import { useNotification } from './NotificationSystem';
 import Button from './Button';
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+import { API_BASE_URL } from '../config';
 const formatCurrency = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
 
 const AuctionControls = memo(({ auctionData, socket }) => {

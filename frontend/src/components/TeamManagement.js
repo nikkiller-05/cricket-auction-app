@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import axios from 'axios';
 import { useNotification } from './NotificationSystem';
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+import { API_BASE_URL } from '../config';
 
 const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdate, enableCaptains = true, enableRetention = true }) => {
   const { showSuccess, showError, showWarning, showInfo, confirm } = useNotification();

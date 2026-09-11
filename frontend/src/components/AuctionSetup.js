@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import PlayerFormModal from './PlayerFormModal';
 import Button from './Button';
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+import { API_BASE_URL } from '../config';
 
 const AuctionSetup = () => {
   const navigate = useNavigate();

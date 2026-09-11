@@ -1,7 +1,7 @@
 import React, { useState, memo } from 'react';
 import axios from 'axios';
 import { useNotification } from './NotificationSystem';
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+import { API_BASE_URL } from '../config';
 
 const ResetControls = memo(({ auctionData, onReset }) => {
   const { showSuccess, showError, showWarning, confirm } = useNotification();
