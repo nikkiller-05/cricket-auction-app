@@ -3,7 +3,7 @@ import axios from 'axios';
 import { useNotification } from './NotificationSystem';
 import Button from './Button';
 import { API_BASE_URL } from '../config';
-const formatCurrency = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
+import { formatCurrency } from '../lib/format';
 
 const AuctionControls = memo(({ auctionData, socket }) => {
   const [loading, setLoading] = useState(false);

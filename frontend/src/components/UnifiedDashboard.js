@@ -22,6 +22,7 @@ import { useTheme } from '../ThemeContext';
 import { API_BASE_URL } from '../config';
 import { computeNextBid } from '../domain/bidding';
 import { formatCurrency, cleanTeamName } from '../lib/format';
+import { setActiveCurrency, currencyOptions } from '../lib/currency';
 import { getTeamStyle, CategoryTag } from '../features/players/categories';
 
 import TeamSquadViewer from '../features/teams/TeamSquadViewer';
@@ -131,6 +132,9 @@ const UnifiedDashboard = () => {
   const enableCaptains = auctionData?.settings?.enableCaptains !== false;
   const enableRetention = auctionData?.settings?.enableRetention === true;
 
+  // Keep the shared currency formatter in sync with the auction's setting.
+  if (auctionData?.settings?.currency) setActiveCurrency(auctionData.settings.currency);
+
   useEffect(() => {
     // Check if user is admin from location state or localStorage
     const adminFromState = location.state?.isAdmin;
@@ -185,7 +189,7 @@ const UnifiedDashboard = () => {
           amount: data.finalBid,
         });
         showSuccess(
-          `${data.player.name} sold to ${cleanTeamName(data.team.name)} for ₹${data.finalBid}`
+          `${data.player.name} sold to ${cleanTeamName(data.team.name)} for ${formatCurrency(data.finalBid)}`
         );
       }
     });
@@ -202,7 +206,7 @@ const UnifiedDashboard = () => {
       if (data.player && data.team) {
         addTransaction(data.player, 'retained', data.team, data.retentionAmount);
         showInfo(
-          `${data.player.name} retained by ${cleanTeamName(data.team.name)} for ₹${data.retentionAmount}`
+          `${data.player.name} retained by ${cleanTeamName(data.team.name)} for ${formatCurrency(data.retentionAmount)}`
         );
       }
     });
@@ -213,7 +217,7 @@ const UnifiedDashboard = () => {
         setTransactionHistory((prev) => {
           return prev.filter((t) => !(t.type === 'retained' && t.playerName === data.player.name));
         });
-        showWarning(`Retention removed: ${data.player.name} (₹${data.refundedAmount} refunded)`);
+        showWarning(`Retention removed: ${data.player.name} (${formatCurrency(data.refundedAmount)} refunded)`);
       }
     });
 
@@ -281,7 +285,7 @@ const UnifiedDashboard = () => {
     });
 
     socketConnection.on('bidUndone', (data) => {
-      showWarning(`Bid undone: ${data.player} (₹${data.revertedToAmount})`);
+      showWarning(`Bid undone: ${data.player} (${formatCurrency(data.revertedToAmount)})`);
     });
 
     // Cleanup on unmount
@@ -1147,7 +1151,7 @@ const UnifiedDashboard = () => {
                         type="number"
                         value={customBidAmount}
                         onChange={(e) => setCustomBidAmount(e.target.value)}
-                        placeholder="Amount ₹"
+                        placeholder="Amount"
                         className="w-32 rounded-lg bg-white/10 border border-white/25 text-white text-sm px-3 py-2 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-cyan-400/60"
                       />
                       <button
@@ -1730,7 +1734,7 @@ const UnifiedDashboard = () => {
                                 </div>
                                 <div className="text-right">
                                   <div className="font-bold text-purple-600">
-                                    ₹{player.retentionAmount || player.finalBid || 0}
+                                    {formatCurrency(player.retentionAmount || player.finalBid || 0)}
                                   </div>
                                   <div className="text-sm text-gray-700">
                                     Retained by{' '}
@@ -1781,7 +1785,7 @@ const UnifiedDashboard = () => {
                                   <div className="text-sm text-gray-600 mt-1">{player.role}</div>
                                 </div>
                                 <div className="text-right">
-                                  <div className="font-bold text-green-600">₹{player.finalBid}</div>
+                                  <div className="font-bold text-green-600">{formatCurrency(player.finalBid)}</div>
                                   <div className="text-sm text-gray-700">
                                     Sold to{' '}
                                     <span
@@ -3015,7 +3019,7 @@ const UnifiedDashboard = () => {
 
                   <div>
                     <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-                      Starting Budget (₹)
+                      Starting Budget
                     </label>
                     <input
                       type="number"
@@ -3062,7 +3066,7 @@ const UnifiedDashboard = () => {
 
                   <div>
                     <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
-                      Base Price (₹)
+                      Base Price
                     </label>
                     <input
                       type="number"
@@ -3080,6 +3084,23 @@ const UnifiedDashboard = () => {
                       step="any"
                       className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                     />
+                  </div>
+
+                  <div>
+                    <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                      Currency
+                    </label>
+                    <select
+                      value={settingsConfig.currency || 'INR'}
+                      onChange={(e) => handleSettingsConfigChange('currency', e.target.value)}
+                      className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                    >
+                      {currencyOptions().map((opt) => (
+                        <option key={opt.code} value={opt.code}>
+                          {opt.label}
+                        </option>
+                      ))}
+                    </select>
                   </div>
                 </div>
               </div>
@@ -3107,7 +3128,7 @@ const UnifiedDashboard = () => {
                     >
                       <div className="flex-1">
                         <label className="block text-xs font-medium text-gray-600 mb-1">
-                          Price Threshold (₹)
+                          Price Threshold
                         </label>
                         <input
                           type="number"
@@ -3126,7 +3147,7 @@ const UnifiedDashboard = () => {
                       </div>
                       <div className="flex-1">
                         <label className="block text-xs font-medium text-gray-600 mb-1">
-                          Bid Increment (₹)
+                          Bid Increment
                         </label>
                         <input
                           type="number"

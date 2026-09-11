@@ -4,6 +4,8 @@ import axios from 'axios';
 import PlayerFormModal from './PlayerFormModal';
 import Button from './Button';
 import { API_BASE_URL } from '../config';
+import { currencyOptions } from '../lib/currency';
+import { formatCurrency } from '../lib/format';
 
 const AuctionSetup = () => {
   const navigate = useNavigate();
@@ -17,6 +19,7 @@ const AuctionSetup = () => {
     startingBudget: 1000,
     maxPlayersPerTeam: 15,
     basePrice: 10,
+    currency: 'INR',
     enableCaptains: true,
     enableRetention: false,
     biddingIncrements: [
@@ -174,6 +177,7 @@ const AuctionSetup = () => {
         startingBudget: typeof config.startingBudget === 'number' ? config.startingBudget : 1000,
         maxPlayersPerTeam: typeof config.maxPlayersPerTeam === 'number' ? config.maxPlayersPerTeam : 15,
         basePrice: typeof config.basePrice === 'number' ? config.basePrice : 10,
+        currency: config.currency || 'INR',
         enableCaptains: config.enableCaptains !== false,
         enableRetention: config.enableRetention === true,
         biddingIncrements: config.biddingIncrements
@@ -315,7 +319,7 @@ const AuctionSetup = () => {
 
                     <div>
                       <label className="block text-base font-semibold text-blue-200 mb-2">
-                        Starting Budget per Team (₹)
+                        Starting Budget per Team
                       </label>
                       <input
                         type="number"
@@ -359,7 +363,7 @@ const AuctionSetup = () => {
 
                     <div>
                       <label className="block text-base font-semibold text-blue-200 mb-2">
-                        Base Price (₹)
+                        Base Price
                       </label>
                       <input
                         type="number"
@@ -377,6 +381,23 @@ const AuctionSetup = () => {
                         }}
                         className="w-full px-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
                       />
+                    </div>
+
+                    <div>
+                      <label className="block text-base font-semibold text-blue-200 mb-2">
+                        Currency
+                      </label>
+                      <select
+                        value={config.currency || 'INR'}
+                        onChange={(e) => handleConfigChange('currency', e.target.value)}
+                        className="w-full px-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-400"
+                      >
+                        {currencyOptions().map((opt) => (
+                          <option key={opt.code} value={opt.code} className="text-slate-900">
+                            {opt.label}
+                          </option>
+                        ))}
+                      </select>
                     </div>
                   </div>
 
@@ -415,9 +436,20 @@ const AuctionSetup = () => {
                     <h4 className="text-white font-medium mb-2">Preview:</h4>
                     <div className="text-blue-200 text-sm space-y-1">
                       <p>• {config.teamCount || '...'} teams will participate</p>
-                      <p>• Each team gets ₹{config.startingBudget || '...'} budget</p>
+                      <p>
+                        • Each team gets{' '}
+                        {typeof config.startingBudget === 'number'
+                          ? formatCurrency(config.startingBudget, config.currency)
+                          : '...'}{' '}
+                        budget
+                      </p>
                       <p>• Maximum {config.maxPlayersPerTeam || '...'} players per team</p>
-                      <p>• Bidding starts from ₹{config.basePrice || '...'}</p>
+                      <p>
+                        • Bidding starts from{' '}
+                        {typeof config.basePrice === 'number'
+                          ? formatCurrency(config.basePrice, config.currency)
+                          : '...'}
+                      </p>
                     </div>
                   </div>
                 </div>

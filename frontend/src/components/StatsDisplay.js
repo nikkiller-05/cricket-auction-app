@@ -1,5 +1,6 @@
 import React, { useMemo } from 'react';
 import PlayerAvatar from './PlayerAvatar';
+import { formatCurrency } from '../lib/format';
 
 const CATEGORY_LABELS = {
   batter: 'Batter',
@@ -10,7 +11,6 @@ const CATEGORY_LABELS = {
   other: 'Other',
 };
 const formatCategoryLabel = (c) => CATEGORY_LABELS[c] || (c ? c.charAt(0).toUpperCase() + c.slice(1) : '—');
-const formatCurrency = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
 
 const StatsDisplay = ({ stats, teams, players, settings }) => {
   // Memoize calculated stats to avoid recalculation on every render

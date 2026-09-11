@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-const formatCurrency = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
+import { formatCurrency } from '../lib/format';
 
 // Styled dialog to correct a sold player's final price (replaces window.prompt).
 const EditPriceModal = ({ isOpen, player, onClose, onSave, saving = false }) => {

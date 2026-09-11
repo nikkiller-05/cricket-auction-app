@@ -1,9 +1,9 @@
 import React, { useEffect, useMemo, useRef } from 'react';
 import PlayerAvatar from './PlayerAvatar';
+import { formatCurrency } from '../lib/format';
 
 const CONFETTI_COLORS = ['#34d399', '#10b981', '#22c55e', '#fde047', '#fbbf24', '#86efac'];
 const BALLOON_COLORS = ['#34d399', '#10b981', '#22c55e', '#fbbf24', '#f472b6', '#60a5fa', '#a78bfa'];
-const formatCurrency = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
 
 // Full-screen celebration: SOLD = green banner + balloons + confetti,
 // UNSOLD = red banner + spin. Auto-dismisses; click to skip.

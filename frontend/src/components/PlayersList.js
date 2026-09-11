@@ -1,6 +1,7 @@
 import React, { useState, memo, useMemo, useCallback, useEffect } from 'react';
 import axios from 'axios';
 import { useNotification } from './NotificationSystem';
+import { formatCurrency } from '../lib/format';
 import PlayerAvatar from './PlayerAvatar';
 import PlayerImageUpload from './PlayerImageUpload';
 import PlayerFormModal from './PlayerFormModal';
@@ -140,7 +141,7 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
     setSavingPrice(true);
     try {
       await axios.post(`${API_BASE_URL}/api/auction/edit-sale-price`, { playerId: editPricePlayer.id, newAmount });
-      showSuccess(`${editPricePlayer.name} price updated to ₹${Number(newAmount).toLocaleString('en-IN')}`, 'Price Updated');
+      showSuccess(`${editPricePlayer.name} price updated to ${formatCurrency(newAmount)}`, 'Price Updated');
       setEditPricePlayer(null);
       if (onDataRefresh) onDataRefresh();
     } catch (error) {
@@ -345,13 +346,13 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 text-center">
                       {player.status === 'sold' ? (
-                        <span className="font-bold text-emerald-600">₹{player.finalBid}</span>
+                        <span className="font-bold text-emerald-600">{formatCurrency(player.finalBid)}</span>
                       ) : player.status === 'assigned' ? (
                         <span className="font-bold text-purple-600">Captain</span>
                       ) : player.status === 'retained' ? (
-                        <span className="font-bold text-cyan-600">₹{player.retentionAmount || player.finalBid}</span>
+                        <span className="font-bold text-cyan-600">{formatCurrency(player.retentionAmount || player.finalBid)}</span>
                       ) : player.currentBid > 0 ? (
-                        <span className="font-bold text-indigo-600">₹{player.currentBid}</span>
+                        <span className="font-bold text-indigo-600">{formatCurrency(player.currentBid)}</span>
                       ) : (
                         <span className="text-slate-300">—</span>
                       )}

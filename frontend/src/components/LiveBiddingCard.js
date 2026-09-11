@@ -1,7 +1,7 @@
 import React, { useMemo } from 'react';
 import PlayerAvatar from './PlayerAvatar';
 
-const formatCurrency = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
+import { formatCurrency } from '../lib/format';
 
 /**
  * LiveBiddingCard

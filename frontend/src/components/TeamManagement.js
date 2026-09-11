@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback, memo } from 'react';
 import axios from 'axios';
 import { useNotification } from './NotificationSystem';
+import { formatCurrency } from '../lib/format';
 import { API_BASE_URL } from '../config';
 
 const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdate, enableCaptains = true, enableRetention = true }) => {
@@ -209,7 +210,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
         onPlayersUpdate(response.data.players);
       }
       
-      showNotification(`Captain assigned for ₹${numericAmount}!`);
+      showNotification(`Captain assigned for ${formatCurrency(numericAmount)}!`);
       
       // Clear selections
       setSelectedCaptains(prev => ({
@@ -448,7 +449,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
         return newAmounts;
       });
 
-      showNotification(`Player retained for ₹${amount}!`);
+      showNotification(`Player retained for ${formatCurrency(amount)}!`);
     } catch (error) {
       showNotification(error.response?.data?.error || 'Error assigning retention', 'error');
     } finally {
@@ -597,7 +598,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
                   placeholder="Enter team name"
                 />
                 <div className="text-sm text-gray-600 whitespace-nowrap">
-                  Budget: ₹{team.budget}
+                  Budget: {formatCurrency(team.budget)}
                 </div>
               </div>
 
@@ -636,7 +637,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
                       </span>
                     </div>
                     <span className="text-sm font-medium text-blue-600">
-                      ₹{teamCaptain.captainAmount || team.captainAmount || 0}
+                      {formatCurrency(teamCaptain.captainAmount || team.captainAmount || 0)}
                     </span>
                   </div>
                 ) : (
@@ -825,7 +826,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
                               />
                               {isSoldPlayer && (
                                 <p className="text-xs text-gray-500 mt-1">
-                                  ℹ️ Sold player - amount locked at ₹{soldAmount}
+                                  ℹ️ Sold player - amount locked at {formatCurrency(soldAmount)}
                                 </p>
                               )}
                             </>
@@ -886,7 +887,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
                 return captain ? (
                   <li key={team.id}>
                     {captain.name} → {team.name || `Team ${team.id}`} 
-                    <span className="text-gray-600 ml-2">(₹{captain.captainAmount || team.captainAmount || 0})</span>
+                    <span className="text-gray-600 ml-2">({formatCurrency(captain.captainAmount || team.captainAmount || 0)})</span>
                   </li>
                 ) : null;
               })}
@@ -958,7 +959,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
                             </div>
                             <div className="flex items-center justify-between sm:justify-end space-x-2">
                               <span className="text-sm font-medium text-purple-600">
-                                ₹{player.retentionAmount || 0}
+                                {formatCurrency(player.retentionAmount || 0)}
                               </span>
                               <button
                                 onClick={() => unassignRetention(player.id)}
@@ -1235,7 +1236,7 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
               <div className="sm:col-span-2 lg:col-span-1">
                 <span className="font-medium text-purple-700">Total Retention Budget:</span>
                 <p className="text-purple-600">
-                  ₹{retainedPlayers.reduce((sum, player) => sum + (player.retentionAmount || 0), 0)}
+                  {formatCurrency(retainedPlayers.reduce((sum, player) => sum + (player.retentionAmount || 0), 0))}
                 </p>
               </div>
             </div>
