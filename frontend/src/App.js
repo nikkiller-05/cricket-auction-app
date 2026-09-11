@@ -1,7 +1,9 @@
 import React, { Suspense, lazy } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { QueryClientProvider } from '@tanstack/react-query';
 import { NotificationProvider } from './components/NotificationSystem';
 import { ThemeProvider } from './ThemeContext';
+import { queryClient } from './lib/queryClient';
 import ErrorBoundary from './components/ErrorBoundary';
 import './index.css';
 import './App.css';
@@ -27,9 +29,10 @@ const LoadingSpinner = () => (
 function App() {
   return (
     <ErrorBoundary>
-      <NotificationProvider>
-        <ThemeProvider>
-          <Router>
+      <QueryClientProvider client={queryClient}>
+        <NotificationProvider>
+          <ThemeProvider>
+            <Router>
             <Suspense fallback={<LoadingSpinner />}>
               <Routes>
               {/* Home page with login options */}
@@ -56,8 +59,9 @@ function App() {
             </Routes>
           </Suspense>
           </Router>
-        </ThemeProvider>
-      </NotificationProvider>
+          </ThemeProvider>
+        </NotificationProvider>
+      </QueryClientProvider>
     </ErrorBoundary>
   );
 }
