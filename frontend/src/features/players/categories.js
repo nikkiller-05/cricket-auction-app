@@ -56,56 +56,11 @@ export const CATEGORY_ICONS = {
 };
 
 export const getCategoryStyle = (category) => {
-  switch (category) {
-    case 'captain':
-      return {
-        bg: 'bg-purple-50',
-        border: 'border-purple-200',
-        badge: 'bg-purple-100 text-purple-800',
-        icon: '👑',
-        name: 'Captain',
-      };
-    case 'batter':
-      return {
-        bg: 'bg-blue-50',
-        border: 'border-blue-200',
-        badge: 'bg-blue-100 text-blue-800',
-        icon: CATEGORY_ICONS.batter,
-        name: 'Batters',
-      };
-    case 'bowler':
-      return {
-        bg: 'bg-red-50',
-        border: 'border-red-200',
-        badge: 'bg-red-100 text-red-800',
-        icon: CATEGORY_ICONS.bowler,
-        name: 'Bowlers',
-      };
-    case 'allrounder':
-      return {
-        bg: 'bg-orange-50',
-        border: 'border-orange-200',
-        badge: 'bg-orange-100 text-orange-800',
-        icon: CATEGORY_ICONS.allrounder,
-        name: 'All-rounders',
-      };
-    case 'wicket-keeper':
-      return {
-        bg: 'bg-green-50',
-        border: 'border-green-200',
-        badge: 'bg-green-100 text-green-800',
-        icon: '🧤',
-        name: 'Wicket-keepers',
-      };
-    default:
-      return {
-        bg: 'bg-gray-50',
-        border: 'border-gray-200',
-        badge: 'bg-gray-100 text-gray-800',
-        icon: '👤',
-        name: 'Others',
-      };
-  }
+  const pack = getSportPack('cricket');
+  const style = pack.categoryStyles[category] || pack.defaultCategoryStyle;
+  // Resolve inline SVG icons by key; fall back to the literal emoji.
+  const icon = style.iconKey ? CATEGORY_ICONS[style.iconKey] : style.icon;
+  return { bg: style.bg, border: style.border, badge: style.badge, icon, name: style.name };
 };
 
 // Readable category label (e.g. "wicket-keeper" -> "Keeper"), sourced from the
