@@ -1287,7 +1287,7 @@ const UnifiedDashboard = () => {
   // Define tabs based on user role
   const spectatorTabs = [
     { id: 'live', name: 'Live Status', icon: '🔴' },
-    { id: 'teams', name: 'Team Squads', icon: '🏏' },
+    { id: 'teams', name: 'Squads', icon: '🏏' },
     { id: 'players', name: 'All Players', icon: '👥' },
     { id: 'stats', name: 'Statistics', icon: '📊' }
   ];
@@ -1301,13 +1301,13 @@ const UnifiedDashboard = () => {
   const configTabs = [
     // Upload Players moved to hamburger menu
     // { id: 'subadmins', name: 'Sub-Admins', icon: '👥' },
-    { id: 'reset', name: 'Reset & Fast Track', icon: '🔄', badge: unsoldPlayers.length }
+    { id: 'reset', name: 'Auction Tools', icon: '🔄', badge: unsoldPlayers.length }
   ];
 
   const commonTabs = [
     { id: 'players', name: 'Players', icon: '👥', count: auctionData.players?.length || 0 },
-    { id: 'teams', name: 'Teams', icon: '⚙️', count: auctionData.teams?.length || 0 },
-    { id: 'teamsquads', name: 'Team Squads', icon: '🏏', count: auctionData.teams?.length || 0 },
+    { id: 'teams', name: 'Manage', icon: '⚙️', count: auctionData.teams?.length || 0 },
+    { id: 'teamsquads', name: 'Squads', icon: '🏏', count: auctionData.teams?.length || 0 },
     { id: 'stats', name: 'Statistics', icon: '📊' }
   ];
 
