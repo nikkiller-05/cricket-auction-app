@@ -25,6 +25,7 @@ import { formatCurrency, cleanTeamName } from '../lib/format';
 import { setActiveCurrency, currencyOptions } from '../lib/currency';
 import StatCards from '../features/auction/StatCards';
 import TabNav from '../features/auction/TabNav';
+import { buildDashboardTabs } from '../features/auction/tabs';
 import TeamSetupModal from '../features/teams/TeamSetupModal';
 import { getTeamStyle, CategoryTag } from '../features/players/categories';
 
@@ -925,39 +926,15 @@ const UnifiedDashboard = () => {
       : null;
 
   // Define tabs based on user role
-  const spectatorTabs = [
-    { id: 'live', name: 'Live Status', icon: '🔴' },
-    { id: 'teams', name: 'Squads', icon: '🏏' },
-    { id: 'players', name: 'All Players', icon: '👥' },
-    { id: 'stats', name: 'Statistics', icon: '📊' },
-  ];
-
-  // Base tabs for all admin roles
-  const baseAdminTabs = [{ id: 'live', name: 'Live Status', icon: '🔴' }];
-
-  // Configuration tabs (only for super-admin and admin)
-  const configTabs = [
-    // Upload Players moved to hamburger menu
-    // { id: 'subadmins', name: 'Sub-Admins', icon: '👥' },
-    { id: 'reset', name: 'Auction Tools', icon: '🔄', badge: unsoldPlayers.length },
-  ];
-
-  const commonTabs = [
-    { id: 'players', name: 'Players', icon: '👥', count: auctionData.players?.length || 0 },
-    { id: 'teamsquads', name: 'Squads', icon: '🏏', count: auctionData.teams?.length || 0 },
-    { id: 'stats', name: 'Statistics', icon: '📊' },
-  ];
-
-  // Determine tabs based on user role
   const canConfigure = ['super-admin', 'admin'].includes(userRole);
 
-  const adminTabs = [
-    ...baseAdminTabs,
-    ...(canConfigure ? configTabs : []), // Only show config tabs to super-admin and admin
-    ...commonTabs,
-  ];
-
-  const tabs = isAdmin ? adminTabs : spectatorTabs;
+  const tabs = buildDashboardTabs({
+    isAdmin,
+    userRole,
+    playersCount: auctionData.players?.length || 0,
+    teamsCount: auctionData.teams?.length || 0,
+    unsoldCount: unsoldPlayers.length,
+  });
 
   return (
     <div className="gbx-dashboard dash-root min-h-screen overflow-x-hidden" data-theme={theme}>
