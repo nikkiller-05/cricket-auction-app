@@ -2,6 +2,7 @@ import React from 'react';
 import PlayerNameLink from '../../components/PlayerNameLink';
 import { formatCurrency, cleanTeamName } from '../../lib/format';
 import { getTeamStyle, CategoryTag } from '../players/categories';
+import { getTeamIcon } from '../../sports';
 
 // Live Status tab: header + paused notice + paginated "Recent Auction Activity"
 // feed (falls back to recent players when there's no transaction history yet).
@@ -118,7 +119,7 @@ const LiveStatusPanel = ({
                               <span
                                 className={`px-2 py-1 rounded-full text-xs font-bold ml-1 ${getTeamStyle(transaction.player?.team, auctionData.teams)}`}
                               >
-                                🏏 {cleanTeamName(team?.name) || 'Unknown Team'}
+                                {getTeamIcon()} {cleanTeamName(team?.name) || 'Unknown Team'}
                               </span>
                             </div>
                           </>
@@ -132,7 +133,7 @@ const LiveStatusPanel = ({
                               <span
                                 className={`px-2 py-1 rounded-full text-xs font-bold ml-1 ${getTeamStyle(transaction.player?.team, auctionData.teams)}`}
                               >
-                                🏏 {cleanTeamName(team?.name) || 'Unknown Team'}
+                                {getTeamIcon()} {cleanTeamName(team?.name) || 'Unknown Team'}
                               </span>
                             </div>
                           </>
@@ -146,7 +147,7 @@ const LiveStatusPanel = ({
                               <span
                                 className={`px-2 py-1 rounded-full text-xs font-bold ml-1 ${getTeamStyle(transaction.team?.id, auctionData.teams)}`}
                               >
-                                🏏 {cleanTeamName(team?.name) || 'Unknown Team'}
+                                {getTeamIcon()} {cleanTeamName(team?.name) || 'Unknown Team'}
                               </span>
                             </div>
                           </>
@@ -204,7 +205,7 @@ const LiveStatusPanel = ({
                             <span
                               className={`px-2 py-1 rounded-full text-xs font-bold ml-1 ${getTeamStyle(player.team, auctionData.teams)}`}
                             >
-                              🏏 {cleanTeamName(team?.name) || 'Unknown Team'}
+                              {getTeamIcon()} {cleanTeamName(team?.name) || 'Unknown Team'}
                             </span>
                           </div>
                         </div>
@@ -251,7 +252,7 @@ const LiveStatusPanel = ({
                             <span
                               className={`px-2 py-1 rounded-full text-xs font-bold ml-1 ${getTeamStyle(player.team, auctionData.teams)}`}
                             >
-                              🏏 {cleanTeamName(team?.name) || 'Unknown Team'}
+                              {getTeamIcon()} {cleanTeamName(team?.name) || 'Unknown Team'}
                             </span>
                           </div>
                         </div>
