@@ -1,7 +1,7 @@
 import React from 'react';
 import PlayerNameLink from '../../components/PlayerNameLink';
 import { formatCurrency, cleanTeamName } from '../../lib/format';
-import { getTeamStyle } from './categories';
+import { getTeamStyle, formatCategoryLabel } from './categories';
 
 // Spectator retained-players view: per-team tables + an overall summary.
 const RetainedTeamsTable = ({ retainedPlayers = [], teams = [] }) => {
@@ -115,11 +115,7 @@ const RetainedTeamsTable = ({ retainedPlayers = [], teams = [] }) => {
                                         : 'bg-gray-100 text-gray-800 border border-gray-400'
                             }`}
                           >
-                            {player.category === 'wicket-keeper'
-                              ? 'Keeper'
-                              : player.category === 'allrounder'
-                                ? 'All-rounder'
-                                : player.category.charAt(0).toUpperCase() + player.category.slice(1)}
+                            {formatCategoryLabel(player.category)}
                           </span>
                         </td>
                         <td className="py-4 px-6 text-sm text-right">
