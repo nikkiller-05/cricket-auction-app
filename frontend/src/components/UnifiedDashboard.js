@@ -23,6 +23,8 @@ import { API_BASE_URL } from '../config';
 import { computeNextBid } from '../domain/bidding';
 import { formatCurrency, cleanTeamName } from '../lib/format';
 import { setActiveCurrency, currencyOptions } from '../lib/currency';
+import StatCards from '../features/auction/StatCards';
+import TabNav from '../features/auction/TabNav';
 import { getTeamStyle, CategoryTag } from '../features/players/categories';
 
 import TeamSquadViewer from '../features/teams/TeamSquadViewer';
@@ -1375,71 +1377,16 @@ const UnifiedDashboard = () => {
         )}
 
         {/* Quick Stats */}
-        {(() => {
-          const statCards = [
-            {
-              label: 'Total Players',
-              value: auctionData.players?.length || 0,
-              accent: 'from-indigo-500 to-violet-500',
-            },
-            {
-              label: 'Players Sold',
-              value: soldPlayers.length,
-              accent: 'from-emerald-500 to-teal-500',
-            },
-            ...(enableRetention
-              ? [
-                  {
-                    label: 'Retained',
-                    value: retainedPlayers.length,
-                    accent: 'from-fuchsia-500 to-purple-500',
-                  },
-                ]
-              : []),
-            ...(enableCaptains
-              ? [
-                  {
-                    label: 'Captains',
-                    value: captains.length,
-                    accent: 'from-amber-500 to-orange-500',
-                  },
-                ]
-              : []),
-            {
-              label: 'Available',
-              value: availablePlayers.length,
-              accent: 'from-sky-500 to-cyan-500',
-            },
-            { label: 'Unsold', value: unsoldPlayers.length, accent: 'from-rose-500 to-red-500' },
-          ];
-          const colsClass =
-            { 4: 'md:grid-cols-4', 5: 'md:grid-cols-5', 6: 'md:grid-cols-6' }[statCards.length] ||
-            'md:grid-cols-6';
-          return (
-            <div
-              className={`gbx-stats-grid grid grid-cols-2 sm:grid-cols-3 ${colsClass} gap-3 mb-8`}
-            >
-              {statCards.map((stat) => (
-                <div
-                  key={stat.label}
-                  className="gbx-stat-card group relative overflow-hidden rounded-xl border border-slate-200/70 bg-white/90 p-4 text-left shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_6px_16px_-10px_rgba(15,23,42,0.18)] hover:-translate-y-0.5 hover:border-slate-300/80 transition-[transform,box-shadow,border-color] duration-200"
-                >
-                  <span
-                    className={`absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r ${stat.accent} opacity-80`}
-                  />
-                  <div className="gbx-stat-label text-[11px] uppercase tracking-[0.18em] font-semibold text-slate-500">
-                    {stat.label}
-                  </div>
-                  <div
-                    className={`gbx-stat-value mt-1 text-3xl font-bold bg-gradient-to-br ${stat.accent} bg-clip-text text-transparent`}
-                  >
-                    {stat.value}
-                  </div>
-                </div>
-              ))}
-            </div>
-          );
-        })()}
+        <StatCards
+          totalPlayers={auctionData.players?.length || 0}
+          sold={soldPlayers.length}
+          retained={retainedPlayers.length}
+          captains={captains.length}
+          available={availablePlayers.length}
+          unsold={unsoldPlayers.length}
+          enableCaptains={enableCaptains}
+          enableRetention={enableRetention}
+        />
 
         {/* Warning for spectators when no auction data */}
         {!auctionData.fileUploaded && !isAdmin && (
@@ -1489,46 +1436,7 @@ const UnifiedDashboard = () => {
         )}
 
         {/* Tab Navigation */}
-        <div className="gbx-tab-nav mb-8">
-          <div className="flex w-full flex-wrap gap-1 rounded-2xl border p-1 tab-seg">
-            {tabs.map((tab) => (
-              <button
-                key={tab.id}
-                onClick={() => setActiveTab(tab.id)}
-                className={`gbx-tab-btn gbx-tab-${tab.id} flex-1 min-w-[6.5rem] sm:min-w-[7.5rem] rounded-xl px-2.5 sm:px-4 py-2 font-semibold text-xs sm:text-sm flex items-center justify-center whitespace-nowrap transition ${
-                  activeTab === tab.id ? 'bg-amber-400 text-slate-900 shadow' : 'tab-seg-idle'
-                }`}
-              >
-                <span className="mr-2">{tab.icon}</span>
-                {tab.name}
-
-                {tab.count !== undefined && tab.count > 0 && (
-                  <span
-                    className={`ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      activeTab === tab.id
-                        ? 'bg-amber-900/15 text-amber-900'
-                        : 'bg-amber-500/15 text-amber-700'
-                    }`}
-                  >
-                    {tab.count}
-                  </span>
-                )}
-
-                {tab.badge !== undefined && tab.badge > 0 && (
-                  <span
-                    className={`ml-2 text-[10px] font-bold px-2 py-0.5 rounded-full ${
-                      activeTab === tab.id
-                        ? 'bg-rose-500 text-white'
-                        : 'bg-rose-500/20 text-rose-300'
-                    }`}
-                  >
-                    {tab.badge}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
+        <TabNav tabs={tabs} activeTab={activeTab} onSelect={setActiveTab} />
 
         {/* Tab Content */}
         <div className="gbx-tab-content mt-4">
