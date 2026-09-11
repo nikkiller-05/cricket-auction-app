@@ -4,6 +4,7 @@ import { useNotification } from './NotificationSystem';
 import BrandFooter from './BrandFooter';
 
 import { API_BASE_URL } from '../config';
+import { decodeToken, isExpired, clearConsoleSession } from '../lib/session';
 
 // Isolated axios instance so this page's auth never clobbers the dashboard's.
 const api = axios.create({ baseURL: API_BASE_URL, timeout: 25000 });
@@ -105,9 +106,12 @@ const RegistrationsAdmin = () => {
   useEffect(() => {
     const t = localStorage.getItem('regToken');
     const u = localStorage.getItem('regUser');
-    if (t && u) {
+    const payload = decodeToken(t);
+    if (t && u && payload && !isExpired(payload)) {
       api.defaults.headers.common.Authorization = `Bearer ${t}`;
       try { setAuth({ token: t, user: JSON.parse(u) }); } catch { /* ignore */ }
+    } else if (t) {
+      clearConsoleSession(); // drop a stale/expired session
     }
     setBooting(false);
   }, []);

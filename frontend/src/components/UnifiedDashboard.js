@@ -21,6 +21,7 @@ import { API_BASE_URL } from '../config';
 import { computeNextBid } from '../domain/bidding';
 import { formatCurrency, cleanTeamName } from '../lib/format';
 import { setActiveCurrency } from '../lib/currency';
+import { decodeToken, isExpired, clearAdminSession } from '../lib/session';
 import StatCards from '../features/auction/StatCards';
 import TabNav from '../features/auction/TabNav';
 import LiveStatusPanel from '../features/auction/LiveStatusPanel';
@@ -143,7 +144,11 @@ const UnifiedDashboard = () => {
   useEffect(() => {
     // Check if user is admin from location state or localStorage
     const adminFromState = location.state?.isAdmin;
-    const token = localStorage.getItem('adminToken');
+    const rawToken = localStorage.getItem('adminToken');
+    const payload = decodeToken(rawToken);
+    // Reject an expired/invalid token so it can't grant stale admin access.
+    const token = rawToken && payload && !isExpired(payload) ? rawToken : null;
+    if (rawToken && !token) clearAdminSession();
 
     // Honor explicit spectator entry (state.isAdmin === false) even if a stale
     // admin token lingers in localStorage from a previous session.
@@ -153,15 +158,8 @@ const UnifiedDashboard = () => {
       setIsAdmin(true);
 
       if (token) {
-        try {
-          // Decode JWT token to get user role
-          const payload = JSON.parse(atob(token.split('.')[1]));
-          setUserRole(payload.role || 'admin');
-          axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-        } catch (error) {
-          console.error('Error decoding token:', error);
-          setUserRole('admin'); // Default fallback
-        }
+        setUserRole(payload.role || 'admin');
+        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
       } else {
         setUserRole('admin'); // Default for state-based admin
       }
