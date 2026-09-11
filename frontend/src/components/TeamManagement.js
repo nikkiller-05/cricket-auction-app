@@ -504,25 +504,6 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
         <h4 className="text-xl font-semibold text-slate-800 mb-3 tracking-wide">🔐 Player Retention Controls</h4>
         
         <div className="flex flex-col space-y-4 sm:flex-row sm:items-center sm:space-y-0 sm:space-x-6">
-          <div className="flex items-center space-x-2">
-            <input
-              type="checkbox"
-              id="enableRetentionToggle"
-              checked={retentionEnabled}
-              onChange={async (e) => {
-                if (!e.target.checked && retainedPlayers.length > 0) {
-                  const confirmed = await confirm(`You have ${retainedPlayers.length} retained players. Disabling retention will hide the retention management section. Continue?`);
-                  if (!confirmed) return;
-                }
-                setRetentionEnabled(e.target.checked);
-              }}
-              className="h-4 w-4 text-purple-600 rounded border-gray-300 focus:ring-purple-500"
-            />
-            <label htmlFor="enableRetentionToggle" className="text-base font-semibold text-slate-800">
-              Enable Player Retention
-            </label>
-          </div>
-
           {retentionEnabled && (
             <div className="flex items-center space-x-2">
               <label htmlFor="retentionCount" className="text-sm text-slate-600 whitespace-nowrap">
