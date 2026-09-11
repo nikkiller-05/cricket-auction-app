@@ -1379,10 +1379,9 @@ const UnifiedDashboard = () => {
         onUploadPlayers={() => setShowUploadModal(true)}
         onEditSettings={isAdmin ? handleOpenEditSettings : null}
         onUndoLastSale={handleUndoLastSale}
-        canUndoLastSale={(() => {
-          const lastSale = actionHistory.slice().reverse().find(action => action.type === 'PLAYER_SOLD');
-          return !!lastSale;
-        })()}
+        canUndoLastSale={actionHistory.some(
+          (action) => action.type === 'PLAYER_SOLD' || action.type === 'PLAYER_UNSOLD'
+        )}
         undoLoading={undoLoading}
         auctionStatus={auctionData.auctionStatus}
       />
@@ -2690,7 +2689,11 @@ const UnifiedDashboard = () => {
                       Processing...
                     </span>
                   ) : (
-                    undoConfirmAction?.type === 'sale' ? '↩️ Undo Sale' : '⏪ Revert Bid'
+                    undoConfirmAction?.type === 'bid'
+                      ? '⏪ Revert Bid'
+                      : undoConfirmAction?.type === 'unsold'
+                      ? '↩️ Undo Unsold'
+                      : '↩️ Undo Sale'
                   )}
                 </button>
               </div>

@@ -161,7 +161,7 @@ const Header = memo(({
               onClick={onUndoLastSale}
               disabled={undoLoading || !canUndoLastSale}
               className="undo-last-sale-btn"
-              title="Undo Last Sale - Reverses a completed sale and refunds money to team"
+              title="Undo Last Action - Reverses the last sale or unsold and makes the player available again"
             >
               {undoLoading ? (
                 <div className="undo-loading-spinner"></div>
