@@ -27,6 +27,7 @@ import StatCards from '../features/auction/StatCards';
 import TabNav from '../features/auction/TabNav';
 import { buildDashboardTabs } from '../features/auction/tabs';
 import TeamSetupModal from '../features/teams/TeamSetupModal';
+import PlayerFilterChips from '../features/players/PlayerFilterChips';
 import { getTeamStyle, CategoryTag } from '../features/players/categories';
 
 import TeamSquadViewer from '../features/teams/TeamSquadViewer';
@@ -1831,75 +1832,18 @@ const UnifiedDashboard = () => {
                 ) : (
                   // Spectator view of players
                   <div className="space-y-6">
-                    <div className="space-y-4">
-                      <h3 className="text-2xl font-bold text-gray-900 tracking-wide">
-                        All Players
-                      </h3>
-
-                      {/* Modern Filter Tabs */}
-                      <div className="flex flex-wrap gap-2 pb-2">
-                        {[
-                          {
-                            id: 'all',
-                            name: 'All Players',
-                            icon: '👥',
-                            count: auctionData.players?.length || 0,
-                          },
-                          { id: 'sold', name: 'Sold', icon: '✅', count: soldPlayers.length },
-                          {
-                            id: 'available',
-                            name: 'Available',
-                            icon: '🔄',
-                            count: availablePlayers.length,
-                          },
-                          { id: 'unsold', name: 'Unsold', icon: '❌', count: unsoldPlayers.length },
-                          ...(enableCaptains
-                            ? [
-                                {
-                                  id: 'captains',
-                                  name: 'Captains',
-                                  icon: '👑',
-                                  count: captains.length,
-                                },
-                              ]
-                            : []),
-                          ...(enableRetention
-                            ? [
-                                {
-                                  id: 'retained',
-                                  name: 'Retentions',
-                                  icon: '🔒',
-                                  count: retainedPlayers.length,
-                                },
-                              ]
-                            : []),
-                        ].map((filter) => (
-                          <button
-                            key={filter.id}
-                            onClick={() => setSpectatorPlayerFilter(filter.id)}
-                            className={`tab-button ${spectatorPlayerFilter === filter.id ? 'active' : ''} ${
-                              spectatorPlayerFilter === filter.id
-                                ? 'bg-blue-500 text-white shadow-xl border-2 border-blue-600'
-                                : 'bg-white bg-opacity-25 text-gray-800 hover:text-gray-900 hover:bg-white hover:bg-opacity-35 border-2 border-white border-opacity-50 hover:border-opacity-70'
-                            } whitespace-nowrap py-2 px-4 font-medium text-sm flex items-center rounded-lg shadow-lg min-w-fit transition-colors duration-150`}
-                          >
-                            <span className="mr-2">{filter.icon}</span>
-                            {filter.name}
-                            {filter.count > 0 && (
-                              <span
-                                className={`ml-2 text-xs font-medium px-2 py-1 rounded-full ${
-                                  spectatorPlayerFilter === filter.id
-                                    ? 'bg-white bg-opacity-20 text-white'
-                                    : 'bg-white bg-opacity-40 text-gray-700'
-                                }`}
-                              >
-                                {filter.count}
-                              </span>
-                            )}
-                          </button>
-                        ))}
-                      </div>
-                    </div>
+                    <PlayerFilterChips
+                      totalPlayers={auctionData.players?.length || 0}
+                      sold={soldPlayers.length}
+                      available={availablePlayers.length}
+                      unsold={unsoldPlayers.length}
+                      captains={captains.length}
+                      retained={retainedPlayers.length}
+                      enableCaptains={enableCaptains}
+                      enableRetention={enableRetention}
+                      active={spectatorPlayerFilter}
+                      onSelect={setSpectatorPlayerFilter}
+                    />
 
                     {/* Filtered Content */}
                     {(() => {
