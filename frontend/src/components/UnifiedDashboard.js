@@ -20,9 +20,8 @@ import BrandFooter from './BrandFooter';
 import SaleCelebration from './SaleCelebration';
 import { useNotification } from './NotificationSystem';
 import { useTheme } from '../ThemeContext';
-
-// Use environment variable for backend URL, fallback to localhost for dev
-const API_BASE_URL = process.env.REACT_APP_API_URL || 'http://localhost:5000';
+import { API_BASE_URL } from '../config';
+import { computeNextBid } from '../domain/bidding';
 
 // Helper functions
 const cleanTeamName = (name) => {
@@ -144,22 +143,6 @@ const formatCategoryLabel = (c) =>
 
 // Indian-style number formatting for currency
 const formatCurrency = (n) => `₹${Number(n || 0).toLocaleString('en-IN')}`;
-
-// Mirror of backend bidding-increment rules (utils/biddingRules.js)
-const getNextBidIncrement = (currentBid, increments) => {
-  if (!increments || increments.length === 0) return 5;
-  for (const rule of increments) {
-    if (currentBid < rule.threshold) return rule.increment;
-  }
-  return increments[increments.length - 1].increment;
-};
-
-// Real next bid: first bid is at base price (no increment), else current + increment.
-const computeNextBid = (currentBid, settings) => {
-  const basePrice = settings?.basePrice || 0;
-  if (!currentBid?.biddingTeam) return basePrice;
-  return currentBid.currentAmount + getNextBidIncrement(currentBid.currentAmount, settings?.biddingIncrements);
-};
 
 // Reusable colored category pill
 const CategoryTag = ({ category, className = '' }) => (
@@ -588,14 +571,6 @@ const UnifiedDashboard = () => {
       }
     }
 
-    // Coming straight from Auction Setup: open Team Setup so the admin can name
-    // teams and assign captains/retentions as the next onboarding step. Clear the
-    // history state afterwards so a page refresh doesn't reopen it.
-    if (!enteredAsSpectator && location.state?.openTeamSetup) {
-      setShowTeamSetup(true);
-      navigate(location.pathname, { replace: true, state: { ...location.state, openTeamSetup: false } });
-    }
-
     // Initialize socket connection
     const socketConnection = io(API_BASE_URL);
 
@@ -718,6 +693,17 @@ const UnifiedDashboard = () => {
       socketConnection.disconnect();
     };
   }, [location.state, showSuccess, showWarning, showInfo]);
+
+  // Coming straight from Auction Setup: open Team Setup once so the admin can name
+  // teams and assign captains/retentions. Clear the history state so a refresh
+  // doesn't reopen it. Runs once on mount.
+  useEffect(() => {
+    if (location.state?.isAdmin !== false && location.state?.openTeamSetup) {
+      setShowTeamSetup(true);
+      navigate(location.pathname, { replace: true, state: { ...location.state, openTeamSetup: false } });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Transaction history initialization function - OPTIMIZED with proper memoization
   const initializeTransactionHistory = useCallback((auctionData) => {
