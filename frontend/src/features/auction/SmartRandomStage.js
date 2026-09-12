@@ -73,6 +73,18 @@ const SmartRandomStage = ({
     [players]
   );
 
+  // Count per pick-from option so empty categories can be greyed out.
+  const modeCounts = useMemo(() => {
+    const counts = {};
+    MODE_OPTIONS.forEach((o) => {
+      counts[o.value] =
+        o.value === 'all'
+          ? availablePlayers.length
+          : availablePlayers.filter((p) => matchesCategory(p.role, o.value)).length;
+    });
+    return counts;
+  }, [availablePlayers]);
+
   const eligibleCount = useMemo(
     () => availablePlayers.filter((p) => matchesCategory(p.role, mode)).length,
     [availablePlayers, mode]
@@ -154,11 +166,14 @@ const SmartRandomStage = ({
               disabled={stage !== 'idle' || busy}
               className="mb-4 w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-400/60 disabled:opacity-50 [&>option]:text-slate-900"
             >
-              {MODE_OPTIONS.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
+              {MODE_OPTIONS.map((o) => {
+                const count = modeCounts[o.value] ?? 0;
+                return (
+                  <option key={o.value} value={o.value} disabled={count === 0}>
+                    {`${o.label} (${count})`}
+                  </option>
+                );
+              })}
             </select>
 
             <div className="mb-4 text-3xl font-extrabold text-white">

@@ -998,7 +998,9 @@ const auctionController = {
       const players = dataService.getPlayers();
       const availablePlayers = players.filter(p => p.status === 'available' && p.category !== 'captain');
       
-      const nextStatus = availablePlayers.length > 0 ? 'stopped' : 'finished';
+      // Ending fast track keeps the auction live if players remain (don't stop
+      // it out from under the admin); only finish when nothing is left.
+      const nextStatus = availablePlayers.length > 0 ? 'running' : 'finished';
       
       dataService.setAuctionStatus(nextStatus);
       dataService.setCurrentBid(null);
