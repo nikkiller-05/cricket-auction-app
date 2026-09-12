@@ -137,6 +137,8 @@ const SmartRandomStage = ({
   }, [stage, selectedPlayer, availablePlayers]);
 
   const basePrice = settings?.basePrice ?? 0;
+  // Spectators get the full-width card, so show a bigger player image there.
+  const avatarSize = isAdmin ? '2xl' : '3xl';
 
   return (
     <div className="gbx-live-card relative overflow-hidden rounded-3xl border border-white/15 bg-gradient-to-br from-[#0b0a06] via-[#1c1608] to-[#2a1f08] text-white shadow-2xl mb-8">
@@ -195,7 +197,7 @@ const SmartRandomStage = ({
         {/* RIGHT: Mystery / Reveal card (everyone) */}
         <div
           className={`flex min-h-[320px] flex-col items-center justify-center rounded-2xl border border-white/20 bg-gradient-to-br from-white/15 to-white/5 p-5 text-center shadow-2xl ${
-            isAdmin ? '' : 'mx-auto w-full max-w-2xl'
+            isAdmin ? '' : 'mx-auto w-full max-w-3xl'
           }`}
         >
           {stage === 'idle' && (
@@ -206,7 +208,7 @@ const SmartRandomStage = ({
                     style={{ filter: 'blur(18px)' }}
                     className="pointer-events-none select-none opacity-80"
                   >
-                    <PlayerAvatar player={idleTeaser} size="2xl" shape="rounded" />
+                    <PlayerAvatar player={idleTeaser} size={avatarSize} shape="rounded" />
                   </div>
                 ) : (
                   <div className="text-6xl">🎴</div>
@@ -223,7 +225,7 @@ const SmartRandomStage = ({
               </p>
               <div className="relative mb-4">
                 <div style={{ filter: 'blur(16px)' }} className="pointer-events-none select-none">
-                  <PlayerAvatar player={selectedPlayer} size="2xl" shape="rounded" />
+                  <PlayerAvatar player={selectedPlayer} size={avatarSize} shape="rounded" />
                 </div>
                 <div className="absolute inset-0 flex items-center justify-center text-5xl">🔒</div>
               </div>
@@ -247,7 +249,7 @@ const SmartRandomStage = ({
                 Revealing…
               </p>
               <div className="animate-pulse" style={{ filter: 'blur(2px)' }}>
-                <PlayerAvatar player={shuffleImg || selectedPlayer || {}} size="2xl" shape="rounded" />
+                <PlayerAvatar player={shuffleImg || selectedPlayer || {}} size={avatarSize} shape="rounded" />
               </div>
             </>
           )}
@@ -255,7 +257,7 @@ const SmartRandomStage = ({
           {stage === 'revealed' && selectedPlayer && (
             <>
               <div className="mb-3">
-                <PlayerAvatar player={selectedPlayer} size="2xl" shape="rounded" />
+                <PlayerAvatar player={selectedPlayer} size={avatarSize} shape="rounded" />
               </div>
               <div className="text-2xl font-extrabold text-white">{selectedPlayer.name}</div>
               {selectedPlayer.role && (
