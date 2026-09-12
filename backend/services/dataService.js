@@ -54,15 +54,19 @@ function blankState() {
   };
 }
 
-const auctions = new Map();
-let activeAuctionId = DEFAULT_AUCTION_ID;
+const { currentAuctionId } = require('./auctionContext');
 
-// Active auction's state; auto-creates the default on first access.
+const auctions = new Map();
+
+// Active auction's state. The id comes from the async request context
+// (auctionContext); startup and deferred callbacks fall back to the default.
+// Auto-creates the state on first access.
 function S() {
-  let s = auctions.get(activeAuctionId);
+  const id = currentAuctionId() || DEFAULT_AUCTION_ID;
+  let s = auctions.get(id);
   if (!s) {
     s = blankState();
-    auctions.set(activeAuctionId, s);
+    auctions.set(id, s);
   }
   return s;
 }

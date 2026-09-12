@@ -18,6 +18,11 @@ app.use((req, res, next) => {
   next();
 });
 
+// Scope each request to an auction (defaults to the single 'default' auction so
+// existing clients are unaffected). dataService reads this via S().
+const { auctionContextMiddleware } = require('./services/auctionContext');
+app.use(auctionContextMiddleware);
+
 // Routes
 const authRoutes = require('./routes/authRoutes');
 const auctionRoutes = require('./routes/auctionRoutes');
