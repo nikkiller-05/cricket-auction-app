@@ -2,6 +2,7 @@ import React, { useState, memo, useMemo, useCallback, useEffect } from 'react';
 import axios from 'axios';
 import { useNotification } from './NotificationSystem';
 import { formatCurrency } from '../lib/format';
+import { formatRoleLabel } from '../features/players/categories';
 import { getTeamIcon } from '../sports';
 import PlayerAvatar from './PlayerAvatar';
 import PlayerImageUpload from './PlayerImageUpload';
@@ -322,7 +323,7 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
                               </span>
                             )}
                           </div>
-                          <div className="text-sm text-gray-500 text-center">{player.role}</div>
+                          <div className="text-sm text-gray-500 text-center">{formatRoleLabel(player.role)}</div>
                         </div>
                       </div>
                     </td>

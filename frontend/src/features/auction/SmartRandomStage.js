@@ -1,14 +1,16 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import PlayerAvatar from '../../components/PlayerAvatar';
 import { formatCurrency } from '../../lib/format';
+import { formatRoleLabel } from '../players/categories';
 
 // Fixed category options (reuse the backend player-model terminology).
 const MODE_OPTIONS = [
   { value: 'all', label: 'All Remaining' },
   { value: 'batter', label: 'Batter' },
   { value: 'bowler', label: 'Bowler' },
-  { value: 'allrounder', label: 'All-rounder' },
-  { value: 'wicket-keeper', label: 'Wicket-keeper' },
+  { value: 'batting-allrounder', label: 'Batting AR' },
+  { value: 'bowling-allrounder', label: 'Bowling AR' },
+  { value: 'wicket-keeper', label: 'Wicket Keeper' },
 ];
 
 // Multi-membership match — mirrors backend utils/categoryParser.matchesCategory.
@@ -17,11 +19,16 @@ const matchesCategory = (role, mode) => {
   if (!mode || mode === 'all') return true;
   const t = String(role || '').toLowerCase();
   const allrounder =
-    t.includes('allrounder') || t.includes('all rounder') || t.includes('all-rounder');
+    t.includes('allrounder') ||
+    t.includes('all rounder') ||
+    t.includes('all-rounder') ||
+    /\bar\b/.test(t);
   const bat = t.includes('batter') || t.includes('batsman') || t.includes('batting');
   const bowl = t.includes('bowler') || t.includes('bowling');
   const keeper = t.includes('keeper') || t.includes('wicket') || /\bwk\b/.test(t);
-  if (mode === 'allrounder') return allrounder;
+  if (mode === 'batting-allrounder')
+    return allrounder && (t.includes('batting') || !t.includes('bowling'));
+  if (mode === 'bowling-allrounder') return allrounder && t.includes('bowling');
   if (mode === 'wicket-keeper') return keeper;
   if (mode === 'batter') return !allrounder && bat;
   if (mode === 'bowler') return !allrounder && bowl;
@@ -238,7 +245,7 @@ const SmartRandomStage = ({
               <div className="text-2xl font-extrabold text-white">{selectedPlayer.name}</div>
               {selectedPlayer.role && (
                 <div className="mb-3 text-xs font-semibold uppercase tracking-widest text-amber-300">
-                  {selectedPlayer.role}
+                  {formatRoleLabel(selectedPlayer.role)}
                 </div>
               )}
               <div className="mb-4 grid w-full max-w-sm grid-cols-2 gap-x-6 gap-y-1 text-sm sm:grid-cols-4">

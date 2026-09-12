@@ -1,6 +1,9 @@
 // Keyword groups per category (case-insensitive substring match on the role).
 const isAllrounderRole = (t) =>
-  t.includes('allrounder') || t.includes('all rounder') || t.includes('all-rounder');
+  t.includes('allrounder') ||
+  t.includes('all rounder') ||
+  t.includes('all-rounder') ||
+  /\bar\b/.test(t);
 const isKeeperRole = (t) => t.includes('keeper') || t.includes('wicket') || /\bwk\b/.test(t);
 const hasBat = (t) => t.includes('batter') || t.includes('batsman') || t.includes('batting');
 const hasBowl = (t) => t.includes('bowler') || t.includes('bowling');
@@ -26,6 +29,10 @@ const matchesCategory = (role, mode) => {
   const t = String(role || '').toLowerCase();
   const allrounder = isAllrounderRole(t);
   switch (mode) {
+    case 'batting-allrounder':
+      return allrounder && (t.includes('batting') || !t.includes('bowling'));
+    case 'bowling-allrounder':
+      return allrounder && t.includes('bowling');
     case 'allrounder':
       return allrounder;
     case 'wicket-keeper':
