@@ -21,7 +21,7 @@ import { API_BASE_URL } from '../config';
 import { computeNextBid } from '../domain/bidding';
 import { formatCurrency, cleanTeamName } from '../lib/format';
 import { setActiveCurrency } from '../lib/currency';
-import { decodeToken, isExpired, clearAdminSession } from '../lib/session';
+import useAuth from '../features/auction/hooks/useAuth';
 import StatCards from '../features/auction/StatCards';
 import TabNav from '../features/auction/TabNav';
 import LiveStatusPanel from '../features/auction/LiveStatusPanel';
@@ -44,8 +44,7 @@ const UnifiedDashboard = () => {
   // Full-screen SOLD/UNSOLD celebration overlay
   const [celebration, setCelebration] = useState(null);
 
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [userRole, setUserRole] = useState('spectator');
+  const { isAdmin, userRole, logout } = useAuth(location);
   const [auctionData, setAuctionData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('live');
@@ -200,29 +199,6 @@ const UnifiedDashboard = () => {
   if (auctionData?.settings?.currency) setActiveCurrency(auctionData.settings.currency);
 
   useEffect(() => {
-    // Check if user is admin from location state or localStorage
-    const adminFromState = location.state?.isAdmin;
-    const rawToken = localStorage.getItem('adminToken');
-    const payload = decodeToken(rawToken);
-    // Reject an expired/invalid token so it can't grant stale admin access.
-    const token = rawToken && payload && !isExpired(payload) ? rawToken : null;
-    if (rawToken && !token) clearAdminSession();
-
-    // Honor explicit spectator entry (state.isAdmin === false) even if a stale
-    // admin token lingers in localStorage from a previous session.
-    const enteredAsSpectator = adminFromState === false;
-
-    if (!enteredAsSpectator && (adminFromState || token)) {
-      setIsAdmin(true);
-
-      if (token) {
-        setUserRole(payload.role || 'admin');
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      } else {
-        setUserRole('admin'); // Default for state-based admin
-      }
-    }
-
     // Initialize socket connection
     const socketConnection = io(API_BASE_URL);
 
@@ -559,14 +535,6 @@ const UnifiedDashboard = () => {
     handleUndoCurrentBid,
     showError,
   ]);
-
-  const handleLogout = () => {
-    setIsAdmin(false);
-    setUserRole('spectator');
-    localStorage.removeItem('adminToken');
-    delete axios.defaults.headers.common['Authorization'];
-    navigate('/');
-  };
 
   const handleUploadSuccess = (data) => {
     showSuccess(`Successfully uploaded ${data.playerCount} players from ${data.fileName}`);
@@ -961,7 +929,7 @@ const UnifiedDashboard = () => {
                   : 'User'
         }
         userRole={userRole}
-        onLogout={handleLogout}
+        onLogout={logout}
         isAuctionOn={['running', 'fast-track'].includes(auctionData.auctionStatus)}
         onToggleAuction={isAdmin ? handleAuctionToggle : null}
         auctionLoading={auctionToggleLoading}
