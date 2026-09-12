@@ -22,6 +22,7 @@ import { formatCurrency, cleanTeamName } from '../lib/format';
 import { setActiveCurrency } from '../lib/currency';
 import useAuth from '../features/auction/hooks/useAuth';
 import useAuctionData from '../features/auction/hooks/useAuctionData';
+import useSelection from '../features/auction/hooks/useSelection';
 import StatCards from '../features/auction/StatCards';
 import TabNav from '../features/auction/TabNav';
 import LiveStatusPanel from '../features/auction/LiveStatusPanel';
@@ -46,9 +47,15 @@ const UnifiedDashboard = () => {
 
   const { isAdmin, userRole, logout } = useAuth(location);
   const [activeTab, setActiveTab] = useState('live');
-  // Smart Random / mystery-reveal flow UI state.
-  const [selectionMode, setSelectionMode] = useState('all');
-  const [selectionBusy, setSelectionBusy] = useState(false);
+  const {
+    selectionMode,
+    setSelectionMode,
+    selectionBusy,
+    handlePickPlayer,
+    handleRevealPlayer,
+    handleCancelSelection,
+    handleBidSelected,
+  } = useSelection({ showError, setActiveTab });
   const [notifications, setNotifications] = useState([]);
   const {
     transactionHistory,
@@ -165,53 +172,7 @@ const UnifiedDashboard = () => {
     [auctionData?.players]
   );
 
-  // Smart Random: server picks a random eligible player and locks it.
-  const handlePickPlayer = async () => {
-    setSelectionBusy(true);
-    try {
-      await axios.post(`${API_BASE_URL}/api/auction/selection/pick`, { mode: selectionMode });
-    } catch (error) {
-      showError(error.response?.data?.error || 'Could not pick a player');
-    } finally {
-      setSelectionBusy(false);
-    }
-  };
-
-  const handleRevealPlayer = async () => {
-    setSelectionBusy(true);
-    try {
-      await axios.post(`${API_BASE_URL}/api/auction/selection/reveal`);
-    } catch (error) {
-      showError(error.response?.data?.error || 'Could not reveal the player');
-    } finally {
-      setSelectionBusy(false);
-    }
-  };
-
-  // Undo a pick so the admin can change the category and pick again.
-  const handleCancelSelection = async () => {
-    setSelectionBusy(true);
-    try {
-      await axios.post(`${API_BASE_URL}/api/auction/selection/cancel`);
-    } catch (error) {
-      showError(error.response?.data?.error || 'Could not cancel the selection');
-    } finally {
-      setSelectionBusy(false);
-    }
-  };
-
-  // Bid: hand the revealed player to the existing bidding flow.
-  const handleBidSelected = async (playerId) => {
-    setSelectionBusy(true);
-    try {
-      await axios.post(`${API_BASE_URL}/api/auction/bidding/start/${playerId}`);
-      setActiveTab('live');
-    } catch (error) {
-      showError(error.response?.data?.error || 'Could not start bidding');
-    } finally {
-      setSelectionBusy(false);
-    }
-  };
+  // Smart Random selection handlers live in useSelection.
 
   // Feature flags: captains default ON, retention default OFF. When a feature
   // is off we hide its stat card, player filter and Team Setup section.
