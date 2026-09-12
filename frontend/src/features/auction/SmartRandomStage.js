@@ -65,6 +65,7 @@ const SmartRandomStage = ({
   onModeChange = () => {},
   onPick = () => {},
   onReveal = () => {},
+  onCancel = () => {},
   onBid = () => {},
   busy = false,
 }) => {
@@ -137,6 +138,8 @@ const SmartRandomStage = ({
   }, [stage, selectedPlayer, availablePlayers]);
 
   const basePrice = settings?.basePrice ?? 0;
+  // Spectators get the full-width card, so show a bigger player image there.
+  const avatarSize = isAdmin ? '2xl' : '3xl';
 
   return (
     <div className="gbx-live-card relative overflow-hidden rounded-3xl border border-white/15 bg-gradient-to-br from-[#0b0a06] via-[#1c1608] to-[#2a1f08] text-white shadow-2xl mb-8">
@@ -195,7 +198,7 @@ const SmartRandomStage = ({
         {/* RIGHT: Mystery / Reveal card (everyone) */}
         <div
           className={`flex min-h-[320px] flex-col items-center justify-center rounded-2xl border border-white/20 bg-gradient-to-br from-white/15 to-white/5 p-5 text-center shadow-2xl ${
-            isAdmin ? '' : 'mx-auto w-full max-w-2xl'
+            isAdmin ? '' : 'mx-auto w-full max-w-3xl'
           }`}
         >
           {stage === 'idle' && (
@@ -206,7 +209,7 @@ const SmartRandomStage = ({
                     style={{ filter: 'blur(18px)' }}
                     className="pointer-events-none select-none opacity-80"
                   >
-                    <PlayerAvatar player={idleTeaser} size="2xl" shape="rounded" />
+                    <PlayerAvatar player={idleTeaser} size={avatarSize} shape="rounded" />
                   </div>
                 ) : (
                   <div className="text-6xl">🎴</div>
@@ -219,24 +222,34 @@ const SmartRandomStage = ({
           {stage === 'selected' && selectedPlayer && (
             <>
               <p className="mb-4 text-xs font-bold uppercase tracking-[0.3em] text-amber-300">
-                Mystery Player
+                Next Player to Bid
               </p>
               <div className="relative mb-4">
                 <div style={{ filter: 'blur(16px)' }} className="pointer-events-none select-none">
-                  <PlayerAvatar player={selectedPlayer} size="2xl" shape="rounded" />
+                  <PlayerAvatar player={selectedPlayer} size={avatarSize} shape="rounded" />
                 </div>
                 <div className="absolute inset-0 flex items-center justify-center text-5xl">🔒</div>
               </div>
               <div className="mb-5 text-2xl font-extrabold tracking-widest text-white/70">?????????</div>
               {isAdmin && (
-                <button
-                  type="button"
-                  onClick={onReveal}
-                  disabled={busy}
-                  className="rounded-full bg-gradient-to-b from-fuchsia-500 to-purple-600 px-6 py-2.5 text-sm font-bold text-white shadow-md shadow-fuchsia-500/30 transition hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50"
-                >
-                  ✨ Reveal Player
-                </button>
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  <button
+                    type="button"
+                    onClick={onReveal}
+                    disabled={busy}
+                    className="rounded-full bg-gradient-to-b from-fuchsia-500 to-purple-600 px-6 py-2.5 text-sm font-bold text-white shadow-md shadow-fuchsia-500/30 transition hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50"
+                  >
+                    ✨ Reveal Player
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onCancel}
+                    disabled={busy}
+                    className="rounded-full border border-white/30 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white/80 transition hover:bg-white/20 disabled:opacity-50"
+                  >
+                    ↩ Go Back
+                  </button>
+                </div>
               )}
             </>
           )}
@@ -247,7 +260,7 @@ const SmartRandomStage = ({
                 Revealing…
               </p>
               <div className="animate-pulse" style={{ filter: 'blur(2px)' }}>
-                <PlayerAvatar player={shuffleImg || selectedPlayer || {}} size="2xl" shape="rounded" />
+                <PlayerAvatar player={shuffleImg || selectedPlayer || {}} size={avatarSize} shape="rounded" />
               </div>
             </>
           )}
@@ -255,7 +268,7 @@ const SmartRandomStage = ({
           {stage === 'revealed' && selectedPlayer && (
             <>
               <div className="mb-3">
-                <PlayerAvatar player={selectedPlayer} size="2xl" shape="rounded" />
+                <PlayerAvatar player={selectedPlayer} size={avatarSize} shape="rounded" />
               </div>
               <div className="text-2xl font-extrabold text-white">{selectedPlayer.name}</div>
               {selectedPlayer.role && (
@@ -276,14 +289,24 @@ const SmartRandomStage = ({
                 <span className="font-bold text-emerald-400">{formatCurrency(basePrice)}</span>
               </div>
               {isAdmin && (
-                <button
-                  type="button"
-                  onClick={() => onBid(selectedPlayer.id)}
-                  disabled={busy}
-                  className="rounded-xl bg-gradient-to-br from-emerald-400 to-green-600 px-7 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-500/40 transition hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50"
-                >
-                  🔨 Bid Player
-                </button>
+                <div className="flex flex-wrap items-center justify-center gap-3">
+                  <button
+                    type="button"
+                    onClick={() => onBid(selectedPlayer.id)}
+                    disabled={busy}
+                    className="rounded-xl bg-gradient-to-br from-emerald-400 to-green-600 px-7 py-3 text-sm font-bold text-white shadow-lg shadow-emerald-500/40 transition hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50"
+                  >
+                    🔨 Bid Player
+                  </button>
+                  <button
+                    type="button"
+                    onClick={onCancel}
+                    disabled={busy}
+                    className="rounded-full border border-white/30 bg-white/10 px-5 py-2.5 text-sm font-semibold text-white/80 transition hover:bg-white/20 disabled:opacity-50"
+                  >
+                    ↩ Go Back
+                  </button>
+                </div>
               )}
             </>
           )}

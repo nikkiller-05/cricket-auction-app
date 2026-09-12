@@ -50,6 +50,7 @@ const LiveBiddingCard = ({
   currentAmount,
   leadingTeamName,
   leadingTeamBudget,
+  leadingTeamLogo = null,
   isFastTrack = false,
   rightSlot = null,
   spectator = false,
@@ -60,6 +61,7 @@ const LiveBiddingCard = ({
     currentAmount={currentAmount}
     leadingTeamName={leadingTeamName}
     leadingTeamBudget={leadingTeamBudget}
+    leadingTeamLogo={leadingTeamLogo}
     isFastTrack={isFastTrack}
     rightSlot={rightSlot}
     spectator={spectator}
@@ -71,6 +73,7 @@ const LiveBiddingCardInner = ({
   currentAmount,
   leadingTeamName,
   leadingTeamBudget,
+  leadingTeamLogo,
   isFastTrack,
   rightSlot,
   spectator = false,
@@ -196,30 +199,42 @@ const LiveBiddingCardInner = ({
           </div>
 
           {/* Leading Team - amber/orange contrast */}
-          <div className="gbx-live-leadingteam relative overflow-hidden rounded-2xl shadow-2xl border border-amber-300/60 bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500">
+          <div className="gbx-live-leadingteam relative overflow-hidden rounded-2xl shadow-2xl border border-amber-300/60 bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500 flex-1 flex flex-col">
             <div className="absolute -top-6 -left-6 w-28 h-28 bg-yellow-200/30 rounded-full blur-2xl" />
             <div className="absolute -bottom-6 -right-6 w-28 h-28 bg-rose-300/30 rounded-full blur-2xl" />
-            <div className="relative p-4 sm:p-5 text-center">
-              <div className="flex items-center justify-center gap-1.5 mb-1">
+            <div className="relative flex-1 flex flex-col items-center justify-center p-4 sm:p-5 text-center">
+              <div className="flex items-center justify-center gap-1.5 mb-2">
                 <span className="text-base">🏆</span>
                 <p className="text-[11px] sm:text-xs uppercase tracking-[0.2em] font-bold text-white/95">
                   Leading Team
                 </p>
               </div>
-              <p className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.25)] truncate">
-                {leadingTeamName || (
-                  <span className="text-white/75 italic font-medium text-base sm:text-lg">
-                    No bids yet
-                  </span>
-                )}
-              </p>
-              {leadingTeamBudget != null && leadingTeamName && (
-                <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/25 border border-white/20">
-                  <span className="text-[10px] sm:text-[11px] uppercase tracking-wider font-semibold text-white/90">
-                    Budget
-                  </span>
-                  <span className="text-xs sm:text-sm font-bold text-white">{formatCurrency(leadingTeamBudget)}</span>
-                </div>
+              {leadingTeamName ? (
+                <>
+                  {leadingTeamLogo && (
+                    <img
+                      src={leadingTeamLogo}
+                      alt=""
+                      crossOrigin="anonymous"
+                      className="mb-3 h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 object-contain rounded-2xl bg-white/90 border border-white/40 shadow-lg"
+                    />
+                  )}
+                  <p className="max-w-full truncate text-xl sm:text-2xl md:text-3xl font-extrabold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.25)]">
+                    {leadingTeamName}
+                  </p>
+                  {leadingTeamBudget != null && (
+                    <div className="mt-2 inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-black/25 border border-white/20">
+                      <span className="text-[10px] sm:text-[11px] uppercase tracking-wider font-semibold text-white/90">
+                        Budget
+                      </span>
+                      <span className="text-xs sm:text-sm font-bold text-white">{formatCurrency(leadingTeamBudget)}</span>
+                    </div>
+                  )}
+                </>
+              ) : (
+                <p className="text-white/75 italic font-medium text-base sm:text-lg">
+                  No bids yet
+                </p>
               )}
             </div>
           </div>

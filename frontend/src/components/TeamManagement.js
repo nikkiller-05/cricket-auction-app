@@ -3,6 +3,7 @@ import axios from 'axios';
 import { useNotification } from './NotificationSystem';
 import { formatCurrency } from '../lib/format';
 import { API_BASE_URL } from '../config';
+import TeamLogoUpload from '../features/teams/TeamLogoUpload';
 
 const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdate, enableCaptains = true, enableRetention = true }) => {
   const { showSuccess, showError, showWarning, showInfo, confirm } = useNotification();
@@ -600,6 +601,11 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
                 <div className="text-sm text-gray-600 whitespace-nowrap">
                   Budget: {formatCurrency(team.budget)}
                 </div>
+              </div>
+
+              {/* Team Logo Section (live refresh handled by the teamsUpdated socket event) */}
+              <div className="mb-4">
+                <TeamLogoUpload team={team} />
               </div>
 
               {/* Captain Assignment Section */}

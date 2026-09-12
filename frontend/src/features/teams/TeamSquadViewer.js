@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import PlayerNameLink from '../../components/PlayerNameLink';
-import { getSportPack } from '../../sports';
 import { formatCurrency, cleanTeamName } from '../../lib/format';
 import { getCategoryStyle, formatCategoryLabel } from '../players/categories';
+import TeamLogo from './TeamLogo';
 
 // Per-team squad view: team selector, budget bar, quick stats, captain card,
 // players grouped by category, and a composition summary. Captain/Retained
@@ -87,7 +87,7 @@ const TeamSquadViewer = ({ teams, players, enableCaptains = true, enableRetentio
                     : 'bg-white bg-opacity-20 text-gray-800 hover:text-gray-900 hover:bg-white hover:bg-opacity-30 border-white border-opacity-30'
                 } whitespace-nowrap py-2 px-4 font-medium text-sm flex items-center rounded-lg border shadow-lg min-w-fit`}
               >
-                {getSportPack('cricket').teamIcon} {cleanTeamName(team.name)}
+                <TeamLogo team={team} size="xs" className="mr-2" /> {cleanTeamName(team.name)}
                 {teamPlayerCount > 0 && (
                   <span
                     className={`ml-2 text-xs font-medium px-2 py-1 rounded-full ${
@@ -111,7 +111,10 @@ const TeamSquadViewer = ({ teams, players, enableCaptains = true, enableRetentio
           {/* Team Header */}
           <div className="mb-6">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-gray-900">{cleanTeamName(currentTeam.name)}</h2>
+              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+                <TeamLogo team={currentTeam} size="md" rounded="rounded-xl" />
+                {cleanTeamName(currentTeam.name)}
+              </h2>
               <div className="flex items-center space-x-4">
                 <div className="text-right">
                   <div className="text-sm text-gray-500">Total Players</div>

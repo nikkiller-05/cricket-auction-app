@@ -55,7 +55,26 @@ const TeamCard = React.forwardRef(({ team, players, accent }, ref) => {
         }}
       >
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <span style={{ fontSize: 26 }}>{getTeamIcon()}</span>
+          {team.logoUrl ? (
+            <img
+              src={team.logoUrl}
+              alt=""
+              width={40}
+              height={40}
+              crossOrigin="anonymous"
+              style={{
+                width: 40,
+                height: 40,
+                objectFit: 'contain',
+                borderRadius: 8,
+                background: 'rgba(255,255,255,0.9)',
+                border: '1px solid rgba(255,255,255,0.5)',
+                display: 'block',
+              }}
+            />
+          ) : (
+            <span style={{ fontSize: 26 }}>{getTeamIcon()}</span>
+          )}
           <span style={{ fontSize: 24, fontWeight: 800, letterSpacing: '-0.02em' }}>
             {cleanTeamName(team.name)}
           </span>

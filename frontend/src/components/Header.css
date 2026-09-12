@@ -195,13 +195,15 @@
    column; the left/right columns size to their own content (flex-basis auto)
    so neither side can overflow and cover the badge. */
 .header-center {
-  position: relative;
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
   display: flex;
   align-items: center;
   justify-content: center;
-  flex: 0 1 auto;
-  min-width: 0;
   z-index: 1;
+  pointer-events: none;
 }
 
 /* Auction Status Badge — modern glass pill with uppercase label, sheen sweep,
