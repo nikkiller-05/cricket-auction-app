@@ -39,6 +39,11 @@ app.use('/api', downloadRoutes);
 app.use('/api/registrations', registrationRoutes);
 
 // ENHANCED ERROR HANDLING MIDDLEWARE (Must be AFTER routes)
+// Report errors to Sentry before our own handler formats the response.
+const Sentry = require('@sentry/node');
+if (process.env.SENTRY_DSN) {
+  Sentry.setupExpressErrorHandler(app);
+}
 app.use((err, req, res, next) => {
   // Never log secrets (passwords, tokens) that may be present in the body.
   const SENSITIVE = ['password', 'currentPassword', 'newPassword', 'token'];

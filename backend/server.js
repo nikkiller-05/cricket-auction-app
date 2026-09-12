@@ -1,4 +1,5 @@
 // server.js - This is your main file
+require('./instrument'); // Sentry must initialize before app/http/express load
 const http = require('http');
 const socketIo = require('socket.io');
 const app = require('./app'); // Import the Express app
