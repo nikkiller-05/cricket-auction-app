@@ -353,7 +353,7 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
                         <span className="font-bold text-purple-600">Captain</span>
                       ) : player.status === 'retained' ? (
                         <span className="font-bold text-cyan-600">{formatCurrency(player.retentionAmount || player.finalBid)}</span>
-                      ) : player.currentBid > 0 ? (
+                      ) : isCurrentlyBidding && player.currentBid > 0 ? (
                         <span className="font-bold text-indigo-600">{formatCurrency(player.currentBid)}</span>
                       ) : (
                         <span className="text-slate-300">—</span>

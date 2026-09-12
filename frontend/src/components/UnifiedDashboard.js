@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import io from 'socket.io-client';
 import axios from 'axios';
 import PlayerUploadModal from './PlayerUploadModal';
 import TeamManagement from './TeamManagement';
@@ -11,23 +10,29 @@ import TeamSquadsModal from './TeamSquadsModal';
 import StatsDisplay from './StatsDisplay';
 import SubAdminManagement from './SubAdminManagement';
 import Header from './Header';
-import LiveBiddingCard from './LiveBiddingCard';
 import ShareAuctionModal from './ShareAuctionModal';
 import BrandFooter from './BrandFooter';
 import SaleCelebration from './SaleCelebration';
 import { useNotification } from './NotificationSystem';
 import { useTheme } from '../ThemeContext';
 import { API_BASE_URL } from '../config';
-import { computeNextBid } from '../domain/bidding';
-import { formatCurrency, cleanTeamName } from '../lib/format';
+import { formatCurrency } from '../lib/format';
 import { setActiveCurrency } from '../lib/currency';
-import { decodeToken, isExpired, clearAdminSession } from '../lib/session';
+import useAuth from '../features/auction/hooks/useAuth';
+import useAuctionData from '../features/auction/hooks/useAuctionData';
+import useSelection from '../features/auction/hooks/useSelection';
+import useUndo from '../features/auction/hooks/useUndo';
+import useAuctionSettings from '../features/auction/hooks/useAuctionSettings';
+import useDownloads from '../features/auction/hooks/useDownloads';
+import useKeyboardShortcuts from '../features/auction/hooks/useKeyboardShortcuts';
 import StatCards from '../features/auction/StatCards';
 import TabNav from '../features/auction/TabNav';
 import LiveStatusPanel from '../features/auction/LiveStatusPanel';
 import SmartRandomStage from '../features/auction/SmartRandomStage';
+import LiveBiddingPanel from '../features/auction/LiveBiddingPanel';
 import EditSettingsModal from '../features/auction/EditSettingsModal';
 import { buildDashboardTabs } from '../features/auction/tabs';
+import useTransactionHistory from '../features/auction/hooks/useTransactionHistory';
 import TeamSetupModal from '../features/teams/TeamSetupModal';
 import PlayerFilterChips from '../features/players/PlayerFilterChips';
 import SpectatorPlayerGroups from '../features/players/SpectatorPlayerGroups';
@@ -43,18 +48,51 @@ const UnifiedDashboard = () => {
   // Full-screen SOLD/UNSOLD celebration overlay
   const [celebration, setCelebration] = useState(null);
 
-  const [isAdmin, setIsAdmin] = useState(false);
-  const [userRole, setUserRole] = useState('spectator');
-  const [auctionData, setAuctionData] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { isAdmin, userRole, logout } = useAuth(location);
   const [activeTab, setActiveTab] = useState('live');
-  // Smart Random / mystery-reveal flow UI state.
-  const [selectionMode, setSelectionMode] = useState('all');
-  const [selectionBusy, setSelectionBusy] = useState(false);
+  const {
+    selectionMode,
+    setSelectionMode,
+    selectionBusy,
+    handlePickPlayer,
+    handleRevealPlayer,
+    handleCancelSelection,
+    handleBidSelected,
+  } = useSelection({ showError, setActiveTab });
   const [notifications, setNotifications] = useState([]);
-  const [transactionHistory, setTransactionHistory] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const transactionsPerPage = 10;
+  const {
+    transactionHistory,
+    setTransactionHistory,
+    addTransaction,
+    initializeTransactionHistory,
+    currentPage,
+    setCurrentPage,
+    transactionsPerPage,
+  } = useTransactionHistory();
+  const {
+    auctionData,
+    setAuctionData,
+    loading,
+    fetchAuctionData,
+    handleTeamsUpdate,
+    handlePlayersUpdate,
+  } = useAuctionData({
+    addTransaction,
+    setTransactionHistory,
+    setCurrentPage,
+    setCelebration,
+    notify: { showSuccess, showWarning, showInfo },
+  });
+
+  // Seed the activity feed once from the initial data; afterwards the socket
+  // events own it (re-running would re-add undone sales via a race).
+  const hasInitedTx = useRef(false);
+  useEffect(() => {
+    if (auctionData && !hasInitedTx.current) {
+      hasInitedTx.current = true;
+      initializeTransactionHistory(auctionData);
+    }
+  }, [auctionData, initializeTransactionHistory]);
 
   // Spectator filter state for All Players tab
   const [spectatorPlayerFilter, setSpectatorPlayerFilter] = useState('all');
@@ -81,24 +119,33 @@ const UnifiedDashboard = () => {
   const [showTeamSetup, setShowTeamSetup] = useState(false);
   // Edit Settings modal state
   const [showEditSettingsModal, setShowEditSettingsModal] = useState(false);
-  const [settingsConfig, setSettingsConfig] = useState({
-    teamCount: 4,
-    startingBudget: 1000,
-    maxPlayersPerTeam: 15,
-    basePrice: 10,
-    biddingIncrements: [
-      { threshold: 50, increment: 5 },
-      { threshold: 100, increment: 10 },
-      { threshold: 200, increment: 20 },
-    ],
+  const {
+    settingsConfig,
+    settingsSaveLoading,
+    handleOpenEditSettings,
+    handleSaveSettings,
+    handleSettingsConfigChange,
+    handleSettingsIncrementChange,
+    addSettingsIncrement,
+    removeSettingsIncrement,
+  } = useAuctionSettings({ showError, showSuccess, setShowEditSettingsModal, setAuctionData });
+  const { downloadResults, downloadSaleLog, downloadBackup } = useDownloads({
+    showSuccess,
+    showError,
   });
-  const [settingsSaveLoading, setSettingsSaveLoading] = useState(false);
 
-  // Undo functionality states
-  const [undoLoading, setUndoLoading] = useState(false);
-  const [actionHistory, setActionHistory] = useState([]);
-  const [showUndoConfirmModal, setShowUndoConfirmModal] = useState(false);
-  const [undoConfirmAction, setUndoConfirmAction] = useState(null);
+  // Undo (sale/bid) + action-history feed + confirm modal.
+  const {
+    undoLoading,
+    actionHistory,
+    showUndoConfirmModal,
+    undoConfirmAction,
+    fetchActionHistory,
+    handleUndoLastSale,
+    handleUndoCurrentBid,
+    executeUndoAction,
+    cancelUndoAction,
+  } = useUndo({ showError, isAdmin, userRole });
 
   // Auction toggle state
   const [auctionToggleLoading, setAuctionToggleLoading] = useState(false);
@@ -137,53 +184,7 @@ const UnifiedDashboard = () => {
     [auctionData?.players]
   );
 
-  // Smart Random: server picks a random eligible player and locks it.
-  const handlePickPlayer = async () => {
-    setSelectionBusy(true);
-    try {
-      await axios.post(`${API_BASE_URL}/api/auction/selection/pick`, { mode: selectionMode });
-    } catch (error) {
-      showError(error.response?.data?.error || 'Could not pick a player');
-    } finally {
-      setSelectionBusy(false);
-    }
-  };
-
-  const handleRevealPlayer = async () => {
-    setSelectionBusy(true);
-    try {
-      await axios.post(`${API_BASE_URL}/api/auction/selection/reveal`);
-    } catch (error) {
-      showError(error.response?.data?.error || 'Could not reveal the player');
-    } finally {
-      setSelectionBusy(false);
-    }
-  };
-
-  // Undo a pick so the admin can change the category and pick again.
-  const handleCancelSelection = async () => {
-    setSelectionBusy(true);
-    try {
-      await axios.post(`${API_BASE_URL}/api/auction/selection/cancel`);
-    } catch (error) {
-      showError(error.response?.data?.error || 'Could not cancel the selection');
-    } finally {
-      setSelectionBusy(false);
-    }
-  };
-
-  // Bid: hand the revealed player to the existing bidding flow.
-  const handleBidSelected = async (playerId) => {
-    setSelectionBusy(true);
-    try {
-      await axios.post(`${API_BASE_URL}/api/auction/bidding/start/${playerId}`);
-      setActiveTab('live');
-    } catch (error) {
-      showError(error.response?.data?.error || 'Could not start bidding');
-    } finally {
-      setSelectionBusy(false);
-    }
-  };
+  // Smart Random selection handlers live in useSelection.
 
   // Feature flags: captains default ON, retention default OFF. When a feature
   // is off we hide its stat card, player filter and Team Setup section.
@@ -193,165 +194,8 @@ const UnifiedDashboard = () => {
   // Keep the shared currency formatter in sync with the auction's setting.
   if (auctionData?.settings?.currency) setActiveCurrency(auctionData.settings.currency);
 
-  useEffect(() => {
-    // Check if user is admin from location state or localStorage
-    const adminFromState = location.state?.isAdmin;
-    const rawToken = localStorage.getItem('adminToken');
-    const payload = decodeToken(rawToken);
-    // Reject an expired/invalid token so it can't grant stale admin access.
-    const token = rawToken && payload && !isExpired(payload) ? rawToken : null;
-    if (rawToken && !token) clearAdminSession();
+  // Live auction state (socket connection + fetch) is owned by useAuctionData.
 
-    // Honor explicit spectator entry (state.isAdmin === false) even if a stale
-    // admin token lingers in localStorage from a previous session.
-    const enteredAsSpectator = adminFromState === false;
-
-    if (!enteredAsSpectator && (adminFromState || token)) {
-      setIsAdmin(true);
-
-      if (token) {
-        setUserRole(payload.role || 'admin');
-        axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
-      } else {
-        setUserRole('admin'); // Default for state-based admin
-      }
-    }
-
-    // Initialize socket connection
-    const socketConnection = io(API_BASE_URL);
-
-    // Socket event listeners
-    socketConnection.on('auctionData', (data) => {
-      setAuctionData(data);
-      setLoading(false);
-    });
-
-    socketConnection.on('playersUpdated', (players) => {
-      setAuctionData((prev) => (prev ? { ...prev, players } : prev));
-    });
-
-    socketConnection.on('teamsUpdated', (teams) => {
-      setAuctionData((prev) => (prev ? { ...prev, teams } : prev));
-    });
-
-    socketConnection.on('playerSold', (data) => {
-      if (data.player && data.team) {
-        addTransaction(data.player, 'sold', data.team, data.finalBid);
-        setCelebration({
-          type: 'sold',
-          player: data.player,
-          team: data.team,
-          amount: data.finalBid,
-        });
-        showSuccess(
-          `${data.player.name} sold to ${cleanTeamName(data.team.name)} for ${formatCurrency(data.finalBid)}`
-        );
-      }
-    });
-
-    socketConnection.on('playerUnsold', (data) => {
-      if (data.player) {
-        addTransaction(data.player, 'unsold');
-        setCelebration({ type: 'unsold', player: data.player });
-        showWarning(`${data.player.name} marked as unsold`);
-      }
-    });
-
-    socketConnection.on('playerRetained', (data) => {
-      if (data.player && data.team) {
-        addTransaction(data.player, 'retained', data.team, data.retentionAmount);
-        showInfo(
-          `${data.player.name} retained by ${cleanTeamName(data.team.name)} for ${formatCurrency(data.retentionAmount)}`
-        );
-      }
-    });
-
-    socketConnection.on('playerRetentionRemoved', (data) => {
-      if (data.player && data.team) {
-        // Remove the retention transaction from history
-        setTransactionHistory((prev) => {
-          return prev.filter((t) => !(t.type === 'retained' && t.playerName === data.player.name));
-        });
-        showWarning(`Retention removed: ${data.player.name} (${formatCurrency(data.refundedAmount)} refunded)`);
-      }
-    });
-
-    socketConnection.on('captainAssigned', (data) => {
-      if (data.player && data.team) {
-        addTransaction(data.player, 'captain-assigned', data.team, data.captainAmount);
-        showInfo(`👑 ${data.player.name} assigned as captain of ${cleanTeamName(data.team.name)}`);
-      }
-    });
-
-    socketConnection.on('captainUnassigned', (data) => {
-      if (data.team) {
-        // Remove any prior captain-assigned transaction for the same player on the same team
-        if (data.player) {
-          setTransactionHistory((prev) =>
-            prev.filter((t) => !(t.type === 'captain-assigned' && t.playerId === data.player.id))
-          );
-        }
-        showWarning(`Captain unassigned from ${cleanTeamName(data.team.name)}`);
-      }
-    });
-
-    socketConnection.on('currentBidUpdated', (currentBid) => {
-      setAuctionData((prev) => ({ ...prev, currentBid }));
-    });
-
-    socketConnection.on('auctionStatusChanged', (status) => {
-      setAuctionData((prev) => ({ ...prev, auctionStatus: status }));
-    });
-
-    socketConnection.on('statsUpdated', (stats) => {
-      setAuctionData((prev) => ({ ...prev, stats }));
-    });
-
-    socketConnection.on('settingsUpdated', (settings) => {
-      setAuctionData((prev) => ({ ...prev, settings }));
-      console.log('Settings updated in real-time:', settings);
-    });
-
-    socketConnection.on('fileUploaded', (fileInfo) => {
-      showSuccess(`Successfully uploaded ${fileInfo.playerCount} players`);
-    });
-
-    socketConnection.on('auctionReset', () => {
-      showInfo('Auction has been reset');
-      setTransactionHistory([]);
-      setCurrentPage(1);
-    });
-
-    socketConnection.on('fastTrackStarted', (data) => {
-      showInfo(`Fast Track started with ${data.players?.length || 0} players`);
-    });
-
-    socketConnection.on('fastTrackEnded', () => {
-      showInfo('Fast Track auction ended');
-    });
-
-    socketConnection.on('saleUndone', (data) => {
-      showWarning(`Sale undone: ${data.player} returned from ${data.team}`);
-      // Remove the last sale transaction from history
-      setTransactionHistory((prev) => {
-        const playerName = typeof data.player === 'string' ? data.player : data.player?.name;
-        return prev.filter((t) => !(t.type === 'sold' && t.playerName === playerName));
-      });
-    });
-
-    socketConnection.on('bidUndone', (data) => {
-      showWarning(`Bid undone: ${data.player} (${formatCurrency(data.revertedToAmount)})`);
-    });
-
-    socketConnection.on('selectionUpdated', (sel) => {
-      setAuctionData((prev) => (prev ? { ...prev, selection: sel } : prev));
-    });
-
-    // Cleanup on unmount
-    return () => {
-      socketConnection.disconnect();
-    };
-  }, [location.state, showSuccess, showWarning, showInfo]);
 
   // Coming straight from Auction Setup: open Team Setup once so the admin can name
   // teams and assign captains/retentions. Clear the history state so a refresh
@@ -367,82 +211,8 @@ const UnifiedDashboard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Transaction history initialization function - OPTIMIZED with proper memoization
-  const initializeTransactionHistory = useCallback((auctionData) => {
-    if (!auctionData?.players) return;
-
-    const soldPlayers = auctionData.players.filter(
-      (p) => p.status === 'sold' && p.category !== 'captain'
-    );
-    const unsoldPlayers = auctionData.players.filter((p) => p.status === 'unsold');
-    const retainedPlayers = auctionData.players.filter((p) => p.status === 'retained');
-
-    const transactions = [];
-
-    // Add retained players to history (these happen first, before auction)
-    retainedPlayers.forEach((player, index) => {
-      const team = auctionData.teams?.find((t) => t.id === player.team);
-      transactions.push({
-        id: `retained-${player.id}`,
-        playerId: player.id,
-        playerName: player.name,
-        playerRole: player.role,
-        playerCategory: player.category,
-        type: 'retained',
-        team: team,
-        finalBid: player.retentionAmount || player.finalBid,
-        timestamp: new Date(
-          Date.now() -
-            (retainedPlayers.length + soldPlayers.length + unsoldPlayers.length - index) * 90000
-        ), // Earlier timestamps
-      });
-    });
-
-    // Add sold players to history (assuming they were sold in order)
-    soldPlayers.forEach((player, index) => {
-      const team = auctionData.teams?.find((t) => t.id === player.team);
-      transactions.push({
-        id: `sold-${player.id}`,
-        playerId: player.id,
-        playerName: player.name,
-        playerRole: player.role,
-        playerCategory: player.category,
-        type: 'sold',
-        team: team,
-        finalBid: player.finalBid,
-        timestamp: new Date(Date.now() - (soldPlayers.length - index) * 60000), // Mock timestamps
-      });
-    });
-
-    // Add unsold players to history
-    unsoldPlayers.forEach((player, index) => {
-      transactions.push({
-        id: `unsold-${player.id}`,
-        playerId: player.id,
-        playerName: player.name,
-        playerRole: player.role,
-        playerCategory: player.category,
-        type: 'unsold',
-        team: null,
-        finalBid: null,
-        timestamp: new Date(Date.now() - (unsoldPlayers.length - index) * 30000), // Mock timestamps
-      });
-    });
-
-    // Sort by timestamp (most recent first)
-    transactions.sort((a, b) => b.timestamp - a.timestamp);
-    setTransactionHistory(transactions);
-  }, []); // useCallback dependency array
-
-  // Initialize transaction history once from data; afterwards the socket events
-  // are the source of truth (re-running here re-added undone sales via a race).
-  const hasInitedTx = useRef(false);
-  useEffect(() => {
-    if (auctionData && !hasInitedTx.current) {
-      hasInitedTx.current = true;
-      initializeTransactionHistory(auctionData);
-    }
-  }, [auctionData, initializeTransactionHistory]);
+  // Transaction history is owned by useTransactionHistory (seeds once from data,
+  // then socket events via addTransaction are the source of truth).
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -458,184 +228,10 @@ const UnifiedDashboard = () => {
     };
   }, [showDownloadDropdown]);
 
-  // Action history fetch function
-  const fetchActionHistory = useCallback(async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/api/auction/history`);
-      setActionHistory(response.data.history);
-    } catch (error) {
-      console.error('Error fetching action history:', error);
-    }
-  }, []);
+  // Undo (sale/bid), action history and the confirm modal are owned by useUndo.
 
-  // Fetch action history for super-admin
-  useEffect(() => {
-    if (userRole === 'super-admin' && isAdmin) {
-      fetchActionHistory();
-    }
-  }, [userRole, isAdmin, fetchActionHistory]);
-
-  const addTransaction = (player, type, team = null, finalBid = null) => {
-    const transaction = {
-      id: Date.now() + Math.random(),
-      playerId: player.id,
-      playerName: player.name,
-      playerRole: player.role,
-      playerCategory: player.category,
-      type: type, // 'sold', 'unsold', or 'retained'
-      team: team,
-      finalBid: finalBid,
-      timestamp: new Date(),
-    };
-
-    // Skip if this player+type is already in the feed (guards against the
-    // init-from-data + socket-event race that produced duplicates).
-    setTransactionHistory((prev) =>
-      prev.some((t) => t.playerId === player.id && t.type === type) ? prev : [transaction, ...prev]
-    );
-  };
-
-  // Undo functionality functions
-  const handleUndoLastSale = useCallback(async () => {
-    const lastAction = actionHistory.find(
-      (action) => action.type === 'PLAYER_SOLD' || action.type === 'PLAYER_UNSOLD'
-    );
-
-    if (!lastAction) {
-      showError('No sale or unsold action to undo');
-      return;
-    }
-
-    const actionType = lastAction.type === 'PLAYER_SOLD' ? 'sale' : 'unsold';
-    const message =
-      actionType === 'sale'
-        ? 'Are you sure you want to undo the last sale? This will refund the money to the team and make the player available again.'
-        : `Are you sure you want to undo the unsold action? This will make ${lastAction.playerName} available for bidding again.`;
-
-    setUndoConfirmAction({
-      type: actionType,
-      message,
-      action: async () => {
-        setUndoLoading(true);
-        try {
-          // Socket 'saleUndone' broadcasts the single notification to everyone.
-          await axios.post(`${API_BASE_URL}/api/auction/undo/sale`);
-          fetchActionHistory();
-        } catch (error) {
-          showError(error.response?.data?.error || 'Failed to undo action');
-        } finally {
-          setUndoLoading(false);
-        }
-      },
-    });
-    setShowUndoConfirmModal(true);
-  }, [actionHistory, showError, fetchActionHistory]);
-
-  const handleUndoCurrentBid = useCallback(async () => {
-    setUndoConfirmAction({
-      type: 'bid',
-      message:
-        "Are you sure you want to undo the current bid? This will revert to the previous team's bid or base price.",
-      action: async () => {
-        setUndoLoading(true);
-        try {
-          // Socket 'bidUndone' broadcasts the single notification to everyone.
-          await axios.post(`${API_BASE_URL}/api/auction/undo/bid`);
-        } catch (error) {
-          showError(error.response?.data?.error || 'Failed to undo bid');
-        } finally {
-          setUndoLoading(false);
-        }
-      },
-    });
-    setShowUndoConfirmModal(true);
-  }, [showError]);
-
-  const executeUndoAction = async () => {
-    setShowUndoConfirmModal(false);
-    if (undoConfirmAction) {
-      await undoConfirmAction.action();
-    }
-    setUndoConfirmAction(null);
-  };
-
-  const cancelUndoAction = () => {
-    setShowUndoConfirmModal(false);
-    setUndoConfirmAction(null);
-  };
-
-  // Keyboard shortcuts for Super Admin
-  useEffect(() => {
-    if (userRole !== 'super-admin') return;
-
-    const handleKeyDown = (e) => {
-      // Prevent keyboard shortcuts when typing in input fields
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-
-      // Ctrl+Z or Cmd+Z: Smart undo (bid if active, otherwise last sale/unsold)
-      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
-        e.preventDefault();
-        if (undoLoading) return;
-
-        if (auctionData?.currentBid) {
-          handleUndoCurrentBid();
-        } else {
-          handleUndoLastSale();
-        }
-      }
-
-      // Ctrl+Shift+Z: Undo Last Sale/Unsold
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'Z') {
-        e.preventDefault();
-        if (!undoLoading) {
-          handleUndoLastSale();
-        }
-      }
-
-      // Ctrl+B: Undo Last Bid
-      if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
-        e.preventDefault();
-        if (auctionData?.currentBid && !undoLoading) {
-          handleUndoCurrentBid();
-        }
-      }
-
-      // Number keys 1-9: Quick team bidding (only if teams < 10)
-      const teams = auctionData?.teams || [];
-      if (!e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
-        const keyNum = parseInt(e.key);
-        if (keyNum >= 1 && keyNum <= 9 && teams.length < 10 && teams.length >= keyNum) {
-          e.preventDefault();
-          if (auctionData?.currentBid?.playerId) {
-            const team = teams[keyNum - 1];
-            if (team) {
-              // Same guards as the on-screen bid buttons.
-              const nextBidAmount = computeNextBid(auctionData.currentBid, auctionData.settings);
-              const maxPlayers = auctionData.settings?.maxPlayersPerTeam || 15;
-              if (team.players?.length >= maxPlayers) {
-                showError(
-                  `Team ${cleanTeamName(team.name)} is full (${team.players?.length}/${maxPlayers} players)`
-                );
-                return;
-              }
-              if (team.budget < nextBidAmount) {
-                showError(
-                  `Insufficient budget for ${cleanTeamName(team.name)} (${formatCurrency(team.budget)})`
-                );
-                return;
-              }
-              axios
-                .post(`${API_BASE_URL}/api/auction/bidding/place`, { teamId: team.id })
-                .catch((error) => showError(error.response?.data?.error || 'Failed to place bid'));
-            }
-          }
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [
+  // Super-admin keyboard shortcuts (undo + quick team bids).
+  useKeyboardShortcuts({
     userRole,
     undoLoading,
     auctionData,
@@ -643,15 +239,7 @@ const UnifiedDashboard = () => {
     handleUndoLastSale,
     handleUndoCurrentBid,
     showError,
-  ]);
-
-  const handleLogout = () => {
-    setIsAdmin(false);
-    setUserRole('spectator');
-    localStorage.removeItem('adminToken');
-    delete axios.defaults.headers.common['Authorization'];
-    navigate('/');
-  };
+  });
 
   const handleUploadSuccess = (data) => {
     showSuccess(`Successfully uploaded ${data.playerCount} players from ${data.fileName}`);
@@ -688,25 +276,7 @@ const UnifiedDashboard = () => {
     }
   };
 
-  const fetchAuctionData = async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/api/auction/data`);
-      setAuctionData(response.data);
-    } catch (error) {
-      console.error('Error fetching auction data:', error);
-    }
-  };
-
-  // Initialize transaction history from existing auction data
-
-  // Callback functions for TeamManagement component
-  const handleTeamsUpdate = (updatedTeams) => {
-    setAuctionData((prev) => ({ ...prev, teams: updatedTeams }));
-  };
-
-  const handlePlayersUpdate = (updatedPlayers) => {
-    setAuctionData((prev) => ({ ...prev, players: updatedPlayers }));
-  };
+  // fetchAuctionData + team/player update callbacks are provided by useAuctionData.
 
   // Toggle a feature flag (captains / retention). Persists + broadcasts via the
   // backend; the socket 'settingsUpdated' also refreshes other clients.
@@ -718,203 +288,10 @@ const UnifiedDashboard = () => {
       showError(error.response?.data?.error || 'Failed to update feature');
     }
   };
+  // Downloads (results / sale-log / backup) are owned by useDownloads.
 
-  const downloadResults = async (format = 'excel') => {
-    try {
-      const endpoint =
-        format === 'csv'
-          ? `${API_BASE_URL}/api/download-results-csv`
-          : `${API_BASE_URL}/api/download-results`;
-      const response = await axios.get(endpoint, { responseType: 'blob' });
 
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-
-      const contentDisposition = response.headers['content-disposition'];
-      let filename = `auction-results.${format === 'csv' ? 'csv' : 'xlsx'}`;
-      if (contentDisposition) {
-        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-        if (filenameMatch) {
-          filename = filenameMatch[1].replace(/['"]/g, '');
-        }
-      }
-
-      link.setAttribute('download', filename);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-
-      setTimeout(() => window.URL.revokeObjectURL(url), 100);
-      showSuccess(`${format.toUpperCase()} results downloaded successfully`);
-    } catch (error) {
-      console.error('Error downloading results:', error);
-      showError(`Error downloading ${format} results`);
-    }
-  };
-
-  const downloadSaleLog = async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/api/download-sale-log`, {
-        responseType: 'blob',
-      });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      const contentDisposition = response.headers['content-disposition'];
-      let filename = 'sale-log.xlsx';
-      if (contentDisposition) {
-        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-        if (filenameMatch) filename = filenameMatch[1].replace(/['"]/g, '');
-      }
-      link.setAttribute('download', filename);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      setTimeout(() => window.URL.revokeObjectURL(url), 100);
-      showSuccess('Sale log downloaded successfully');
-    } catch (error) {
-      console.error('Error downloading sale log:', error);
-      showError('Error downloading sale log');
-    }
-  };
-
-  const downloadBackup = async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/api/download-backup`, {
-        responseType: 'blob',
-      });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      const contentDisposition = response.headers['content-disposition'];
-      let filename = 'auction-backup.json';
-      if (contentDisposition) {
-        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-        if (filenameMatch) filename = filenameMatch[1].replace(/['"]/g, '');
-      }
-      link.setAttribute('download', filename);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      setTimeout(() => window.URL.revokeObjectURL(url), 100);
-      showSuccess('Backup downloaded successfully');
-    } catch (error) {
-      console.error('Error downloading backup:', error);
-      showError('Error downloading backup');
-    }
-  };
-
-  // Settings modal functions
-  const handleOpenEditSettings = async () => {
-    try {
-      // Fetch current auction configuration
-      const response = await axios.get(`${API_BASE_URL}/api/auction/config`);
-      if (response.data.config) {
-        setSettingsConfig(response.data.config);
-      }
-      setShowEditSettingsModal(true);
-    } catch (error) {
-      console.error('Error fetching auction config:', error);
-      showError('Error loading auction settings');
-    }
-  };
-
-  const handleSaveSettings = async () => {
-    try {
-      setSettingsSaveLoading(true);
-
-      // Validate settings
-      if (settingsConfig.teamCount < 2) {
-        showError('Team count must be at least 2');
-        setSettingsSaveLoading(false);
-        return;
-      }
-      if (settingsConfig.startingBudget < 100) {
-        showError('Starting budget must be at least 100');
-        setSettingsSaveLoading(false);
-        return;
-      }
-      if (settingsConfig.maxPlayersPerTeam < 5) {
-        showError('Max players per team must be at least 5');
-        setSettingsSaveLoading(false);
-        return;
-      }
-      if (settingsConfig.basePrice < 1) {
-        showError('Base price must be at least 1');
-        setSettingsSaveLoading(false);
-        return;
-      }
-
-      // Update auction configuration
-      const response = await axios.put(`${API_BASE_URL}/api/auction/config`, settingsConfig);
-
-      if (response.data.success) {
-        showSuccess('Auction settings updated successfully');
-        setShowEditSettingsModal(false);
-        // Refresh auction data to reflect new settings
-        const dataResponse = await axios.get(`${API_BASE_URL}/api/auction/data`);
-        setAuctionData(dataResponse.data);
-      }
-    } catch (error) {
-      console.error('Error saving settings:', error);
-      showError(error.response?.data?.error || 'Error saving auction settings');
-    } finally {
-      setSettingsSaveLoading(false);
-    }
-  };
-
-  const handleSettingsConfigChange = (field, value) => {
-    setSettingsConfig((prev) => ({
-      ...prev,
-      [field]: value === '' ? '' : value,
-    }));
-  };
-
-  const handleSettingsIncrementChange = (index, field, value) => {
-    const newIncrements = [...settingsConfig.biddingIncrements];
-
-    if (value === '') {
-      newIncrements[index] = {
-        ...newIncrements[index],
-        [field]: '',
-      };
-      setSettingsConfig((prev) => ({
-        ...prev,
-        biddingIncrements: newIncrements,
-      }));
-      return;
-    }
-
-    const numericValue = parseInt(value, 10);
-    if (!isNaN(numericValue) && numericValue >= 0) {
-      newIncrements[index] = {
-        ...newIncrements[index],
-        [field]: numericValue,
-      };
-      setSettingsConfig((prev) => ({
-        ...prev,
-        biddingIncrements: newIncrements,
-      }));
-    }
-  };
-
-  const addSettingsIncrement = () => {
-    setSettingsConfig((prev) => ({
-      ...prev,
-      biddingIncrements: [...prev.biddingIncrements, { threshold: 0, increment: 5 }],
-    }));
-  };
-
-  const removeSettingsIncrement = (index) => {
-    if (settingsConfig.biddingIncrements.length > 1) {
-      const newIncrements = settingsConfig.biddingIncrements.filter((_, i) => i !== index);
-      setSettingsConfig((prev) => ({
-        ...prev,
-        biddingIncrements: newIncrements,
-      }));
-    }
-  };
+  // Settings modal config + save are owned by useAuctionSettings.
 
   // Handle auction toggle for Header component - Only for admin roles
   const handleAuctionToggle = async (newState) => {
@@ -1046,7 +423,7 @@ const UnifiedDashboard = () => {
                   : 'User'
         }
         userRole={userRole}
-        onLogout={handleLogout}
+        onLogout={logout}
         isAuctionOn={['running', 'fast-track'].includes(auctionData.auctionStatus)}
         onToggleAuction={isAdmin ? handleAuctionToggle : null}
         auctionLoading={auctionToggleLoading}
@@ -1100,333 +477,24 @@ const UnifiedDashboard = () => {
             />
           )}
         {/* SINGLE Live Bidding Section - Visible to everyone */}
-        {auctionData.currentBid && currentPlayer && (
-          <LiveBiddingCard
-            player={currentPlayer}
-            currentAmount={auctionData.currentBid.currentAmount}
-            leadingTeamName={biddingTeam ? cleanTeamName(biddingTeam.name) : null}
-            leadingTeamBudget={biddingTeam ? biddingTeam.budget : null}
-            leadingTeamLogo={biddingTeam ? biddingTeam.logoUrl : null}
-            isFastTrack={auctionData.auctionStatus === 'fast-track'}
-            spectator={!isAdmin}
-            rightSlot={
-              isAdmin ? (
-                <div>
-                  {/* Section label */}
-                  <p className="text-[10px] sm:text-xs uppercase tracking-[0.25em] font-bold text-white/70 text-center mb-3">
-                    Place Bid
-                  </p>
-                  <div className="flex flex-wrap justify-center gap-2 sm:gap-2.5 mb-5">
-                    {auctionData.teams?.map((team) => {
-                      const nextBidAmount = computeNextBid(
-                        auctionData.currentBid,
-                        auctionData.settings
-                      );
-                      const hasMaxPlayers =
-                        team.players?.length >= (auctionData.settings?.maxPlayersPerTeam || 15);
-                      const hasSufficientBudget = team.budget >= nextBidAmount;
-                      const canBid = hasSufficientBudget && !hasMaxPlayers;
-
-                      return (
-                        <button
-                          key={team.id}
-                          onClick={async () => {
-                            // Optimistic: show the bid instantly; socket reconciles.
-                            setAuctionData((prev) =>
-                              prev
-                                ? {
-                                    ...prev,
-                                    currentBid: {
-                                      ...(prev.currentBid || {}),
-                                      playerId: currentPlayer?.id,
-                                      currentAmount: nextBidAmount,
-                                      biddingTeam: team.id,
-                                    },
-                                  }
-                                : prev
-                            );
-                            try {
-                              await axios.post(`${API_BASE_URL}/api/auction/bidding/place`, {
-                                teamId: team.id,
-                              });
-                            } catch (error) {
-                              showError(error.response?.data?.error || 'Error placing bid');
-                            }
-                          }}
-                          disabled={!canBid}
-                          className={`group relative overflow-hidden px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-colors duration-200 border ${
-                            canBid
-                              ? 'bg-gradient-to-br from-cyan-400/90 to-blue-600/90 text-white border-cyan-300/60 shadow-lg shadow-cyan-500/30 hover:shadow-xl hover:shadow-cyan-400/50 hover:-translate-y-0.5 hover:from-cyan-300 hover:to-blue-500 active:scale-95'
-                              : 'bg-white/5 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150/40 cursor-not-allowed border-white/10'
-                          }`}
-                          title={
-                            hasMaxPlayers
-                              ? `Team full (${team.players?.length}/${auctionData.settings?.maxPlayersPerTeam || 15} players)`
-                              : !hasSufficientBudget
-                                ? `Insufficient budget (${formatCurrency(team.budget)})`
-                                : `Bid ${formatCurrency(nextBidAmount)} for ${cleanTeamName(team.name)}`
-                          }
-                        >
-                          {canBid && (
-                            <span className="pointer-events-none absolute inset-x-2 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent" />
-                          )}
-                          <div className="relative flex flex-col items-center leading-tight">
-                            <span className="tracking-wide">{cleanTeamName(team.name)}</span>
-                            <span
-                              className={`text-[10px] mt-0.5 font-semibold ${canBid ? 'text-white/85' : 'text-white/30'}`}
-                            >
-                              {formatCurrency(team.budget)}
-                            </span>
-                          </div>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {/* Custom / Big Bid — jump to a large amount in one action */}
-                  <div className="mb-5 pt-4 border-t border-white/15">
-                    <p className="text-[10px] sm:text-xs uppercase tracking-[0.25em] font-bold text-white/70 text-center mb-2.5">
-                      Custom / Big Bid
-                    </p>
-                    <div className="flex flex-wrap items-center justify-center gap-2">
-                      <select
-                        value={customBidTeamId}
-                        onChange={(e) => setCustomBidTeamId(e.target.value)}
-                        className="rounded-lg bg-white/10 border border-white/25 text-white text-sm px-3 py-2 focus:outline-none focus:ring-2 focus:ring-cyan-400/60 [&>option]:text-slate-900"
-                      >
-                        <option value="">Select team…</option>
-                        {auctionData.teams?.map((t) => (
-                          <option key={t.id} value={t.id}>
-                            {cleanTeamName(t.name)}
-                          </option>
-                        ))}
-                      </select>
-                      <input
-                        type="number"
-                        value={customBidAmount}
-                        onChange={(e) => setCustomBidAmount(e.target.value)}
-                        placeholder="Amount"
-                        className="w-32 rounded-lg bg-white/10 border border-white/25 text-white text-sm px-3 py-2 placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-cyan-400/60"
-                      />
-                      <button
-                        onClick={async () => {
-                          if (!customBidTeamId) {
-                            showError('Select a team for the custom bid');
-                            return;
-                          }
-                          const amt = parseInt(customBidAmount, 10);
-                          if (isNaN(amt) || amt <= 0) {
-                            showError('Enter a valid bid amount');
-                            return;
-                          }
-                          const cur = auctionData.currentBid?.currentAmount || 0;
-                          // Guard against fat-finger jumps: confirm big leaps.
-                          const bigJump = amt >= cur * 2 || amt - cur >= 100000;
-                          if (bigJump) {
-                            const team = auctionData.teams?.find(
-                              (t) => t.id === parseInt(customBidTeamId)
-                            );
-                            const ok = await confirm(
-                              `Place a bid of ${formatCurrency(amt)} for ${cleanTeamName(team?.name)}?\n\nThis is a big jump from the current ${formatCurrency(cur)}.`,
-                              'Confirm Big Bid'
-                            );
-                            if (!ok) return;
-                          }
-                          try {
-                            await axios.post(`${API_BASE_URL}/api/auction/bidding/place`, {
-                              teamId: parseInt(customBidTeamId),
-                              amount: amt,
-                            });
-                            setCustomBidAmount('');
-                          } catch (error) {
-                            showError(error.response?.data?.error || 'Error placing bid');
-                          }
-                        }}
-                        className="rounded-full bg-gradient-to-b from-emerald-500 to-teal-600 px-5 py-2 text-sm font-semibold text-white shadow-md shadow-emerald-500/30 hover:-translate-y-0.5 active:translate-y-0 transition"
-                      >
-                        Place
-                      </button>
-                    </div>
-                    <div className="flex justify-center gap-2 mt-2.5">
-                      {(() => {
-                        // Quick-add steps scale with the auction's own bid increment
-                        // (not hardcoded lakhs), so any budget size works.
-                        const curAmt =
-                          auctionData.currentBid?.currentAmount ??
-                          (auctionData.settings?.basePrice || 0);
-                        const step = Math.max(
-                          1,
-                          computeNextBid(auctionData.currentBid, auctionData.settings) - curAmt
-                        );
-                        return [1, 5, 10].map((m) => ({
-                          label: `+${formatCurrency(step * m)}`,
-                          val: step * m,
-                        }));
-                      })().map((j) => (
-                        <button
-                          key={j.label}
-                          onClick={() => {
-                            const cur = auctionData.currentBid?.currentAmount || 0;
-                            const start = customBidAmount ? parseInt(customBidAmount, 10) : cur;
-                            setCustomBidAmount(String((isNaN(start) ? cur : start) + j.val));
-                          }}
-                          className="rounded-full bg-white/10 border border-white/20 px-3.5 py-1.5 text-xs font-bold text-white hover:bg-white/20 hover:-translate-y-0.5 active:translate-y-0 transition"
-                        >
-                          {j.label}
-                        </button>
-                      ))}
-                      <button
-                        onClick={() => setCustomBidAmount('')}
-                        className="rounded-full bg-white/5 border border-white/15 px-3.5 py-1.5 text-xs font-semibold text-white/70 hover:bg-white/15 transition"
-                      >
-                        Clear
-                      </button>
-                    </div>
-                  </div>
-
-                  {/* Primary Action Buttons */}
-                  <div className="flex flex-wrap justify-center gap-2 sm:gap-3">
-                    <button
-                      onClick={async () => {
-                        try {
-                          await axios.post(`${API_BASE_URL}/api/auction/bidding/sell`);
-                          if (userRole === 'super-admin') {
-                            fetchActionHistory();
-                          }
-                        } catch (error) {
-                          showError(error.response?.data?.error || 'Error selling player');
-                        }
-                      }}
-                      disabled={!auctionData.currentBid.biddingTeam}
-                      className="group relative overflow-hidden px-5 sm:px-7 py-2.5 sm:py-3 bg-gradient-to-br from-emerald-400 to-green-600 hover:from-emerald-300 hover:to-green-500 disabled:from-gray-600 disabled:to-gray-700 disabled:cursor-not-allowed disabled:opacity-50 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 rounded-xl font-bold text-xs sm:text-sm shadow-lg shadow-emerald-500/40 hover:shadow-xl hover:shadow-emerald-400/60 hover:-translate-y-0.5 active:scale-95 duration-200 border border-emerald-300/50 inline-flex items-center gap-2"
-                    >
-                      <span className="absolute inset-x-3 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
-                      <svg
-                        className="w-4 h-4 sm:w-5 sm:h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth={3}
-                        viewBox="0 0 24 24"
-                        aria-hidden="true"
-                      >
-                        <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="tracking-wide">SELL</span>
-                    </button>
-                    <button
-                      onClick={async () => {
-                        try {
-                          await axios.post(`${API_BASE_URL}/api/auction/bidding/unsold`);
-                          if (userRole === 'super-admin') {
-                            fetchActionHistory();
-                          }
-                        } catch (error) {
-                          showError(error.response?.data?.error || 'Error marking as unsold');
-                        }
-                      }}
-                      className="group relative overflow-hidden px-5 sm:px-7 py-2.5 sm:py-3 bg-gradient-to-br from-rose-500 to-red-600 hover:from-rose-400 hover:to-red-500 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150 rounded-xl font-bold text-xs sm:text-sm shadow-lg shadow-rose-500/40 hover:shadow-xl hover:shadow-rose-400/60 hover:-translate-y-0.5 active:scale-95 duration-200 border border-rose-300/50 inline-flex items-center gap-2"
-                    >
-                      <span className="absolute inset-x-3 top-0 h-px bg-gradient-to-r from-transparent via-white/70 to-transparent" />
-                      <svg
-                        className="w-4 h-4 sm:w-5 sm:h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        strokeWidth={3}
-                        viewBox="0 0 24 24"
-                        aria-hidden="true"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          d="M6 18L18 6M6 6l12 12"
-                        />
-                      </svg>
-                      <span className="tracking-wide">UNSOLD</span>
-                    </button>
-                  </div>
-
-                  {/* Undo Controls - Only for super-admin */}
-                  {userRole === 'super-admin' && (
-                    <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mt-4 pt-4 border-t border-white/15">
-                      <button
-                        onClick={handleUndoCurrentBid}
-                        disabled={undoLoading || !auctionData.currentBid}
-                        className="group relative overflow-hidden px-4 py-2 bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50 text-white rounded-lg text-xs font-semibold border border-white/20 hover:border-white/40 transition-colors duration-150 active:scale-95 inline-flex items-center gap-1.5"
-                        title="Undo Last Bid - Removes the most recent bid during active bidding"
-                      >
-                        <span>⏪</span>
-                        <span className="hidden sm:inline tracking-wide">Undo Last Bid</span>
-                      </button>
-
-                      <button
-                        onClick={async () => {
-                          const confirmed = await confirm(
-                            `Cancel bidding for ${currentPlayer.name}?\n\nThis will:\n• Reset the player to available status\n• Clear all bids for this player\n• Allow starting bidding again for this player\n\nAre you sure?`,
-                            'Cancel Bidding'
-                          );
-                          if (!confirmed) return;
-
-                          try {
-                            await axios.post(`${API_BASE_URL}/api/auction/bidding/cancel`);
-                            showInfo(
-                              'Bidding cancelled successfully - player is available again',
-                              'Bidding Cancelled'
-                            );
-                          } catch (error) {
-                            showError(
-                              error.response?.data?.error || 'Error cancelling bidding',
-                              'Error'
-                            );
-                          }
-                        }}
-                        disabled={!auctionData.currentBid}
-                        className="group relative overflow-hidden px-4 py-2 bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50 text-white rounded-lg text-xs font-semibold border border-white/20 hover:border-white/40 transition-colors duration-150 active:scale-95 inline-flex items-center gap-1.5"
-                        title="Cancel bidding and return player to available status"
-                      >
-                        <span>⛔</span>
-                        <span className="hidden sm:inline tracking-wide">Cancel</span>
-                      </button>
-                    </div>
-                  )}
-
-                  {/* Cancel Button for Regular Admins (when super-admin controls not shown) */}
-                  {isAdmin && userRole !== 'super-admin' && (
-                    <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mt-4 pt-4 border-t border-white/15">
-                      <button
-                        onClick={async () => {
-                          const confirmed = await confirm(
-                            `Cancel bidding for ${currentPlayer.name}?\n\nThis will:\n• Reset the player to available status\n• Clear all bids for this player\n• Allow starting bidding again for this player\n\nAre you sure?`,
-                            'Cancel Bidding'
-                          );
-                          if (!confirmed) return;
-
-                          try {
-                            await axios.post(`${API_BASE_URL}/api/auction/bidding/cancel`);
-                            showInfo(
-                              'Bidding cancelled successfully - player is available again',
-                              'Bidding Cancelled'
-                            );
-                          } catch (error) {
-                            showError(
-                              error.response?.data?.error || 'Error cancelling bidding',
-                              'Error'
-                            );
-                          }
-                        }}
-                        disabled={!auctionData.currentBid}
-                        className="group relative overflow-hidden px-4 py-2 bg-white/10 hover:bg-white/20 disabled:bg-white/5 disabled:cursor-not-allowed disabled:opacity-50 text-white rounded-lg text-xs font-semibold border border-white/20 hover:border-white/40 transition-colors duration-150 active:scale-95 inline-flex items-center gap-1.5"
-                        title="Cancel bidding and return player to available status"
-                      >
-                        <span>⛔</span>
-                        <span className="hidden sm:inline tracking-wide">Cancel</span>
-                      </button>
-                    </div>
-                  )}
-                </div>
-              ) : null
-            }
-          />
-        )}
+        <LiveBiddingPanel
+          auctionData={auctionData}
+          setAuctionData={setAuctionData}
+          currentPlayer={currentPlayer}
+          biddingTeam={biddingTeam}
+          isAdmin={isAdmin}
+          userRole={userRole}
+          customBidTeamId={customBidTeamId}
+          setCustomBidTeamId={setCustomBidTeamId}
+          customBidAmount={customBidAmount}
+          setCustomBidAmount={setCustomBidAmount}
+          confirm={confirm}
+          showError={showError}
+          showInfo={showInfo}
+          fetchActionHistory={fetchActionHistory}
+          handleUndoCurrentBid={handleUndoCurrentBid}
+          undoLoading={undoLoading}
+        />
 
         {/* Quick Stats */}
         <StatCards

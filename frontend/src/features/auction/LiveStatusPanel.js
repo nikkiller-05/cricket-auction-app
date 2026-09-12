@@ -1,7 +1,7 @@
 import React from 'react';
 import PlayerNameLink from '../../components/PlayerNameLink';
 import { formatCurrency, cleanTeamName } from '../../lib/format';
-import { getTeamStyle, CategoryTag } from '../players/categories';
+import { getTeamStyle, CategoryTag, formatRoleLabel } from '../players/categories';
 import { getTeamIcon } from '../../sports';
 
 // Live Status tab: header + paused notice + paginated "Recent Auction Activity"
@@ -105,7 +105,7 @@ const LiveStatusPanel = ({
                           </span>
                           <CategoryTag category={transaction.playerCategory} />
                         </div>
-                        <div className="text-sm text-gray-600 mt-1">{transaction.playerRole}</div>
+                        <div className="text-sm text-gray-600 mt-1">{formatRoleLabel(transaction.playerRole)}</div>
                       </div>
 
                       <div className="text-left sm:text-right shrink-0 sm:pl-2">
