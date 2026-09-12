@@ -11,6 +11,23 @@ const MODE_OPTIONS = [
   { value: 'wicket-keeper', label: 'Wicket-keeper' },
 ];
 
+// Multi-membership match — mirrors backend utils/categoryParser.matchesCategory.
+// e.g. a "Wicket Keeper Batter" counts under both Wicket-keeper and Batter.
+const matchesCategory = (role, mode) => {
+  if (!mode || mode === 'all') return true;
+  const t = String(role || '').toLowerCase();
+  const allrounder =
+    t.includes('allrounder') || t.includes('all rounder') || t.includes('all-rounder');
+  const bat = t.includes('batter') || t.includes('batsman') || t.includes('batting');
+  const bowl = t.includes('bowler') || t.includes('bowling');
+  const keeper = t.includes('keeper') || t.includes('wicket') || /\bwk\b/.test(t);
+  if (mode === 'allrounder') return allrounder;
+  if (mode === 'wicket-keeper') return keeper;
+  if (mode === 'batter') return !allrounder && bat;
+  if (mode === 'bowler') return !allrounder && bowl;
+  return false;
+};
+
 const STAT_FIELDS = [
   { key: 'matches', label: 'Matches' },
   { key: 'runs', label: 'Runs' },
@@ -50,7 +67,7 @@ const SmartRandomStage = ({
   );
 
   const eligibleCount = useMemo(
-    () => availablePlayers.filter((p) => mode === 'all' || p.category === mode).length,
+    () => availablePlayers.filter((p) => matchesCategory(p.role, mode)).length,
     [availablePlayers, mode]
   );
 

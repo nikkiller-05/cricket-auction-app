@@ -109,7 +109,13 @@ const playerController = {
       // Parse players from file
       const players = data.map((row, index) => {
         const name = row['Name'] || row['Player Name'] || row['PlayerName'] || '';
-        const role = row['Role/Category'] || row['Role'] || row['Category'] || '';
+        const role =
+          row['Role/Category'] ||
+          row['Role'] ||
+          row['Player Role'] ||
+          row['Playing Role'] ||
+          row['Category'] ||
+          '';
         const slNo = row['Sl.No'] || row['SlNo'] || row['Serial'] || (index + 1);
         const cricHeroesLink = row['CricHeroes Link'] || row['Profile URL'] || row['Link'] || row['CricHeroes'] || row['Profile'] || '';
         const manualId = row['Manual ID'] || row['ManualId'] || row['Manual Id'] || row['ManualID'] || '';

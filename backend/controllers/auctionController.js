@@ -1,6 +1,7 @@
 const dataService = require('../services/dataService');
 const socketService = require('../services/socketService');
 const { getNextBidIncrement, calculateStats } = require('../utils/biddingRules');
+const { matchesCategory } = require('../utils/categoryParser');
 
 const auctionController = {
   // Save auction settings
@@ -876,7 +877,7 @@ const auctionController = {
         (p) =>
           p.status === 'available' &&
           p.category !== 'captain' &&
-          (mode === 'all' || p.category === mode)
+          matchesCategory(p.role, mode)
       );
       if (eligible.length === 0) {
         return res.status(400).json({ error: 'No eligible players remaining for this selection' });
