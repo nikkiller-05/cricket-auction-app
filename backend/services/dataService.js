@@ -1,43 +1,76 @@
-let auctionData = {
-  players: [],
-  teams: [],
-  currentBid: null,
-  auctionStatus: 'stopped',
-  fileUploaded: false,
-  fileName: null,
-  // Smart Random selection / mystery-reveal flow (before live bidding).
-  // null when idle, else { stage, playerId, mode, startedAt, revealStartedAt, by }
-  selection: null,
-  stats: {
-    highestBid: null,
-    lowestBid: null,
-    totalSold: 0,
-    totalUnsold: 0,
-    averageBid: 0
+// --- Multi-auction state (Phase B) ----------------------------------------
+// Each auction keeps its own live state object, keyed by auctionId in a Map.
+// Today there is a single DEFAULT auction and controllers operate on the
+// "active" one; B2 threads an explicit auctionId. Every method reads S()
+// (never a captured global), which is what keeps concurrent auctions race-free
+// once B2 lands.
+const DEFAULT_AUCTION_ID = 'default';
+
+function blankAuctionData() {
+  return {
+    players: [],
+    teams: [],
+    currentBid: null,
+    auctionStatus: 'stopped',
+    fileUploaded: false,
+    fileName: null,
+    // Smart Random selection / mystery-reveal flow (before live bidding).
+    // null when idle, else { stage, playerId, mode, startedAt, revealStartedAt, by }
+    selection: null,
+    stats: {
+      highestBid: null,
+      lowestBid: null,
+      totalSold: 0,
+      totalUnsold: 0,
+      averageBid: 0
+    }
+  };
+}
+
+function defaultSettings() {
+  return {
+    teamCount: 4,
+    startingBudget: 1000,
+    maxPlayersPerTeam: 15,
+    basePrice: 10,
+    currency: 'INR',
+    enableCaptains: true,
+    enableRetention: false,
+    retentionsPerTeam: 0,
+    biddingIncrements: [
+      { threshold: 50, increment: 5 },
+      { threshold: 100, increment: 10 },
+      { threshold: 200, increment: 20 }
+    ]
+  };
+}
+
+function blankState() {
+  return {
+    auctionData: blankAuctionData(),
+    settings: defaultSettings(),
+    actionHistory: [], // undo history
+    playerBiddingHistory: {} // key = playerId -> array of bids
+  };
+}
+
+const { currentAuctionId } = require('./auctionContext');
+
+const auctions = new Map();
+
+// Active auction's state. The id comes from the async request context
+// (auctionContext); startup and deferred callbacks fall back to the default.
+// Auto-creates the state on first access.
+function S() {
+  const id = currentAuctionId() || DEFAULT_AUCTION_ID;
+  let s = auctions.get(id);
+  if (!s) {
+    s = blankState();
+    auctions.set(id, s);
   }
-};
-
-let settings = {
-  teamCount: 4,
-  startingBudget: 1000,
-  maxPlayersPerTeam: 15,
-  basePrice: 10,
-  currency: 'INR',
-  enableCaptains: true,
-  enableRetention: false,
-  retentionsPerTeam: 0,
-  biddingIncrements: [
-    { threshold: 50, increment: 5 },
-    { threshold: 100, increment: 10 },
-    { threshold: 200, increment: 20 }
-  ]
-};
-
-// Action history for undo functionality
-let actionHistory = [];
-
-// NEW: Per-player bidding history (key = playerId, value = array of bids)
-let playerBiddingHistory = {};
+  return s;
+}
+S(); // seed the default auction
 
 // --- Persistence: best-effort Supabase snapshot ---------------------------
 // In-memory state above stays the source of truth. After any mutation we
@@ -48,7 +81,13 @@ const SNAPSHOT_DEBOUNCE_MS = 1000;
 let snapshotTimer = null;
 
 function serializeState() {
-  return { auctionData, settings, actionHistory, playerBiddingHistory };
+  const s = S();
+  return {
+    auctionData: s.auctionData,
+    settings: s.settings,
+    actionHistory: s.actionHistory,
+    playerBiddingHistory: s.playerBiddingHistory
+  };
 }
 
 // Throttle-trailing: coalesce a burst of mutations into a single write and
@@ -65,27 +104,28 @@ function scheduleSnapshot() {
 const dataService = {
   // Get complete auction data
   getAuctionData() {
-    return { 
-      ...auctionData,
+    return {
+      ...S().auctionData,
       settings: this.getSettings()
     };
   },
 
   // Settings management
   getSettings() {
-    return { ...settings };
+    return { ...S().settings };
   },
 
   updateSettings(newSettings) {
     console.log('Updating settings:', newSettings);
-    settings = { ...settings, ...newSettings };
+    S().settings = { ...S().settings, ...newSettings };
     scheduleSnapshot();
-    return settings;
+    return S().settings;
   },
 
   // Config management (for updating settings from UI)
   getConfig() {
-    return { 
+    const settings = S().settings;
+    return {
       teamCount: settings.teamCount,
       startingBudget: settings.startingBudget,
       maxPlayersPerTeam: settings.maxPlayersPerTeam,
@@ -97,36 +137,36 @@ const dataService = {
 
   updateConfig(newConfig) {
     console.log('Updating config:', newConfig);
-    settings = { ...settings, ...newConfig };
+    S().settings = { ...S().settings, ...newConfig };
     scheduleSnapshot();
-    return settings;
+    return S().settings;
   },
 
   // Auction data management
   updateAuctionData(data) {
-    auctionData = { ...auctionData, ...data };
+    S().auctionData = { ...S().auctionData, ...data };
     scheduleSnapshot();
-    return auctionData;
+    return S().auctionData;
   },
 
   // Player management
   getPlayers() {
-    return auctionData.players;
+    return S().auctionData.players;
   },
 
   setPlayers(players) {
-    auctionData.players = players;
+    S().auctionData.players = players;
     scheduleSnapshot();
     return players;
   },
 
   // Team management
   getTeams() {
-    return auctionData.teams;
+    return S().auctionData.teams;
   },
 
   setTeams(teams) {
-    auctionData.teams = teams;
+    S().auctionData.teams = teams;
     scheduleSnapshot();
     return teams;
   },
@@ -135,97 +175,101 @@ const dataService = {
   // Used by flows that start an auction without an Excel upload (manual add,
   // registrations import). Returns the current teams either way.
   ensureTeamsInitialized() {
-    if (Array.isArray(auctionData.teams) && auctionData.teams.length > 0) {
-      return auctionData.teams;
+    const s = S();
+    if (Array.isArray(s.auctionData.teams) && s.auctionData.teams.length > 0) {
+      return s.auctionData.teams;
     }
     const teams = [];
-    for (let i = 1; i <= settings.teamCount; i++) {
+    for (let i = 1; i <= s.settings.teamCount; i++) {
       teams.push({
         id: i,
         name: `Team ${i}`,
-        budget: settings.startingBudget,
+        budget: s.settings.startingBudget,
         players: [],
         captain: null,
         captainAmount: 0,
         logoUrl: null
       });
     }
-    auctionData.teams = teams;
+    s.auctionData.teams = teams;
     scheduleSnapshot();
     return teams;
   },
 
   // Current bid management
   getCurrentBid() {
-    return auctionData.currentBid;
+    return S().auctionData.currentBid;
   },
 
   setCurrentBid(bid) {
-    auctionData.currentBid = bid;
+    S().auctionData.currentBid = bid;
     scheduleSnapshot();
     return bid;
   },
 
   // Smart Random selection state (mystery-reveal flow)
   getSelection() {
-    return auctionData.selection;
+    return S().auctionData.selection;
   },
 
   setSelection(selection) {
-    auctionData.selection = selection;
+    S().auctionData.selection = selection;
     scheduleSnapshot();
     return selection;
   },
 
   // Auction status management
   getAuctionStatus() {
-    return auctionData.auctionStatus;
+    return S().auctionData.auctionStatus;
   },
 
   setAuctionStatus(status) {
-    auctionData.auctionStatus = status;
+    S().auctionData.auctionStatus = status;
     scheduleSnapshot();
     return status;
   },
 
   // Stats management
   getStats() {
-    return auctionData.stats;
+    return S().auctionData.stats;
   },
 
   updateStats(stats) {
-    auctionData.stats = stats;
+    S().auctionData.stats = stats;
     scheduleSnapshot();
     return stats;
   },
 
   // NEW: Player-specific bidding history management
   initializeBiddingHistoryForPlayer(playerId) {
-    if (!playerBiddingHistory[playerId]) {
-      playerBiddingHistory[playerId] = [];
+    const hist = S().playerBiddingHistory;
+    if (!hist[playerId]) {
+      hist[playerId] = [];
       console.log(`Initialized bidding history for player ${playerId}`);
     }
   },
 
   addBidToPlayerHistory(playerId, bid) {
     this.initializeBiddingHistoryForPlayer(playerId);
-    playerBiddingHistory[playerId].push({
+    const hist = S().playerBiddingHistory;
+    hist[playerId].push({
       ...bid,
       timestamp: new Date(),
       id: Date.now() + Math.random()
     });
     console.log(`Added bid to player ${playerId} history:`, bid);
-    console.log(`Current history for player ${playerId}:`, playerBiddingHistory[playerId]);
+    console.log(`Current history for player ${playerId}:`, hist[playerId]);
     scheduleSnapshot();
   },
 
   getPlayerBiddingHistory(playerId) {
-    return playerBiddingHistory[playerId] || [];
+    return S().playerBiddingHistory[playerId] || [];
   },
 
   removeLastBidFromPlayerHistory(playerId) {
-    if (playerBiddingHistory[playerId] && playerBiddingHistory[playerId].length > 0) {
-      const removedBid = playerBiddingHistory[playerId].pop();
+    const hist = S().playerBiddingHistory;
+    if (hist[playerId] && hist[playerId].length > 0) {
+      const removedBid = hist[playerId].pop();
       console.log(`Removed last bid from player ${playerId} history:`, removedBid);
       scheduleSnapshot();
       return removedBid;
@@ -234,7 +278,7 @@ const dataService = {
   },
 
   clearPlayerBiddingHistory(playerId) {
-    playerBiddingHistory[playerId] = [];
+    S().playerBiddingHistory[playerId] = [];
     console.log(`Cleared bidding history for player ${playerId}`);
     scheduleSnapshot();
   },
@@ -246,27 +290,29 @@ const dataService = {
 
   // Action history methods (for sale undo)
   addAction(action) {
-    actionHistory.push({
+    const s = S();
+    s.actionHistory.push({
       ...action,
       timestamp: new Date(),
       id: Date.now() + Math.random()
     });
     // Keep only last 50 actions
-    if (actionHistory.length > 50) {
-      actionHistory = actionHistory.slice(-50);
+    if (s.actionHistory.length > 50) {
+      s.actionHistory = s.actionHistory.slice(-50);
     }
     console.log('Action recorded:', action.type, action.playerName);
     scheduleSnapshot();
   },
 
   getActionHistory() {
-    return [...actionHistory];
+    return [...S().actionHistory];
   },
 
   removeActionById(actionId) {
-    const index = actionHistory.findIndex(action => action.id === actionId);
+    const hist = S().actionHistory;
+    const index = hist.findIndex(action => action.id === actionId);
     if (index !== -1) {
-      const removed = actionHistory.splice(index, 1)[0];
+      const removed = hist.splice(index, 1)[0];
       scheduleSnapshot();
       return removed;
     }
@@ -274,19 +320,20 @@ const dataService = {
   },
 
   removeLastAction() {
-    const removed = actionHistory.pop();
+    const removed = S().actionHistory.pop();
     scheduleSnapshot();
     return removed;
   },
 
   clearActionHistory() {
-    actionHistory = [];
+    S().actionHistory = [];
     scheduleSnapshot();
   },
 
   // Reset all data
   resetAuctionData() {
-    auctionData = {
+    const s = S();
+    s.auctionData = {
       players: [],
       teams: [],
       currentBid: null,
@@ -301,12 +348,12 @@ const dataService = {
         averageBid: 0
       }
     };
-    
-    actionHistory = [];
-    playerBiddingHistory = {}; // Clear all player bidding histories
-    
+
+    s.actionHistory = [];
+    s.playerBiddingHistory = {}; // Clear all player bidding histories
+
     scheduleSnapshot();
-    return auctionData;
+    return s.auctionData;
   },
 
   // --- Persistence API (best-effort; safe no-op when Supabase is off) ---
@@ -315,10 +362,11 @@ const dataService = {
   async loadSnapshot() {
     const snap = await snapshotStore.loadState();
     if (!snap) return false;
-    if (snap.auctionData) auctionData = snap.auctionData;
-    if (snap.settings) settings = snap.settings;
-    if (snap.actionHistory) actionHistory = snap.actionHistory;
-    if (snap.playerBiddingHistory) playerBiddingHistory = snap.playerBiddingHistory;
+    const s = S();
+    if (snap.auctionData) s.auctionData = snap.auctionData;
+    if (snap.settings) s.settings = snap.settings;
+    if (snap.actionHistory) s.actionHistory = snap.actionHistory;
+    if (snap.playerBiddingHistory) s.playerBiddingHistory = snap.playerBiddingHistory;
     return true;
   },
 

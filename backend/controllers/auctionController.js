@@ -2,6 +2,7 @@ const dataService = require('../services/dataService');
 const socketService = require('../services/socketService');
 const { getNextBidIncrement, calculateStats } = require('../utils/biddingRules');
 const { matchesCategory } = require('../utils/categoryParser');
+const { currentAuctionId, runWithAuction } = require('../services/auctionContext');
 
 const auctionController = {
   // Save auction settings
@@ -917,13 +918,18 @@ const auctionController = {
       socketService.emit('selectionUpdated', revealing);
 
       const REVEAL_MS = 2600;
+      // The timer fires after this request ends (outside the async context),
+      // so capture the auction and re-enter it before mutating state.
+      const auctionId = currentAuctionId();
       setTimeout(() => {
-        const now = dataService.getSelection();
-        if (now && now.stage === 'revealing' && now.playerId === revealing.playerId) {
-          const revealed = { ...now, stage: 'revealed' };
-          dataService.setSelection(revealed);
-          socketService.emit('selectionUpdated', revealed);
-        }
+        runWithAuction(auctionId, () => {
+          const now = dataService.getSelection();
+          if (now && now.stage === 'revealing' && now.playerId === revealing.playerId) {
+            const revealed = { ...now, stage: 'revealed' };
+            dataService.setSelection(revealed);
+            socketService.emit('selectionUpdated', revealed);
+          }
+        });
       }, REVEAL_MS);
 
       res.json({ selection: revealing });
