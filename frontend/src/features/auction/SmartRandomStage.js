@@ -2,14 +2,16 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import PlayerAvatar from '../../components/PlayerAvatar';
 import { formatCurrency } from '../../lib/format';
 
-// Categories mirror the backend player model (utils/categoryParser.js).
-const MODE_OPTIONS = [
-  { value: 'all', label: 'All Remaining' },
-  { value: 'batter', label: 'Batter' },
-  { value: 'bowler', label: 'Bowler' },
-  { value: 'allrounder', label: 'All-rounder' },
-  { value: 'wicket-keeper', label: 'Wicket-keeper' },
-];
+// Friendly labels for the backend player categories (utils/categoryParser.js).
+const MODE_LABELS = {
+  all: 'All Remaining',
+  batter: 'Batter',
+  bowler: 'Bowler',
+  allrounder: 'All-rounder',
+  'wicket-keeper': 'Wicket-keeper',
+  other: 'Other',
+};
+const CATEGORY_ORDER = ['batter', 'bowler', 'allrounder', 'wicket-keeper', 'other'];
 
 const STAT_FIELDS = [
   { key: 'matches', label: 'Matches' },
@@ -48,6 +50,25 @@ const SmartRandomStage = ({
     () => players.filter((p) => p.status === 'available' && p.category !== 'captain'),
     [players]
   );
+
+  // Build the "Pick from" options from the players that remain, with live counts.
+  const modeOptions = useMemo(() => {
+    const counts = {};
+    availablePlayers.forEach((p) => {
+      counts[p.category] = (counts[p.category] || 0) + 1;
+    });
+    const opts = [{ value: 'all', label: `All Remaining (${availablePlayers.length})` }];
+    CATEGORY_ORDER.forEach((cat) => {
+      if (counts[cat]) opts.push({ value: cat, label: `${MODE_LABELS[cat]} (${counts[cat]})` });
+    });
+    return opts;
+  }, [availablePlayers]);
+
+  // If the chosen category no longer has players, fall back to All Remaining.
+  useEffect(() => {
+    if (!modeOptions.some((o) => o.value === mode)) onModeChange('all');
+  }, [modeOptions, mode, onModeChange]);
+
   const eligibleCount = useMemo(
     () => availablePlayers.filter((p) => mode === 'all' || p.category === mode).length,
     [availablePlayers, mode]
@@ -58,6 +79,12 @@ const SmartRandomStage = ({
     () => (selection?.playerId ? players.find((p) => p.id === selection.playerId) : null),
     [players, selection?.playerId]
   );
+
+  // A random remaining player used as a blurred teaser while idle.
+  const idleTeaser = useMemo(() => {
+    if (!availablePlayers.length) return null;
+    return availablePlayers[Math.floor(Math.random() * availablePlayers.length)];
+  }, [availablePlayers]);
 
   // Image shuffle: cycle through remaining players, decelerate, land on the pick.
   const [shuffleImg, setShuffleImg] = useState(null);
@@ -96,18 +123,23 @@ const SmartRandomStage = ({
   const basePrice = settings?.basePrice ?? 0;
 
   return (
-    <div className="mb-6 overflow-hidden rounded-2xl border border-white/10 bg-gradient-to-br from-slate-900 via-slate-900 to-slate-800 shadow-xl">
-      <div className="flex items-center gap-2 border-b border-white/10 px-5 py-3">
+    <div className="gbx-live-card relative overflow-hidden rounded-3xl border border-white/15 bg-gradient-to-br from-[#0b0a06] via-[#1c1608] to-[#2a1f08] text-white shadow-2xl mb-8">
+      {/* branded glow accents (match the live bidding card) */}
+      <div className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/60 to-transparent" />
+      <div className="pointer-events-none absolute -top-32 -left-32 h-80 w-80 rounded-full bg-amber-500/20 blur-3xl" />
+      <div className="pointer-events-none absolute -bottom-32 -right-32 h-96 w-96 rounded-full bg-yellow-600/20 blur-3xl" />
+
+      <div className="relative flex items-center gap-2 px-5 pt-4">
         <span className="text-lg">🎯</span>
-        <h3 className="text-sm font-extrabold uppercase tracking-[0.2em] text-amber-300">
+        <h2 className="bg-gradient-to-r from-amber-200 via-white to-amber-200 bg-clip-text text-sm font-bold uppercase tracking-[0.2em] text-transparent">
           Smart Player Pick
-        </h3>
+        </h2>
       </div>
 
-      <div className="grid gap-5 p-5 md:grid-cols-2">
+      <div className="relative grid gap-5 p-5 md:grid-cols-2">
         {/* LEFT: Smart Random control panel */}
-        <div className="flex flex-col justify-center rounded-xl border border-white/10 bg-white/5 p-5">
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-white/60">
+        <div className="flex flex-col justify-center rounded-2xl border border-white/20 bg-gradient-to-br from-white/15 to-white/5 p-5 shadow-2xl">
+          <p className="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-amber-200/80">
             Smart Random
           </p>
           <label className="mb-1 block text-xs font-semibold text-white/70">Pick from</label>
@@ -117,7 +149,7 @@ const SmartRandomStage = ({
             disabled={!isAdmin || stage !== 'idle' || busy}
             className="mb-4 w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-400/60 disabled:opacity-50 [&>option]:text-slate-900"
           >
-            {MODE_OPTIONS.map((o) => (
+            {modeOptions.map((o) => (
               <option key={o.value} value={o.value}>
                 {o.label}
               </option>
@@ -148,12 +180,23 @@ const SmartRandomStage = ({
         </div>
 
         {/* RIGHT: Mystery / Reveal card */}
-        <div className="flex min-h-[320px] flex-col items-center justify-center rounded-xl border border-white/10 bg-black/30 p-5 text-center">
+        <div className="flex min-h-[320px] flex-col items-center justify-center rounded-2xl border border-white/20 bg-gradient-to-br from-white/15 to-white/5 p-5 text-center shadow-2xl">
           {stage === 'idle' && (
-            <div className="text-white/50">
-              <div className="mb-3 text-6xl">🎴</div>
-              <p className="text-sm font-semibold">The mystery player will appear here.</p>
-            </div>
+            <>
+              <div className="relative mb-4">
+                {idleTeaser ? (
+                  <div
+                    style={{ filter: 'blur(18px)' }}
+                    className="pointer-events-none select-none opacity-80"
+                  >
+                    <PlayerAvatar player={idleTeaser} size="2xl" shape="rounded" />
+                  </div>
+                ) : (
+                  <div className="text-6xl">🎴</div>
+                )}
+              </div>
+              <p className="text-sm font-semibold text-white/60">The Player will appear here.</p>
+            </>
           )}
 
           {stage === 'selected' && selectedPlayer && (
