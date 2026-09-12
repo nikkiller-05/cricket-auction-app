@@ -25,6 +25,7 @@ import { decodeToken, isExpired, clearAdminSession } from '../lib/session';
 import StatCards from '../features/auction/StatCards';
 import TabNav from '../features/auction/TabNav';
 import LiveStatusPanel from '../features/auction/LiveStatusPanel';
+import SmartRandomStage from '../features/auction/SmartRandomStage';
 import EditSettingsModal from '../features/auction/EditSettingsModal';
 import { buildDashboardTabs } from '../features/auction/tabs';
 import TeamSetupModal from '../features/teams/TeamSetupModal';
@@ -47,6 +48,9 @@ const UnifiedDashboard = () => {
   const [auctionData, setAuctionData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('live');
+  // Smart Random / mystery-reveal flow UI state.
+  const [selectionMode, setSelectionMode] = useState('all');
+  const [selectionBusy, setSelectionBusy] = useState(false);
   const [notifications, setNotifications] = useState([]);
   const [transactionHistory, setTransactionHistory] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
@@ -132,6 +136,42 @@ const UnifiedDashboard = () => {
     () => auctionData?.players?.filter((p) => p.status === 'unsold') || [],
     [auctionData?.players]
   );
+
+  // Smart Random: server picks a random eligible player and locks it.
+  const handlePickPlayer = async () => {
+    setSelectionBusy(true);
+    try {
+      await axios.post(`${API_BASE_URL}/api/auction/selection/pick`, { mode: selectionMode });
+    } catch (error) {
+      showError(error.response?.data?.error || 'Could not pick a player');
+    } finally {
+      setSelectionBusy(false);
+    }
+  };
+
+  const handleRevealPlayer = async () => {
+    setSelectionBusy(true);
+    try {
+      await axios.post(`${API_BASE_URL}/api/auction/selection/reveal`);
+    } catch (error) {
+      showError(error.response?.data?.error || 'Could not reveal the player');
+    } finally {
+      setSelectionBusy(false);
+    }
+  };
+
+  // Bid: hand the revealed player to the existing bidding flow.
+  const handleBidSelected = async (playerId) => {
+    setSelectionBusy(true);
+    try {
+      await axios.post(`${API_BASE_URL}/api/auction/bidding/start/${playerId}`);
+      setActiveTab('live');
+    } catch (error) {
+      showError(error.response?.data?.error || 'Could not start bidding');
+    } finally {
+      setSelectionBusy(false);
+    }
+  };
 
   // Feature flags: captains default ON, retention default OFF. When a feature
   // is off we hide its stat card, player filter and Team Setup section.
@@ -289,6 +329,10 @@ const UnifiedDashboard = () => {
 
     socketConnection.on('bidUndone', (data) => {
       showWarning(`Bid undone: ${data.player} (${formatCurrency(data.revertedToAmount)})`);
+    });
+
+    socketConnection.on('selectionUpdated', (sel) => {
+      setAuctionData((prev) => (prev ? { ...prev, selection: sel } : prev));
     });
 
     // Cleanup on unmount
@@ -1025,6 +1069,23 @@ const UnifiedDashboard = () => {
       )}
 
       <div className="gbx-dashboard-content max-w-7xl mx-auto mt-5 sm:mt-6 px-4 sm:px-6 lg:px-8 py-8 rounded-2xl border border-white/60 bg-white/55 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_12px_28px_-16px_rgba(15,23,42,0.18)]">
+        {/* Smart Random / mystery-reveal stage — runs before live bidding */}
+        {!auctionData.currentBid &&
+          ['running', 'fast-track'].includes(auctionData.auctionStatus) &&
+          (isAdmin || auctionData.selection) && (
+            <SmartRandomStage
+              players={auctionData.players || []}
+              selection={auctionData.selection}
+              settings={auctionData.settings}
+              isAdmin={isAdmin}
+              mode={selectionMode}
+              onModeChange={setSelectionMode}
+              onPick={handlePickPlayer}
+              onReveal={handleRevealPlayer}
+              onBid={handleBidSelected}
+              busy={selectionBusy}
+            />
+          )}
         {/* SINGLE Live Bidding Section - Visible to everyone */}
         {auctionData.currentBid && currentPlayer && (
           <LiveBiddingCard

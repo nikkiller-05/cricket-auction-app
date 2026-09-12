@@ -5,6 +5,9 @@ let auctionData = {
   auctionStatus: 'stopped',
   fileUploaded: false,
   fileName: null,
+  // Smart Random selection / mystery-reveal flow (before live bidding).
+  // null when idle, else { stage, playerId, mode, startedAt, revealStartedAt, by }
+  selection: null,
   stats: {
     highestBid: null,
     lowestBid: null,
@@ -160,6 +163,17 @@ const dataService = {
     auctionData.currentBid = bid;
     scheduleSnapshot();
     return bid;
+  },
+
+  // Smart Random selection state (mystery-reveal flow)
+  getSelection() {
+    return auctionData.selection;
+  },
+
+  setSelection(selection) {
+    auctionData.selection = selection;
+    scheduleSnapshot();
+    return selection;
   },
 
   // Auction status management
