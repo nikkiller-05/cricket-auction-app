@@ -84,7 +84,11 @@ export const formatRoleLabel = (role) => {
   const bat = t.includes('batter') || t.includes('batsman') || t.includes('batting');
   const bowl = t.includes('bowler') || t.includes('bowling');
   const keeper = t.includes('keeper') || t.includes('wicket') || /\bwk\b/.test(t);
-  if (allrounder) return 'Allrounder';
+  if (allrounder) {
+    if (t.includes('bowling')) return 'Bowling AR';
+    if (t.includes('batting')) return 'Batting AR';
+    return 'All Rounder';
+  }
   if (keeper) return bat ? 'WK/Batter' : 'WK';
   if (bat) return 'Batter';
   if (bowl) return 'Bowler';
