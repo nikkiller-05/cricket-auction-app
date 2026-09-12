@@ -25,6 +25,7 @@ import useAuctionData from '../features/auction/hooks/useAuctionData';
 import useSelection from '../features/auction/hooks/useSelection';
 import useUndo from '../features/auction/hooks/useUndo';
 import useAuctionSettings from '../features/auction/hooks/useAuctionSettings';
+import useDownloads from '../features/auction/hooks/useDownloads';
 import StatCards from '../features/auction/StatCards';
 import TabNav from '../features/auction/TabNav';
 import LiveStatusPanel from '../features/auction/LiveStatusPanel';
@@ -128,6 +129,10 @@ const UnifiedDashboard = () => {
     addSettingsIncrement,
     removeSettingsIncrement,
   } = useAuctionSettings({ showError, showSuccess, setShowEditSettingsModal, setAuctionData });
+  const { downloadResults, downloadSaleLog, downloadBackup } = useDownloads({
+    showSuccess,
+    showError,
+  });
 
   // Undo (sale/bid) + action-history feed + confirm modal.
   const {
@@ -354,92 +359,8 @@ const UnifiedDashboard = () => {
       showError(error.response?.data?.error || 'Failed to update feature');
     }
   };
+  // Downloads (results / sale-log / backup) are owned by useDownloads.
 
-  const downloadResults = async (format = 'excel') => {
-    try {
-      const endpoint =
-        format === 'csv'
-          ? `${API_BASE_URL}/api/download-results-csv`
-          : `${API_BASE_URL}/api/download-results`;
-      const response = await axios.get(endpoint, { responseType: 'blob' });
-
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-
-      const contentDisposition = response.headers['content-disposition'];
-      let filename = `auction-results.${format === 'csv' ? 'csv' : 'xlsx'}`;
-      if (contentDisposition) {
-        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-        if (filenameMatch) {
-          filename = filenameMatch[1].replace(/['"]/g, '');
-        }
-      }
-
-      link.setAttribute('download', filename);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-
-      setTimeout(() => window.URL.revokeObjectURL(url), 100);
-      showSuccess(`${format.toUpperCase()} results downloaded successfully`);
-    } catch (error) {
-      console.error('Error downloading results:', error);
-      showError(`Error downloading ${format} results`);
-    }
-  };
-
-  const downloadSaleLog = async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/api/download-sale-log`, {
-        responseType: 'blob',
-      });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      const contentDisposition = response.headers['content-disposition'];
-      let filename = 'sale-log.xlsx';
-      if (contentDisposition) {
-        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-        if (filenameMatch) filename = filenameMatch[1].replace(/['"]/g, '');
-      }
-      link.setAttribute('download', filename);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      setTimeout(() => window.URL.revokeObjectURL(url), 100);
-      showSuccess('Sale log downloaded successfully');
-    } catch (error) {
-      console.error('Error downloading sale log:', error);
-      showError('Error downloading sale log');
-    }
-  };
-
-  const downloadBackup = async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/api/download-backup`, {
-        responseType: 'blob',
-      });
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      const contentDisposition = response.headers['content-disposition'];
-      let filename = 'auction-backup.json';
-      if (contentDisposition) {
-        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
-        if (filenameMatch) filename = filenameMatch[1].replace(/['"]/g, '');
-      }
-      link.setAttribute('download', filename);
-      document.body.appendChild(link);
-      link.click();
-      link.remove();
-      setTimeout(() => window.URL.revokeObjectURL(url), 100);
-      showSuccess('Backup downloaded successfully');
-    } catch (error) {
-      console.error('Error downloading backup:', error);
-      showError('Error downloading backup');
-    }
-  };
 
   // Settings modal config + save are owned by useAuctionSettings.
 
