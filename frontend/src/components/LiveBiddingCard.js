@@ -50,6 +50,7 @@ const LiveBiddingCard = ({
   currentAmount,
   leadingTeamName,
   leadingTeamBudget,
+  leadingTeamLogo = null,
   isFastTrack = false,
   rightSlot = null,
   spectator = false,
@@ -60,6 +61,7 @@ const LiveBiddingCard = ({
     currentAmount={currentAmount}
     leadingTeamName={leadingTeamName}
     leadingTeamBudget={leadingTeamBudget}
+    leadingTeamLogo={leadingTeamLogo}
     isFastTrack={isFastTrack}
     rightSlot={rightSlot}
     spectator={spectator}
@@ -71,6 +73,7 @@ const LiveBiddingCardInner = ({
   currentAmount,
   leadingTeamName,
   leadingTeamBudget,
+  leadingTeamLogo,
   isFastTrack,
   rightSlot,
   spectator = false,
@@ -207,7 +210,19 @@ const LiveBiddingCardInner = ({
                 </p>
               </div>
               <p className="text-xl sm:text-2xl md:text-3xl font-extrabold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.25)] truncate">
-                {leadingTeamName || (
+                {leadingTeamName ? (
+                  <span className="inline-flex items-center justify-center gap-2 max-w-full">
+                    {leadingTeamLogo && (
+                      <img
+                        src={leadingTeamLogo}
+                        alt=""
+                        crossOrigin="anonymous"
+                        className="h-7 w-7 sm:h-8 sm:w-8 object-contain rounded-lg bg-white/90 border border-white/40 shrink-0"
+                      />
+                    )}
+                    <span className="truncate">{leadingTeamName}</span>
+                  </span>
+                ) : (
                   <span className="text-white/75 italic font-medium text-base sm:text-lg">
                     No bids yet
                   </span>

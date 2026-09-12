@@ -146,7 +146,8 @@ const dataService = {
         budget: settings.startingBudget,
         players: [],
         captain: null,
-        captainAmount: 0
+        captainAmount: 0,
+        logoUrl: null
       });
     }
     auctionData.teams = teams;

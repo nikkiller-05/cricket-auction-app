@@ -243,7 +243,8 @@ const playerController = {
           budget: settings.startingBudget,
           players: [],
           captain: null,
-          captainAmount: 0
+          captainAmount: 0,
+          logoUrl: null
         });
       }
 
@@ -474,6 +475,7 @@ const playerController = {
           players: [],
           captain: null,
           captainAmount: 0,
+          logoUrl: null,
         });
       }
       dataService.setTeams(teams);

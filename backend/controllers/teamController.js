@@ -113,6 +113,41 @@ const teamController = {
     }
   },
 
+  // Set or clear a team's logo. Expects a small client-resized image as a
+  // base64 data URL in { logo }, or { logo: null } to remove it.
+  setTeamLogo: (req, res) => {
+    try {
+      const { id } = req.params;
+      const { logo } = req.body;
+
+      const teams = dataService.getTeams();
+      const teamIndex = teams.findIndex(t => t.id === parseInt(id));
+      if (teamIndex === -1) {
+        return res.status(404).json({ error: 'Team not found' });
+      }
+
+      if (logo === null || logo === '') {
+        teams[teamIndex].logoUrl = null;
+      } else {
+        if (typeof logo !== 'string' || !/^data:image\/(png|jpe?g|webp);base64,/.test(logo)) {
+          return res.status(400).json({ error: 'Invalid image. Provide a PNG, JPEG, or WebP data URL.' });
+        }
+        if (logo.length > 700 * 1024) {
+          return res.status(413).json({ error: 'Image too large. Please use a smaller logo.' });
+        }
+        teams[teamIndex].logoUrl = logo;
+      }
+
+      dataService.setTeams(teams);
+      socketService.emit('teamsUpdated', teams);
+
+      res.json({ message: 'Team logo updated', team: teams[teamIndex] });
+    } catch (error) {
+      console.error('Error updating team logo:', error);
+      res.status(500).json({ error: 'Error updating team logo' });
+    }
+  },
+
   // Get team statistics
   getTeamStats: (req, res) => {
     try {

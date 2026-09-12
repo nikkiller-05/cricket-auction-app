@@ -1093,6 +1093,7 @@ const UnifiedDashboard = () => {
             currentAmount={auctionData.currentBid.currentAmount}
             leadingTeamName={biddingTeam ? cleanTeamName(biddingTeam.name) : null}
             leadingTeamBudget={biddingTeam ? biddingTeam.budget : null}
+            leadingTeamLogo={biddingTeam ? biddingTeam.logoUrl : null}
             isFastTrack={auctionData.auctionStatus === 'fast-track'}
             spectator={!isAdmin}
             rightSlot={
