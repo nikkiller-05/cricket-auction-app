@@ -2,16 +2,14 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import PlayerAvatar from '../../components/PlayerAvatar';
 import { formatCurrency } from '../../lib/format';
 
-// Friendly labels for the backend player categories (utils/categoryParser.js).
-const MODE_LABELS = {
-  all: 'All Remaining',
-  batter: 'Batter',
-  bowler: 'Bowler',
-  allrounder: 'All-rounder',
-  'wicket-keeper': 'Wicket-keeper',
-  other: 'Other',
-};
-const CATEGORY_ORDER = ['batter', 'bowler', 'allrounder', 'wicket-keeper', 'other'];
+// Fixed category options (reuse the backend player-model terminology).
+const MODE_OPTIONS = [
+  { value: 'all', label: 'All Remaining' },
+  { value: 'batter', label: 'Batter' },
+  { value: 'bowler', label: 'Bowler' },
+  { value: 'allrounder', label: 'All-rounder' },
+  { value: 'wicket-keeper', label: 'Wicket-keeper' },
+];
 
 const STAT_FIELDS = [
   { key: 'matches', label: 'Matches' },
@@ -50,24 +48,6 @@ const SmartRandomStage = ({
     () => players.filter((p) => p.status === 'available' && p.category !== 'captain'),
     [players]
   );
-
-  // Build the "Pick from" options from the players that remain, with live counts.
-  const modeOptions = useMemo(() => {
-    const counts = {};
-    availablePlayers.forEach((p) => {
-      counts[p.category] = (counts[p.category] || 0) + 1;
-    });
-    const opts = [{ value: 'all', label: `All Remaining (${availablePlayers.length})` }];
-    CATEGORY_ORDER.forEach((cat) => {
-      if (counts[cat]) opts.push({ value: cat, label: `${MODE_LABELS[cat]} (${counts[cat]})` });
-    });
-    return opts;
-  }, [availablePlayers]);
-
-  // If the chosen category no longer has players, fall back to All Remaining.
-  useEffect(() => {
-    if (!modeOptions.some((o) => o.value === mode)) onModeChange('all');
-  }, [modeOptions, mode, onModeChange]);
 
   const eligibleCount = useMemo(
     () => availablePlayers.filter((p) => mode === 'all' || p.category === mode).length,
@@ -136,32 +116,32 @@ const SmartRandomStage = ({
         </h2>
       </div>
 
-      <div className="relative grid gap-5 p-5 md:grid-cols-2">
-        {/* LEFT: Smart Random control panel */}
-        <div className="flex flex-col justify-center rounded-2xl border border-white/20 bg-gradient-to-br from-white/15 to-white/5 p-5 shadow-2xl">
-          <p className="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-amber-200/80">
-            Smart Random
-          </p>
-          <label className="mb-1 block text-xs font-semibold text-white/70">Pick from</label>
-          <select
-            value={mode}
-            onChange={(e) => onModeChange(e.target.value)}
-            disabled={!isAdmin || stage !== 'idle' || busy}
-            className="mb-4 w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-400/60 disabled:opacity-50 [&>option]:text-slate-900"
-          >
-            {modeOptions.map((o) => (
-              <option key={o.value} value={o.value}>
-                {o.label}
-              </option>
-            ))}
-          </select>
+      <div className={`relative grid gap-5 p-5 ${isAdmin ? 'md:grid-cols-2' : ''}`}>
+        {/* LEFT: Smart Random control panel (admin only) */}
+        {isAdmin && (
+          <div className="flex flex-col justify-center rounded-2xl border border-white/20 bg-gradient-to-br from-white/15 to-white/5 p-5 shadow-2xl">
+            <p className="mb-3 text-xs font-bold uppercase tracking-[0.25em] text-amber-200/80">
+              Smart Random
+            </p>
+            <label className="mb-1 block text-xs font-semibold text-white/70">Pick from</label>
+            <select
+              value={mode}
+              onChange={(e) => onModeChange(e.target.value)}
+              disabled={stage !== 'idle' || busy}
+              className="mb-4 w-full rounded-lg border border-white/20 bg-white/10 px-3 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-amber-400/60 disabled:opacity-50 [&>option]:text-slate-900"
+            >
+              {MODE_OPTIONS.map((o) => (
+                <option key={o.value} value={o.value}>
+                  {o.label}
+                </option>
+              ))}
+            </select>
 
-          <div className="mb-4 text-3xl font-extrabold text-white">
-            {eligibleCount}
-            <span className="ml-2 text-sm font-semibold text-white/50">players remaining</span>
-          </div>
+            <div className="mb-4 text-3xl font-extrabold text-white">
+              {eligibleCount}
+              <span className="ml-2 text-sm font-semibold text-white/50">players remaining</span>
+            </div>
 
-          {isAdmin ? (
             <button
               type="button"
               onClick={onPick}
@@ -170,17 +150,15 @@ const SmartRandomStage = ({
             >
               {eligibleCount === 0 ? 'No players left' : '🎲 Pick Player'}
             </button>
-          ) : (
-            <p className="text-sm font-medium text-white/60">
-              {stage === 'idle'
-                ? 'Waiting for the auctioneer to pick the next player…'
-                : 'The auctioneer is running this round.'}
-            </p>
-          )}
-        </div>
+          </div>
+        )}
 
-        {/* RIGHT: Mystery / Reveal card */}
-        <div className="flex min-h-[320px] flex-col items-center justify-center rounded-2xl border border-white/20 bg-gradient-to-br from-white/15 to-white/5 p-5 text-center shadow-2xl">
+        {/* RIGHT: Mystery / Reveal card (everyone) */}
+        <div
+          className={`flex min-h-[320px] flex-col items-center justify-center rounded-2xl border border-white/20 bg-gradient-to-br from-white/15 to-white/5 p-5 text-center shadow-2xl ${
+            isAdmin ? '' : 'mx-auto w-full max-w-2xl'
+          }`}
+        >
           {stage === 'idle' && (
             <>
               <div className="relative mb-4">
