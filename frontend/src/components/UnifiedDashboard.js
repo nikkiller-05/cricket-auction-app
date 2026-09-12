@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
-import io from 'socket.io-client';
 import axios from 'axios';
 import PlayerUploadModal from './PlayerUploadModal';
 import TeamManagement from './TeamManagement';
@@ -22,6 +21,7 @@ import { computeNextBid } from '../domain/bidding';
 import { formatCurrency, cleanTeamName } from '../lib/format';
 import { setActiveCurrency } from '../lib/currency';
 import useAuth from '../features/auction/hooks/useAuth';
+import useAuctionData from '../features/auction/hooks/useAuctionData';
 import StatCards from '../features/auction/StatCards';
 import TabNav from '../features/auction/TabNav';
 import LiveStatusPanel from '../features/auction/LiveStatusPanel';
@@ -45,8 +45,6 @@ const UnifiedDashboard = () => {
   const [celebration, setCelebration] = useState(null);
 
   const { isAdmin, userRole, logout } = useAuth(location);
-  const [auctionData, setAuctionData] = useState(null);
-  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('live');
   // Smart Random / mystery-reveal flow UI state.
   const [selectionMode, setSelectionMode] = useState('all');
@@ -56,10 +54,35 @@ const UnifiedDashboard = () => {
     transactionHistory,
     setTransactionHistory,
     addTransaction,
+    initializeTransactionHistory,
     currentPage,
     setCurrentPage,
     transactionsPerPage,
-  } = useTransactionHistory(auctionData);
+  } = useTransactionHistory();
+  const {
+    auctionData,
+    setAuctionData,
+    loading,
+    fetchAuctionData,
+    handleTeamsUpdate,
+    handlePlayersUpdate,
+  } = useAuctionData({
+    addTransaction,
+    setTransactionHistory,
+    setCurrentPage,
+    setCelebration,
+    notify: { showSuccess, showWarning, showInfo },
+  });
+
+  // Seed the activity feed once from the initial data; afterwards the socket
+  // events own it (re-running would re-add undone sales via a race).
+  const hasInitedTx = useRef(false);
+  useEffect(() => {
+    if (auctionData && !hasInitedTx.current) {
+      hasInitedTx.current = true;
+      initializeTransactionHistory(auctionData);
+    }
+  }, [auctionData, initializeTransactionHistory]);
 
   // Spectator filter state for All Players tab
   const [spectatorPlayerFilter, setSpectatorPlayerFilter] = useState('all');
@@ -198,145 +221,8 @@ const UnifiedDashboard = () => {
   // Keep the shared currency formatter in sync with the auction's setting.
   if (auctionData?.settings?.currency) setActiveCurrency(auctionData.settings.currency);
 
-  useEffect(() => {
-    // Initialize socket connection
-    const socketConnection = io(API_BASE_URL);
+  // Live auction state (socket connection + fetch) is owned by useAuctionData.
 
-    // Socket event listeners
-    socketConnection.on('auctionData', (data) => {
-      setAuctionData(data);
-      setLoading(false);
-    });
-
-    socketConnection.on('playersUpdated', (players) => {
-      setAuctionData((prev) => (prev ? { ...prev, players } : prev));
-    });
-
-    socketConnection.on('teamsUpdated', (teams) => {
-      setAuctionData((prev) => (prev ? { ...prev, teams } : prev));
-    });
-
-    socketConnection.on('playerSold', (data) => {
-      if (data.player && data.team) {
-        addTransaction(data.player, 'sold', data.team, data.finalBid);
-        setCelebration({
-          type: 'sold',
-          player: data.player,
-          team: data.team,
-          amount: data.finalBid,
-        });
-        showSuccess(
-          `${data.player.name} sold to ${cleanTeamName(data.team.name)} for ${formatCurrency(data.finalBid)}`
-        );
-      }
-    });
-
-    socketConnection.on('playerUnsold', (data) => {
-      if (data.player) {
-        addTransaction(data.player, 'unsold');
-        setCelebration({ type: 'unsold', player: data.player });
-        showWarning(`${data.player.name} marked as unsold`);
-      }
-    });
-
-    socketConnection.on('playerRetained', (data) => {
-      if (data.player && data.team) {
-        addTransaction(data.player, 'retained', data.team, data.retentionAmount);
-        showInfo(
-          `${data.player.name} retained by ${cleanTeamName(data.team.name)} for ${formatCurrency(data.retentionAmount)}`
-        );
-      }
-    });
-
-    socketConnection.on('playerRetentionRemoved', (data) => {
-      if (data.player && data.team) {
-        // Remove the retention transaction from history
-        setTransactionHistory((prev) => {
-          return prev.filter((t) => !(t.type === 'retained' && t.playerName === data.player.name));
-        });
-        showWarning(`Retention removed: ${data.player.name} (${formatCurrency(data.refundedAmount)} refunded)`);
-      }
-    });
-
-    socketConnection.on('captainAssigned', (data) => {
-      if (data.player && data.team) {
-        addTransaction(data.player, 'captain-assigned', data.team, data.captainAmount);
-        showInfo(`👑 ${data.player.name} assigned as captain of ${cleanTeamName(data.team.name)}`);
-      }
-    });
-
-    socketConnection.on('captainUnassigned', (data) => {
-      if (data.team) {
-        // Remove any prior captain-assigned transaction for the same player on the same team
-        if (data.player) {
-          setTransactionHistory((prev) =>
-            prev.filter((t) => !(t.type === 'captain-assigned' && t.playerId === data.player.id))
-          );
-        }
-        showWarning(`Captain unassigned from ${cleanTeamName(data.team.name)}`);
-      }
-    });
-
-    socketConnection.on('currentBidUpdated', (currentBid) => {
-      setAuctionData((prev) => ({ ...prev, currentBid }));
-    });
-
-    socketConnection.on('auctionStatusChanged', (status) => {
-      setAuctionData((prev) => ({ ...prev, auctionStatus: status }));
-    });
-
-    socketConnection.on('statsUpdated', (stats) => {
-      setAuctionData((prev) => ({ ...prev, stats }));
-    });
-
-    socketConnection.on('settingsUpdated', (settings) => {
-      setAuctionData((prev) => ({ ...prev, settings }));
-      console.log('Settings updated in real-time:', settings);
-    });
-
-    socketConnection.on('fileUploaded', (fileInfo) => {
-      showSuccess(`Successfully uploaded ${fileInfo.playerCount} players`);
-    });
-
-    socketConnection.on('auctionReset', () => {
-      showInfo('Auction has been reset');
-      setTransactionHistory([]);
-      setCurrentPage(1);
-    });
-
-    socketConnection.on('fastTrackStarted', (data) => {
-      showInfo(`Fast Track started with ${data.players?.length || 0} players`);
-    });
-
-    socketConnection.on('fastTrackEnded', () => {
-      showInfo('Fast Track auction ended');
-    });
-
-    socketConnection.on('saleUndone', (data) => {
-      showWarning(`Sale undone: ${data.player} returned from ${data.team}`);
-      // Remove the last sale transaction from history
-      setTransactionHistory((prev) => {
-        const playerName = typeof data.player === 'string' ? data.player : data.player?.name;
-        return prev.filter((t) => !(t.type === 'sold' && t.playerName === playerName));
-      });
-    });
-
-    socketConnection.on('bidUndone', (data) => {
-      showWarning(`Bid undone: ${data.player} (${formatCurrency(data.revertedToAmount)})`);
-    });
-
-    socketConnection.on('selectionUpdated', (sel) => {
-      setAuctionData((prev) => (prev ? { ...prev, selection: sel } : prev));
-    });
-
-    // Cleanup on unmount
-    return () => {
-      socketConnection.disconnect();
-    };
-    // Socket is created once on mount; the hook setters + addTransaction are
-    // stable (useState setters / useCallback), so they don't belong in deps.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.state, showSuccess, showWarning, showInfo]);
 
   // Coming straight from Auction Setup: open Team Setup once so the admin can name
   // teams and assign captains/retentions. Clear the history state so a refresh
@@ -571,25 +457,7 @@ const UnifiedDashboard = () => {
     }
   };
 
-  const fetchAuctionData = async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/api/auction/data`);
-      setAuctionData(response.data);
-    } catch (error) {
-      console.error('Error fetching auction data:', error);
-    }
-  };
-
-  // Initialize transaction history from existing auction data
-
-  // Callback functions for TeamManagement component
-  const handleTeamsUpdate = (updatedTeams) => {
-    setAuctionData((prev) => ({ ...prev, teams: updatedTeams }));
-  };
-
-  const handlePlayersUpdate = (updatedPlayers) => {
-    setAuctionData((prev) => ({ ...prev, players: updatedPlayers }));
-  };
+  // fetchAuctionData + team/player update callbacks are provided by useAuctionData.
 
   // Toggle a feature flag (captains / retention). Persists + broadcasts via the
   // backend; the socket 'settingsUpdated' also refreshes other clients.

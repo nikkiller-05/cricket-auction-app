@@ -1,10 +1,11 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useState } from 'react';
 
 // Owns the sold/unsold/retained activity feed shown on the dashboard.
-// Seeds once from the initial auction data, then the socket events (via the
-// returned addTransaction) are the source of truth. Extracted verbatim from
-// UnifiedDashboard — behavior is intentionally unchanged.
-export default function useTransactionHistory(auctionData) {
+// Seeded once by the caller (initializeTransactionHistory) from the initial
+// auction data; afterwards the socket events (via addTransaction) are the
+// source of truth. Extracted verbatim from UnifiedDashboard — behavior is
+// intentionally unchanged.
+export default function useTransactionHistory() {
   const [transactionHistory, setTransactionHistory] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const transactionsPerPage = 10;
@@ -71,16 +72,6 @@ export default function useTransactionHistory(auctionData) {
     setTransactionHistory(transactions);
   }, []);
 
-  // Seed once; afterwards socket events own the feed (re-running here re-added
-  // undone sales via a race).
-  const hasInitedTx = useRef(false);
-  useEffect(() => {
-    if (auctionData && !hasInitedTx.current) {
-      hasInitedTx.current = true;
-      initializeTransactionHistory(auctionData);
-    }
-  }, [auctionData, initializeTransactionHistory]);
-
   const addTransaction = useCallback((player, type, team = null, finalBid = null) => {
     const transaction = {
       id: Date.now() + Math.random(),
@@ -104,6 +95,7 @@ export default function useTransactionHistory(auctionData) {
     transactionHistory,
     setTransactionHistory,
     addTransaction,
+    initializeTransactionHistory,
     currentPage,
     setCurrentPage,
     transactionsPerPage,
