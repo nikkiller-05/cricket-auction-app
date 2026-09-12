@@ -19,13 +19,16 @@ export default function useAuctionData({
   setCurrentPage,
   setCelebration,
   notify,
+  auctionId = 'default',
 }) {
   const { showSuccess, showWarning, showInfo } = notify;
   const [auctionData, setAuctionData] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const socketConnection = io(API_BASE_URL);
+    // Scope both the socket room and HTTP requests to this auction.
+    axios.defaults.headers.common['x-auction-id'] = auctionId;
+    const socketConnection = io(API_BASE_URL, { query: { auctionId } });
 
     socketConnection.on('auctionData', (data) => {
       setAuctionData(data);
