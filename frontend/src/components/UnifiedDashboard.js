@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import io from 'socket.io-client';
 import axios from 'axios';
@@ -28,6 +28,7 @@ import LiveStatusPanel from '../features/auction/LiveStatusPanel';
 import SmartRandomStage from '../features/auction/SmartRandomStage';
 import EditSettingsModal from '../features/auction/EditSettingsModal';
 import { buildDashboardTabs } from '../features/auction/tabs';
+import useTransactionHistory from '../features/auction/hooks/useTransactionHistory';
 import TeamSetupModal from '../features/teams/TeamSetupModal';
 import PlayerFilterChips from '../features/players/PlayerFilterChips';
 import SpectatorPlayerGroups from '../features/players/SpectatorPlayerGroups';
@@ -52,9 +53,14 @@ const UnifiedDashboard = () => {
   const [selectionMode, setSelectionMode] = useState('all');
   const [selectionBusy, setSelectionBusy] = useState(false);
   const [notifications, setNotifications] = useState([]);
-  const [transactionHistory, setTransactionHistory] = useState([]);
-  const [currentPage, setCurrentPage] = useState(1);
-  const transactionsPerPage = 10;
+  const {
+    transactionHistory,
+    setTransactionHistory,
+    addTransaction,
+    currentPage,
+    setCurrentPage,
+    transactionsPerPage,
+  } = useTransactionHistory(auctionData);
 
   // Spectator filter state for All Players tab
   const [spectatorPlayerFilter, setSpectatorPlayerFilter] = useState('all');
@@ -351,6 +357,9 @@ const UnifiedDashboard = () => {
     return () => {
       socketConnection.disconnect();
     };
+    // Socket is created once on mount; the hook setters + addTransaction are
+    // stable (useState setters / useCallback), so they don't belong in deps.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.state, showSuccess, showWarning, showInfo]);
 
   // Coming straight from Auction Setup: open Team Setup once so the admin can name
@@ -367,82 +376,8 @@ const UnifiedDashboard = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Transaction history initialization function - OPTIMIZED with proper memoization
-  const initializeTransactionHistory = useCallback((auctionData) => {
-    if (!auctionData?.players) return;
-
-    const soldPlayers = auctionData.players.filter(
-      (p) => p.status === 'sold' && p.category !== 'captain'
-    );
-    const unsoldPlayers = auctionData.players.filter((p) => p.status === 'unsold');
-    const retainedPlayers = auctionData.players.filter((p) => p.status === 'retained');
-
-    const transactions = [];
-
-    // Add retained players to history (these happen first, before auction)
-    retainedPlayers.forEach((player, index) => {
-      const team = auctionData.teams?.find((t) => t.id === player.team);
-      transactions.push({
-        id: `retained-${player.id}`,
-        playerId: player.id,
-        playerName: player.name,
-        playerRole: player.role,
-        playerCategory: player.category,
-        type: 'retained',
-        team: team,
-        finalBid: player.retentionAmount || player.finalBid,
-        timestamp: new Date(
-          Date.now() -
-            (retainedPlayers.length + soldPlayers.length + unsoldPlayers.length - index) * 90000
-        ), // Earlier timestamps
-      });
-    });
-
-    // Add sold players to history (assuming they were sold in order)
-    soldPlayers.forEach((player, index) => {
-      const team = auctionData.teams?.find((t) => t.id === player.team);
-      transactions.push({
-        id: `sold-${player.id}`,
-        playerId: player.id,
-        playerName: player.name,
-        playerRole: player.role,
-        playerCategory: player.category,
-        type: 'sold',
-        team: team,
-        finalBid: player.finalBid,
-        timestamp: new Date(Date.now() - (soldPlayers.length - index) * 60000), // Mock timestamps
-      });
-    });
-
-    // Add unsold players to history
-    unsoldPlayers.forEach((player, index) => {
-      transactions.push({
-        id: `unsold-${player.id}`,
-        playerId: player.id,
-        playerName: player.name,
-        playerRole: player.role,
-        playerCategory: player.category,
-        type: 'unsold',
-        team: null,
-        finalBid: null,
-        timestamp: new Date(Date.now() - (unsoldPlayers.length - index) * 30000), // Mock timestamps
-      });
-    });
-
-    // Sort by timestamp (most recent first)
-    transactions.sort((a, b) => b.timestamp - a.timestamp);
-    setTransactionHistory(transactions);
-  }, []); // useCallback dependency array
-
-  // Initialize transaction history once from data; afterwards the socket events
-  // are the source of truth (re-running here re-added undone sales via a race).
-  const hasInitedTx = useRef(false);
-  useEffect(() => {
-    if (auctionData && !hasInitedTx.current) {
-      hasInitedTx.current = true;
-      initializeTransactionHistory(auctionData);
-    }
-  }, [auctionData, initializeTransactionHistory]);
+  // Transaction history is owned by useTransactionHistory (seeds once from data,
+  // then socket events via addTransaction are the source of truth).
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -474,26 +409,6 @@ const UnifiedDashboard = () => {
       fetchActionHistory();
     }
   }, [userRole, isAdmin, fetchActionHistory]);
-
-  const addTransaction = (player, type, team = null, finalBid = null) => {
-    const transaction = {
-      id: Date.now() + Math.random(),
-      playerId: player.id,
-      playerName: player.name,
-      playerRole: player.role,
-      playerCategory: player.category,
-      type: type, // 'sold', 'unsold', or 'retained'
-      team: team,
-      finalBid: finalBid,
-      timestamp: new Date(),
-    };
-
-    // Skip if this player+type is already in the feed (guards against the
-    // init-from-data + socket-event race that produced duplicates).
-    setTransactionHistory((prev) =>
-      prev.some((t) => t.playerId === player.id && t.type === type) ? prev : [transaction, ...prev]
-    );
-  };
 
   // Undo functionality functions
   const handleUndoLastSale = useCallback(async () => {
