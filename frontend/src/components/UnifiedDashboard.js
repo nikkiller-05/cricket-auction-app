@@ -991,7 +991,7 @@ const UnifiedDashboard = () => {
         }
         userRole={userRole}
         onLogout={handleLogout}
-        isAuctionOn={auctionData.auctionStatus === 'running'}
+        isAuctionOn={['running', 'fast-track'].includes(auctionData.auctionStatus)}
         onToggleAuction={isAdmin ? handleAuctionToggle : null}
         auctionLoading={auctionToggleLoading}
         showDownloadOptions={auctionData.fileUploaded}
