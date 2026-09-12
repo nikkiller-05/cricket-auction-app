@@ -160,6 +160,18 @@ const UnifiedDashboard = () => {
     }
   };
 
+  // Undo a pick so the admin can change the category and pick again.
+  const handleCancelSelection = async () => {
+    setSelectionBusy(true);
+    try {
+      await axios.post(`${API_BASE_URL}/api/auction/selection/cancel`);
+    } catch (error) {
+      showError(error.response?.data?.error || 'Could not cancel the selection');
+    } finally {
+      setSelectionBusy(false);
+    }
+  };
+
   // Bid: hand the revealed player to the existing bidding flow.
   const handleBidSelected = async (playerId) => {
     setSelectionBusy(true);
@@ -1082,6 +1094,7 @@ const UnifiedDashboard = () => {
               onModeChange={setSelectionMode}
               onPick={handlePickPlayer}
               onReveal={handleRevealPlayer}
+              onCancel={handleCancelSelection}
               onBid={handleBidSelected}
               busy={selectionBusy}
             />
