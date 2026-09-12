@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import PlayerUploadModal from './PlayerUploadModal';
@@ -23,6 +23,7 @@ import { setActiveCurrency } from '../lib/currency';
 import useAuth from '../features/auction/hooks/useAuth';
 import useAuctionData from '../features/auction/hooks/useAuctionData';
 import useSelection from '../features/auction/hooks/useSelection';
+import useUndo from '../features/auction/hooks/useUndo';
 import StatCards from '../features/auction/StatCards';
 import TabNav from '../features/auction/TabNav';
 import LiveStatusPanel from '../features/auction/LiveStatusPanel';
@@ -129,11 +130,18 @@ const UnifiedDashboard = () => {
   });
   const [settingsSaveLoading, setSettingsSaveLoading] = useState(false);
 
-  // Undo functionality states
-  const [undoLoading, setUndoLoading] = useState(false);
-  const [actionHistory, setActionHistory] = useState([]);
-  const [showUndoConfirmModal, setShowUndoConfirmModal] = useState(false);
-  const [undoConfirmAction, setUndoConfirmAction] = useState(null);
+  // Undo (sale/bid) + action-history feed + confirm modal.
+  const {
+    undoLoading,
+    actionHistory,
+    showUndoConfirmModal,
+    undoConfirmAction,
+    fetchActionHistory,
+    handleUndoLastSale,
+    handleUndoCurrentBid,
+    executeUndoAction,
+    cancelUndoAction,
+  } = useUndo({ showError, isAdmin, userRole });
 
   // Auction toggle state
   const [auctionToggleLoading, setAuctionToggleLoading] = useState(false);
@@ -216,91 +224,8 @@ const UnifiedDashboard = () => {
     };
   }, [showDownloadDropdown]);
 
-  // Action history fetch function
-  const fetchActionHistory = useCallback(async () => {
-    try {
-      const response = await axios.get(`${API_BASE_URL}/api/auction/history`);
-      setActionHistory(response.data.history);
-    } catch (error) {
-      console.error('Error fetching action history:', error);
-    }
-  }, []);
+  // Undo (sale/bid), action history and the confirm modal are owned by useUndo.
 
-  // Fetch action history for super-admin
-  useEffect(() => {
-    if (userRole === 'super-admin' && isAdmin) {
-      fetchActionHistory();
-    }
-  }, [userRole, isAdmin, fetchActionHistory]);
-
-  // Undo functionality functions
-  const handleUndoLastSale = useCallback(async () => {
-    const lastAction = actionHistory.find(
-      (action) => action.type === 'PLAYER_SOLD' || action.type === 'PLAYER_UNSOLD'
-    );
-
-    if (!lastAction) {
-      showError('No sale or unsold action to undo');
-      return;
-    }
-
-    const actionType = lastAction.type === 'PLAYER_SOLD' ? 'sale' : 'unsold';
-    const message =
-      actionType === 'sale'
-        ? 'Are you sure you want to undo the last sale? This will refund the money to the team and make the player available again.'
-        : `Are you sure you want to undo the unsold action? This will make ${lastAction.playerName} available for bidding again.`;
-
-    setUndoConfirmAction({
-      type: actionType,
-      message,
-      action: async () => {
-        setUndoLoading(true);
-        try {
-          // Socket 'saleUndone' broadcasts the single notification to everyone.
-          await axios.post(`${API_BASE_URL}/api/auction/undo/sale`);
-          fetchActionHistory();
-        } catch (error) {
-          showError(error.response?.data?.error || 'Failed to undo action');
-        } finally {
-          setUndoLoading(false);
-        }
-      },
-    });
-    setShowUndoConfirmModal(true);
-  }, [actionHistory, showError, fetchActionHistory]);
-
-  const handleUndoCurrentBid = useCallback(async () => {
-    setUndoConfirmAction({
-      type: 'bid',
-      message:
-        "Are you sure you want to undo the current bid? This will revert to the previous team's bid or base price.",
-      action: async () => {
-        setUndoLoading(true);
-        try {
-          // Socket 'bidUndone' broadcasts the single notification to everyone.
-          await axios.post(`${API_BASE_URL}/api/auction/undo/bid`);
-        } catch (error) {
-          showError(error.response?.data?.error || 'Failed to undo bid');
-        } finally {
-          setUndoLoading(false);
-        }
-      },
-    });
-    setShowUndoConfirmModal(true);
-  }, [showError]);
-
-  const executeUndoAction = async () => {
-    setShowUndoConfirmModal(false);
-    if (undoConfirmAction) {
-      await undoConfirmAction.action();
-    }
-    setUndoConfirmAction(null);
-  };
-
-  const cancelUndoAction = () => {
-    setShowUndoConfirmModal(false);
-    setUndoConfirmAction(null);
-  };
 
   // Keyboard shortcuts for Super Admin
   useEffect(() => {
