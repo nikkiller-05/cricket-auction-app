@@ -26,6 +26,7 @@ import useSelection from '../features/auction/hooks/useSelection';
 import useUndo from '../features/auction/hooks/useUndo';
 import useAuctionSettings from '../features/auction/hooks/useAuctionSettings';
 import useDownloads from '../features/auction/hooks/useDownloads';
+import useKeyboardShortcuts from '../features/auction/hooks/useKeyboardShortcuts';
 import StatCards from '../features/auction/StatCards';
 import TabNav from '../features/auction/TabNav';
 import LiveStatusPanel from '../features/auction/LiveStatusPanel';
@@ -230,79 +231,8 @@ const UnifiedDashboard = () => {
 
   // Undo (sale/bid), action history and the confirm modal are owned by useUndo.
 
-
-  // Keyboard shortcuts for Super Admin
-  useEffect(() => {
-    if (userRole !== 'super-admin') return;
-
-    const handleKeyDown = (e) => {
-      // Prevent keyboard shortcuts when typing in input fields
-      if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-
-      // Ctrl+Z or Cmd+Z: Smart undo (bid if active, otherwise last sale/unsold)
-      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
-        e.preventDefault();
-        if (undoLoading) return;
-
-        if (auctionData?.currentBid) {
-          handleUndoCurrentBid();
-        } else {
-          handleUndoLastSale();
-        }
-      }
-
-      // Ctrl+Shift+Z: Undo Last Sale/Unsold
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'Z') {
-        e.preventDefault();
-        if (!undoLoading) {
-          handleUndoLastSale();
-        }
-      }
-
-      // Ctrl+B: Undo Last Bid
-      if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
-        e.preventDefault();
-        if (auctionData?.currentBid && !undoLoading) {
-          handleUndoCurrentBid();
-        }
-      }
-
-      // Number keys 1-9: Quick team bidding (only if teams < 10)
-      const teams = auctionData?.teams || [];
-      if (!e.ctrlKey && !e.metaKey && !e.shiftKey && !e.altKey) {
-        const keyNum = parseInt(e.key);
-        if (keyNum >= 1 && keyNum <= 9 && teams.length < 10 && teams.length >= keyNum) {
-          e.preventDefault();
-          if (auctionData?.currentBid?.playerId) {
-            const team = teams[keyNum - 1];
-            if (team) {
-              // Same guards as the on-screen bid buttons.
-              const nextBidAmount = computeNextBid(auctionData.currentBid, auctionData.settings);
-              const maxPlayers = auctionData.settings?.maxPlayersPerTeam || 15;
-              if (team.players?.length >= maxPlayers) {
-                showError(
-                  `Team ${cleanTeamName(team.name)} is full (${team.players?.length}/${maxPlayers} players)`
-                );
-                return;
-              }
-              if (team.budget < nextBidAmount) {
-                showError(
-                  `Insufficient budget for ${cleanTeamName(team.name)} (${formatCurrency(team.budget)})`
-                );
-                return;
-              }
-              axios
-                .post(`${API_BASE_URL}/api/auction/bidding/place`, { teamId: team.id })
-                .catch((error) => showError(error.response?.data?.error || 'Failed to place bid'));
-            }
-          }
-        }
-      }
-    };
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [
+  // Super-admin keyboard shortcuts (undo + quick team bids).
+  useKeyboardShortcuts({
     userRole,
     undoLoading,
     auctionData,
@@ -310,7 +240,7 @@ const UnifiedDashboard = () => {
     handleUndoLastSale,
     handleUndoCurrentBid,
     showError,
-  ]);
+  });
 
   const handleUploadSuccess = (data) => {
     showSuccess(`Successfully uploaded ${data.playerCount} players from ${data.fileName}`);
