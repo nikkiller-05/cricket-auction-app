@@ -24,6 +24,11 @@ router.post('/reset', verifyConfigPermission, auctionController.resetAuction);
 router.post('/fast-track/start', verifyConfigPermission, auctionController.startFastTrack);
 router.post('/fast-track/end', verifyConfigPermission, auctionController.endFastTrack);
 
+// Smart Random selection / mystery-reveal flow (all admin roles)
+router.post('/selection/pick', verifyBiddingPermission, auctionController.pickPlayer);
+router.post('/selection/reveal', verifyBiddingPermission, auctionController.revealPlayer);
+router.post('/selection/cancel', verifyBiddingPermission, auctionController.cancelSelection);
+
 // Bidding routes (all admin roles including sub-admin)
 router.post('/bidding/start/:playerId', verifyBiddingPermission, auctionController.startBidding);
 router.post('/bidding/place', verifyBiddingPermission, auctionController.placeBid);

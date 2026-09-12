@@ -1,6 +1,7 @@
 const dataService = require('../services/dataService');
 const socketService = require('../services/socketService');
 const { getNextBidIncrement, calculateStats } = require('../utils/biddingRules');
+const { matchesCategory } = require('../utils/categoryParser');
 
 const auctionController = {
   // Save auction settings
@@ -216,6 +217,12 @@ const auctionController = {
 
       dataService.setCurrentBid(currentBid);
       dataService.setPlayers(players);
+
+      // Bidding takes over from the mystery-reveal flow: clear any selection.
+      if (dataService.getSelection()) {
+        dataService.setSelection(null);
+        socketService.emit('selectionUpdated', null);
+      }
 
       socketService.emit('currentBidUpdated', currentBid);
       socketService.emit('playersUpdated', players);
@@ -851,6 +858,92 @@ const auctionController = {
     }
   },
 
+  // ---- Smart Random selection / mystery-reveal flow --------------------
+
+  // Server picks a random eligible player and locks it for the reveal flow.
+  // mode = 'all' or a category (batter/bowler/allrounder/wicket-keeper).
+  pickPlayer: async (req, res) => {
+    try {
+      if (dataService.getCurrentBid()) {
+        return res.status(400).json({ error: 'A player is already being auctioned' });
+      }
+      const current = dataService.getSelection();
+      if (current && current.stage && current.stage !== 'idle') {
+        return res.status(400).json({ error: 'A player is already selected for this round' });
+      }
+      const mode = (req.body?.mode || 'all').toString();
+      const players = dataService.getPlayers();
+      const eligible = players.filter(
+        (p) =>
+          p.status === 'available' &&
+          p.category !== 'captain' &&
+          matchesCategory(p.role, mode)
+      );
+      if (eligible.length === 0) {
+        return res.status(400).json({ error: 'No eligible players remaining for this selection' });
+      }
+      const pick = eligible[Math.floor(Math.random() * eligible.length)];
+      const selection = {
+        stage: 'selected',
+        playerId: pick.id,
+        mode,
+        startedAt: new Date().toISOString(),
+        by: req.user?.username || null,
+      };
+      dataService.setSelection(selection);
+      socketService.emit('selectionUpdated', selection);
+      console.log(`Smart Random selected ${pick.name} (mode=${mode}) by ${selection.by}`);
+      res.json({ selection });
+    } catch (error) {
+      console.error('Error picking player:', error.message);
+      res.status(500).json({ error: 'Error picking player' });
+    }
+  },
+
+  // Reveal: flip to 'revealing' (clients run the shuffle) then to 'revealed'
+  // on a server timer so every client stays in sync.
+  revealPlayer: async (req, res) => {
+    try {
+      const selection = dataService.getSelection();
+      if (!selection || selection.stage !== 'selected') {
+        return res.status(400).json({ error: 'No player is waiting to be revealed' });
+      }
+      const revealing = {
+        ...selection,
+        stage: 'revealing',
+        revealStartedAt: new Date().toISOString(),
+      };
+      dataService.setSelection(revealing);
+      socketService.emit('selectionUpdated', revealing);
+
+      const REVEAL_MS = 2600;
+      setTimeout(() => {
+        const now = dataService.getSelection();
+        if (now && now.stage === 'revealing' && now.playerId === revealing.playerId) {
+          const revealed = { ...now, stage: 'revealed' };
+          dataService.setSelection(revealed);
+          socketService.emit('selectionUpdated', revealed);
+        }
+      }, REVEAL_MS);
+
+      res.json({ selection: revealing });
+    } catch (error) {
+      console.error('Error revealing player:', error.message);
+      res.status(500).json({ error: 'Error revealing player' });
+    }
+  },
+
+  // Cancel/clear the current selection (admin).
+  cancelSelection: async (req, res) => {
+    try {
+      dataService.setSelection(null);
+      socketService.emit('selectionUpdated', null);
+      res.json({ ok: true });
+    } catch (error) {
+      res.status(500).json({ error: 'Error cancelling selection' });
+    }
+  },
+
   // Start fast track auction
   startFastTrack: async (req, res) => {
     try {
@@ -905,7 +998,9 @@ const auctionController = {
       const players = dataService.getPlayers();
       const availablePlayers = players.filter(p => p.status === 'available' && p.category !== 'captain');
       
-      const nextStatus = availablePlayers.length > 0 ? 'stopped' : 'finished';
+      // Ending fast track keeps the auction live if players remain (don't stop
+      // it out from under the admin); only finish when nothing is left.
+      const nextStatus = availablePlayers.length > 0 ? 'running' : 'finished';
       
       dataService.setAuctionStatus(nextStatus);
       dataService.setCurrentBid(null);
@@ -980,6 +1075,7 @@ const auctionController = {
 
       dataService.setAuctionStatus('stopped');
       dataService.setCurrentBid(null);
+      dataService.setSelection(null);
       dataService.clearActionHistory();
       dataService.setPlayers(players);
       dataService.setTeams(teams);
@@ -988,6 +1084,7 @@ const auctionController = {
       dataService.updateStats(stats);
 
       socketService.emit('auctionReset');
+      socketService.emit('selectionUpdated', null);
       socketService.emit('playersUpdated', players);
       socketService.emit('teamsUpdated', teams);
       socketService.emit('auctionStatusChanged', 'stopped');

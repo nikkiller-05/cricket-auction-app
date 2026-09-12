@@ -70,6 +70,31 @@ const CATEGORY_LABELS = getSportPack('cricket').categoryLabels;
 export const formatCategoryLabel = (c) =>
   CATEGORY_LABELS[c] || (c ? c.charAt(0).toUpperCase() + c.slice(1) : 'Other');
 
+// Compact, readable label from the raw role text, e.g. "Wicket Keeper Batter"
+// -> "WK/Batter", "Batting Allrounder" / "Batting AR" -> "Batting AR".
+export const formatRoleLabel = (role) => {
+  const t = String(role || '').toLowerCase();
+  if (!t) return '—';
+  if (t.includes('captain')) return 'Captain';
+  const allrounder =
+    t.includes('allrounder') ||
+    t.includes('all rounder') ||
+    t.includes('all-rounder') ||
+    /\bar\b/.test(t);
+  const bat = t.includes('batter') || t.includes('batsman') || t.includes('batting');
+  const bowl = t.includes('bowler') || t.includes('bowling');
+  const keeper = t.includes('keeper') || t.includes('wicket') || /\bwk\b/.test(t);
+  if (allrounder) {
+    if (t.includes('bowling')) return 'Bowling AR';
+    if (t.includes('batting')) return 'Batting AR';
+    return 'All Rounder';
+  }
+  if (keeper) return bat ? 'WK/Batter' : 'WK';
+  if (bat) return 'Batter';
+  if (bowl) return 'Bowler';
+  return role;
+};
+
 // Reusable colored category pill.
 export const CategoryTag = ({ category, className = '' }) => (
   <span
