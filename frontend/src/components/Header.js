@@ -128,7 +128,7 @@ const Header = memo(({
     <header className="header">
       <div className="header-container">
         
-        {/* Left Section - Brand + Tournament */}
+        {/* Left Section - Brand + Tournament + Status */}
         <div className="header-left">
           <a href="/" className="logo" title="Go to Home">
             <img src="/auction-logo.png" alt="GoldenBidX" className="logo-img" />
@@ -142,10 +142,6 @@ const Header = memo(({
               <span className="gbx-hd-tournament" title={eventName}>{eventName}</span>
             </>
           )}
-        </div>
-
-        {/* Center Section - Auction Status */}
-        <div className="header-center">
           <div className={`gbx-status gbx-status-${phase}`}>
             <span className="gbx-status-dot" aria-hidden="true" />
             <span className="gbx-status-label">{phaseLabel}</span>
