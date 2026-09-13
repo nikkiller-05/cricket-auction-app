@@ -83,7 +83,7 @@ const TeamSquadViewer = ({ teams, players, enableCaptains = true, enableRetentio
                 onClick={() => setSelectedTeam(team.id)}
                 className={`tab-button ${selectedTeam === team.id ? 'active' : ''} ${
                   selectedTeam === team.id
-                    ? 'bg-blue-500 text-white shadow-xl border-blue-600'
+                    ? 'bg-amber-400 text-slate-900 shadow-xl border-amber-500'
                     : 'bg-white bg-opacity-20 text-gray-800 hover:text-gray-900 hover:bg-white hover:bg-opacity-30 border-white border-opacity-30'
                 } whitespace-nowrap py-2 px-4 font-medium text-sm flex items-center rounded-lg border shadow-lg min-w-fit`}
               >
@@ -92,7 +92,7 @@ const TeamSquadViewer = ({ teams, players, enableCaptains = true, enableRetentio
                   <span
                     className={`ml-2 text-xs font-medium px-2 py-1 rounded-full ${
                       selectedTeam === team.id
-                        ? 'bg-white bg-opacity-20 text-white'
+                        ? 'bg-slate-900 bg-opacity-15 text-slate-900'
                         : 'bg-white bg-opacity-40 text-gray-700'
                     }`}
                   >

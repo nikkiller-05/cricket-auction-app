@@ -26,11 +26,12 @@
 
 /* Modal Container */
 .modal-container {
-  background: white;
+  background: #14121c;
+  color: #e5e7eb;
+  border: 1px solid rgba(255, 255, 255, 0.1);
   border-radius: 12px;
-  box-shadow: 
-    0 20px 25px -5px rgba(0, 0, 0, 0.1),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  box-shadow:
+    0 30px 60px -20px rgba(0, 0, 0, 0.8);
   max-width: 600px;
   width: 100%;
   max-height: 90vh;
@@ -55,8 +56,8 @@
   align-items: center;
   justify-content: space-between;
   padding: 1.5rem 1.5rem 1rem 1.5rem;
-  border-bottom: 1px solid #e5e7eb;
-  background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  background: linear-gradient(135deg, #1c1a26 0%, #141220 100%);
 }
 
 .modal-title {
@@ -65,7 +66,7 @@
   gap: 0.75rem;
   font-size: 1.25rem;
   font-weight: 600;
-  color: #1f2937;
+  color: #f1f5f9;
   margin: 0;
 }
 
@@ -81,7 +82,7 @@
   height: 2rem;
   border: none;
   background: none;
-  color: #6b7280;
+  color: #94a3b8;
   cursor: pointer;
   border-radius: 6px;
   transition: all 0.2s ease;
@@ -114,17 +115,28 @@
   margin: 0;
 }
 
+/* Dark modal: lift the inner (light-designed) text + panels for contrast. */
+.modal-content { color: #e5e7eb; }
+.modal-content h3 { color: #f1f5f9 !important; }
+.modal-content .text-gray-900,
+.modal-content .text-gray-800,
+.modal-content .text-gray-700,
+.modal-content .text-gray-600,
+.modal-content .text-gray-500,
+.modal-content .text-gray-400 { color: #cbd5e1 !important; }
+.modal-content .bg-white.bg-opacity-15 { background: rgba(255, 255, 255, 0.06); border-color: rgba(255, 255, 255, 0.12) !important; }
+
 /* Custom scrollbar for modal content */
 .modal-content::-webkit-scrollbar {
   width: 6px;
 }
 
 .modal-content::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  background: rgba(255, 255, 255, 0.05);
 }
 
 .modal-content::-webkit-scrollbar-thumb {
-  background: #cbd5e1;
+  background: rgba(255, 255, 255, 0.2);
   border-radius: 3px;
 }
 
@@ -164,8 +176,7 @@
 }
 
 .modal-container:focus-within {
-  box-shadow: 
-    0 20px 25px -5px rgba(0, 0, 0, 0.1),
-    0 10px 10px -5px rgba(0, 0, 0, 0.04),
-    0 0 0 2px rgba(59, 130, 246, 0.5);
+  box-shadow:
+    0 30px 60px -20px rgba(0, 0, 0, 0.8),
+    0 0 0 2px rgba(251, 191, 36, 0.4);
 }

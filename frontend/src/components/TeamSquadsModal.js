@@ -191,7 +191,7 @@ const TeamCard = React.forwardRef(({ team, players, accent }, ref) => {
   );
 });
 
-const TeamSquadsModal = ({ isOpen, onClose, teams = [], players = [] }) => {
+const TeamSquadsModal = ({ isOpen, onClose, teams = [], players = [], onEditSettings = null }) => {
   const { showSuccess, showError } = useNotification();
   const cardRefs = useRef({});
 
@@ -259,6 +259,15 @@ const TeamSquadsModal = ({ isOpen, onClose, teams = [], players = [] }) => {
             </button>
           </div>
         </div>
+
+        {onEditSettings && (
+          <div className="flex-shrink-0 px-4 sm:px-6 py-2 border-b border-slate-200 bg-amber-50 text-xs sm:text-sm text-slate-600">
+            Need to change the number of teams or other settings?{' '}
+            <button onClick={onEditSettings} className="font-semibold text-indigo-600 hover:text-indigo-800 underline">
+              Edit auction settings →
+            </button>
+          </div>
+        )}
 
         <div className="flex-1 overflow-y-auto overflow-x-hidden p-4 sm:p-6 grid grid-cols-1 gap-6">
           {teams.map((team, idx) => (

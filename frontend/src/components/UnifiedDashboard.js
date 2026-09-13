@@ -988,6 +988,7 @@ const UnifiedDashboard = () => {
         onClose={() => setShowTeamSquadsModal(false)}
         teams={auctionData.teams || []}
         players={auctionData.players || []}
+        onEditSettings={isAdmin && canConfigure ? () => { setShowTeamSquadsModal(false); handleOpenEditSettings(); } : null}
       />
 
       {/* Team Setup Modal — team naming, captains, retention (replaces Manage tab) */}
@@ -1019,6 +1020,7 @@ const UnifiedDashboard = () => {
         onRemoveIncrement={removeSettingsIncrement}
         onSave={handleSaveSettings}
         saving={settingsSaveLoading}
+        onOpenTeamSquads={() => { setShowEditSettingsModal(false); setShowTeamSquadsModal(true); }}
       />
 
       <BrandFooter />

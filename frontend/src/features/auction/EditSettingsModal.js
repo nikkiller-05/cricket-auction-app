@@ -13,6 +13,7 @@ const EditSettingsModal = ({
   onRemoveIncrement,
   onSave,
   saving = false,
+  onOpenTeamSquads = null,
 }) => {
   if (!open) return null;
 
@@ -44,10 +45,21 @@ const EditSettingsModal = ({
         <div className="p-4 sm:p-6 space-y-4 sm:space-y-6">
           {/* Basic Configuration */}
           <div className="bg-gradient-to-r from-blue-50 to-indigo-50 rounded-lg p-4 sm:p-6 border border-blue-200">
-            <h3 className="text-base sm:text-lg font-semibold text-gray-800 mb-3 sm:mb-4 flex items-center">
-              <span className="mr-2">⚙️</span>
-              Basic Configuration
-            </h3>
+            <div className="flex items-center justify-between mb-3 sm:mb-4">
+              <h3 className="text-base sm:text-lg font-semibold text-gray-800 flex items-center">
+                <span className="mr-2">⚙️</span>
+                Basic Configuration
+              </h3>
+              {onOpenTeamSquads && (
+                <button
+                  type="button"
+                  onClick={onOpenTeamSquads}
+                  className="text-xs sm:text-sm font-semibold text-indigo-600 hover:text-indigo-800 underline whitespace-nowrap"
+                >
+                  View team squads →
+                </button>
+              )}
+            </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
               <div>

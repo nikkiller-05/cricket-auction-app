@@ -1269,6 +1269,16 @@ const auctionController = {
         return res.status(400).json({ error: 'Bidding increments are required' });
       }
       
+      // Guard a structural change once results exist — it would corrupt budgets.
+      const currentTeams = dataService.getTeams();
+      const players = dataService.getPlayers();
+      const anySold = players.some((p) => p.status === 'sold');
+      if (currentTeams.length > 0 && currentTeams.length !== teamCount && anySold) {
+        return res.status(400).json({
+          error: 'Cannot change the number of teams after players have been sold. Reset the auction first.',
+        });
+      }
+
       // Update the configuration
       const newConfig = {
         teamCount,
@@ -1278,24 +1288,34 @@ const auctionController = {
         biddingIncrements,
       };
       if (typeof currency === 'string') newConfig.currency = currency;
-      
+
       dataService.updateConfig(newConfig);
-      
-      // Update existing teams with new budget if team count hasn't changed
-      const teams = dataService.getTeams();
-      if (teams.length > 0) {
-        teams.forEach(team => {
-          // Only update budget if team structure remains the same
-          if (teams.length === teamCount) {
-            const soldPlayers = dataService.getPlayers().filter(p => 
-              p.status === 'sold' && p.team === team.id
+
+      // Reconcile the teams array with the (possibly new) count / budget.
+      if (currentTeams.length > 0) {
+        let nextTeams;
+        if (currentTeams.length === teamCount) {
+          // Same count: refresh each team's remaining budget for any spend.
+          nextTeams = currentTeams.map((team) => {
+            const spent = players
+              .filter((p) => p.status === 'sold' && p.team === team.id)
+              .reduce((sum, p) => sum + (p.finalBid || 0), 0);
+            return { ...team, budget: startingBudget - spent };
+          });
+        } else {
+          // Add/remove teams to match, preserving existing names/logos/captains.
+          nextTeams = [];
+          for (let i = 1; i <= teamCount; i++) {
+            const existing = currentTeams[i - 1];
+            nextTeams.push(
+              existing
+                ? { ...existing, id: i, budget: startingBudget }
+                : { id: i, name: `Team ${i}`, budget: startingBudget, players: [], captain: null, captainAmount: 0, logoUrl: null }
             );
-            const spent = soldPlayers.reduce((sum, p) => sum + (p.finalBid || 0), 0);
-            team.budget = startingBudget - spent;
           }
-        });
-        dataService.setTeams(teams);
-        socketService.emit('teamsUpdated', teams);
+        }
+        dataService.setTeams(nextTeams);
+        socketService.emit('teamsUpdated', nextTeams);
       }
       
       console.log('Auction configuration updated successfully');
