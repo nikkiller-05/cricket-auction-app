@@ -1300,11 +1300,12 @@
 .gbx-menu-danger .gbx-menu-ico { color: #f87171; }
 
 /* Compact progress strip */
-.gbx-progress { max-width: 1400px; margin: 0 auto; padding: 0.3rem 1.5rem 0.5rem; }
+.gbx-progress { max-width: 1400px; margin: 0 auto; padding: 0.4rem 1.5rem 0.55rem; border-top: 1px solid rgba(255,255,255,0.07); }
+.dash-root[data-theme="light"] .gbx-progress { border-top-color: rgba(74,53,10,0.14); }
 .gbx-progress-meta {
   display: flex; align-items: center; justify-content: space-between;
-  font-size: 0.72rem; font-weight: 700; color: rgba(255,255,255,0.72);
-  margin-bottom: 0.28rem; letter-spacing: 0.02em;
+  font-size: 0.75rem; font-weight: 700; color: rgba(255,255,255,0.72);
+  margin-bottom: 0.3rem; letter-spacing: 0.02em;
 }
 .dash-root[data-theme="light"] .gbx-progress-meta { color: rgba(60,42,8,0.75); }
 .gbx-progress-pct { color: #fcd34d; }

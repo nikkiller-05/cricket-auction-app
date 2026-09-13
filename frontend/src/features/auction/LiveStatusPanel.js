@@ -16,6 +16,12 @@ const LiveStatusPanel = ({
   unsoldPlayers = [],
   onShare,
 }) => {
+  // Idle state = stopped with no active bid. NOT STARTED before anything is
+  // completed, else PAUSED (mirrors the header's status derivation).
+  const totalPlayers = auctionData.players?.length || 0;
+  const completedCount = soldPlayers.length + unsoldPlayers.length;
+  const showIdleState = auctionData.auctionStatus === 'stopped' && !auctionData.currentBid;
+  const notStarted = completedCount === 0;
   return (
     <div className="gbx-tabpanel-live space-y-6">
       <div className="flex items-center justify-between gap-3 flex-wrap">
@@ -42,24 +48,21 @@ const LiveStatusPanel = ({
         </button>
       </div>
 
-      {auctionData.auctionStatus === 'stopped' && !auctionData.currentBid && (
-        <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
-          <div className="flex">
-            <div className="flex-shrink-0">
-              <svg className="h-5 w-5 text-yellow-400" viewBox="0 0 20 20" fill="currentColor">
-                <path
-                  fillRule="evenodd"
-                  d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z"
-                  clipRule="evenodd"
-                />
-              </svg>
-            </div>
-            <div className="ml-3">
-              <p className="text-sm text-yellow-700">
-                Auction is currently paused. Waiting for the next player to be put up for bidding.
-              </p>
-            </div>
-          </div>
+      {showIdleState && (
+        <div className="rounded-2xl border border-slate-200 bg-white px-6 py-10 text-center shadow-sm">
+          <span className={`mx-auto mb-3 inline-flex items-center gap-2 rounded-full px-3 py-1 text-[11px] font-bold uppercase tracking-[0.18em] ${notStarted ? 'bg-amber-100 text-amber-800' : 'bg-slate-100 text-slate-600'}`}>
+            {notStarted ? '○ Auction Ready' : '‖ Auction Paused'}
+          </span>
+          <h4 className="text-xl sm:text-2xl font-bold text-slate-900">
+            {notStarted ? 'Ready to begin the auction' : 'Waiting for the next auction action'}
+          </h4>
+          <p className="mt-2 text-sm text-slate-500">
+            {notStarted
+              ? (totalPlayers > 0
+                  ? `${totalPlayers} player${totalPlayers === 1 ? '' : 's'} ready to be auctioned`
+                  : 'Upload players to get started')
+              : 'No active bidding right now — the system is waiting for the next player.'}
+          </p>
         </div>
       )}
 

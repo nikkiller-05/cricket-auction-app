@@ -354,6 +354,7 @@ const auctionController = {
       // Update current bid
       currentBid.currentAmount = newBidAmount;
       currentBid.biddingTeam = teamId.toString();
+      currentBid.lastBidAt = new Date().toISOString(); // UI 'last bid' timer
 
       const players = dataService.getPlayers();
       const player = players.find(p => p.id === currentBid.playerId);

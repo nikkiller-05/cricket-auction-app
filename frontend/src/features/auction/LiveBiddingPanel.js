@@ -38,6 +38,7 @@ const LiveBiddingPanel = ({
       leadingTeamLogo={biddingTeam ? biddingTeam.logoUrl : null}
       isFastTrack={auctionData.auctionStatus === 'fast-track'}
       spectator={!isAdmin}
+      lastBidAt={auctionData.currentBid.lastBidAt}
       rightSlot={
         isAdmin ? (
           <div>

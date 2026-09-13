@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState, useEffect } from 'react';
 import PlayerAvatar from './PlayerAvatar';
 
 import { formatCurrency } from '../lib/format';
@@ -27,6 +27,21 @@ const Stat = ({ label, value }) => (
     </div>
   </div>
 );
+// Subtle elapsed-time since the last placed bid. Presentational only; driven by
+// the authoritative currentBid.lastBidAt so it never conflicts with auction state.
+const LastBidTimer = ({ at }) => {
+  const [, tick] = useState(0);
+  useEffect(() => {
+    if (!at) return undefined;
+    const id = setInterval(() => tick((n) => n + 1), 1000);
+    return () => clearInterval(id);
+  }, [at]);
+  if (!at) return null;
+  const secs = Math.max(0, Math.floor((Date.now() - new Date(at).getTime()) / 1000));
+  const label =
+    secs < 60 ? `${secs}s ago` : secs < 3600 ? `${Math.floor(secs / 60)}m ${secs % 60}s ago` : `${Math.floor(secs / 3600)}h ago`;
+  return <p className="mt-2 text-[11px] sm:text-xs font-medium text-white/70">Last bid: {label}</p>;
+};
 
 const buildStats = (p = {}) => {
   // Always render every stat slot; "—" means missing so the card layout
@@ -49,6 +64,7 @@ const LiveBiddingCard = ({
   isFastTrack = false,
   rightSlot = null,
   spectator = false,
+  lastBidAt = null,
 }) => {
   if (!player) return null;
   return <LiveBiddingCardInner
@@ -60,6 +76,7 @@ const LiveBiddingCard = ({
     isFastTrack={isFastTrack}
     rightSlot={rightSlot}
     spectator={spectator}
+    lastBidAt={lastBidAt}
   />;
 };
 
@@ -72,6 +89,7 @@ const LiveBiddingCardInner = ({
   isFastTrack,
   rightSlot,
   spectator = false,
+  lastBidAt = null,
 }) => {
   // Intentional fine-grained deps so the memo only invalidates when a
   // displayed stat actually changes, not on every new player object identity.
@@ -220,6 +238,7 @@ const LiveBiddingCardInner = ({
                       <span className="text-xs sm:text-sm font-bold text-white">{formatCurrency(leadingTeamBudget)}</span>
                     </div>
                   )}
+                  <LastBidTimer at={lastBidAt} />
                 </>
               ) : (
                 <p className="text-white/75 italic font-medium text-base sm:text-lg">
