@@ -179,7 +179,7 @@ const LiveBiddingCardInner = ({
         {/* Bid panel */}
         <div className="flex flex-col gap-3 sm:gap-4">
           {/* Current Bid - emerald hero */}
-          <div className="gbx-live-currentbid relative overflow-hidden rounded-2xl shadow-2xl border border-emerald-300/60 bg-gradient-to-br from-emerald-400 via-green-500 to-teal-600">
+          <div className="gbx-live-currentbid relative overflow-hidden rounded-2xl shadow-2xl border border-emerald-300/60 bg-gradient-to-br from-emerald-400 via-green-500 to-teal-600 animate-pulse">
             <div className="absolute -top-8 -right-8 w-32 h-32 bg-white/20 rounded-full blur-2xl" />
             <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-emerald-200/30 rounded-full blur-2xl" />
             <div className="relative p-4 sm:p-5 text-center">

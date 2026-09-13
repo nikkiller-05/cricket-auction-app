@@ -15,7 +15,6 @@ import SaleCelebration from './SaleCelebration';
 import { useNotification } from './NotificationSystem';
 import { useTheme } from '../ThemeContext';
 import { API_BASE_URL } from '../config';
-import { formatCurrency } from '../lib/format';
 import { setActiveCurrency } from '../lib/currency';
 import useAuth from '../features/auction/hooks/useAuth';
 import useAuctionData from '../features/auction/hooks/useAuctionData';
@@ -524,19 +523,6 @@ const UnifiedDashboard = () => {
         progressTotal={auctionData.players?.length || 0}
         auctionStatus={auctionData.auctionStatus}
       />
-
-      {/* Current Bid Indicator - only show when there's an active bid */}
-      {auctionData.currentBid && (
-        <div className="gbx-current-bid-banner bg-white bg-opacity-20 border-b border-white border-opacity-30 py-3">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-center">
-              <div className="gbx-current-bid-pill px-4 py-2 rounded-full text-sm font-bold bg-amber-400 text-slate-900 animate-pulse shadow-lg border border-amber-500">
-                💰 Current Bid: {formatCurrency(auctionData.currentBid.currentAmount)}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
 
       <div className="gbx-dashboard-content max-w-7xl mx-auto mt-5 sm:mt-6 px-4 sm:px-6 lg:px-8 py-8 rounded-2xl border border-white/60 bg-white/55 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_12px_28px_-16px_rgba(15,23,42,0.18)]">
         {/* Smart Random / mystery-reveal stage — runs before live bidding */}
