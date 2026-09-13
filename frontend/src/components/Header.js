@@ -1,6 +1,5 @@
 import React, { useState, useRef, useEffect, memo } from 'react';
 import './Header.css';
-import AuctionToggleButton from './AuctionToggleButton';
 import { useTheme } from '../ThemeContext';
 
 const Header = memo(({ 
@@ -26,32 +25,52 @@ const Header = memo(({
   onOpenTeamSetup = null,
   onConsole = null,
   canConfigure = false,
-  eventName = ''
+  eventName = '',
+  canUndo = false,
+  onRevertBid = null,
+  canRevertBid = false,
+  onEndAuction = null,
+  progressCompleted = 0,
+  progressTotal = 0
 }) => {
   const { theme, toggleTheme } = useTheme();
   const isSpectator = userRole === 'spectator';
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isDownloadDropdownOpen, setIsDownloadDropdownOpen] = useState(false);
+  const [isControlsOpen, setIsControlsOpen] = useState(false);
   const dropdownRef = useRef(null);
   const menuButtonRef = useRef(null);
   const downloadDropdownRef = useRef(null);
+  const controlsRef = useRef(null);
+
+  // Derived auction phase from the authoritative auctionStatus + progress.
+  // 'stopped' means NOT STARTED before any player is completed, else PAUSED.
+  const isLive = ['running', 'fast-track'].includes(auctionStatus);
+  const isEnded = auctionStatus === 'finished';
+  const completedCount = Number(progressCompleted) || 0;
+  const totalCount = Number(progressTotal) || 0;
+  const phase = isEnded ? 'ended' : isLive ? 'live' : completedCount > 0 ? 'paused' : 'notstarted';
+  const phaseLabel = { live: 'LIVE', paused: 'PAUSED', notstarted: 'NOT STARTED', ended: 'AUCTION ENDED' }[phase];
+  const canOperateAuction = onToggleAuction && (canConfigure || userRole === 'sub-admin');
+  const primaryLabel = phase === 'live' ? 'Pause' : phase === 'paused' ? 'Resume' : 'Start';
+  const showControls =
+    !isSpectator &&
+    ((canUndo && (onUndoLastSale || onRevertBid)) || (canConfigure && onEndAuction && !isEnded));
+  const progressPct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   // Close dropdown when clicking outside
   useEffect(() => {
     const handleClickOutside = (event) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
-        setIsDropdownOpen(false);
-      }
-      if (downloadDropdownRef.current && !downloadDropdownRef.current.contains(event.target)) {
-        setIsDownloadDropdownOpen(false);
-      }
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) setIsDropdownOpen(false);
+      if (downloadDropdownRef.current && !downloadDropdownRef.current.contains(event.target)) setIsDownloadDropdownOpen(false);
+      if (controlsRef.current && !controlsRef.current.contains(event.target)) setIsControlsOpen(false);
     };
 
-    if (isDropdownOpen || isDownloadDropdownOpen) {
+    if (isDropdownOpen || isDownloadDropdownOpen || isControlsOpen) {
       document.addEventListener('mousedown', handleClickOutside);
       return () => document.removeEventListener('mousedown', handleClickOutside);
     }
-  }, [isDropdownOpen, isDownloadDropdownOpen]);
+  }, [isDropdownOpen, isDownloadDropdownOpen, isControlsOpen]);
 
   // Handle escape key to close dropdown
   useEffect(() => {
@@ -61,17 +80,16 @@ const Header = memo(({
           setIsDropdownOpen(false);
           menuButtonRef.current?.focus();
         }
-        if (isDownloadDropdownOpen) {
-          setIsDownloadDropdownOpen(false);
-        }
+        if (isDownloadDropdownOpen) setIsDownloadDropdownOpen(false);
+        if (isControlsOpen) setIsControlsOpen(false);
       }
     };
 
-    if (isDropdownOpen || isDownloadDropdownOpen) {
+    if (isDropdownOpen || isDownloadDropdownOpen || isControlsOpen) {
       document.addEventListener('keydown', handleEscape);
       return () => document.removeEventListener('keydown', handleEscape);
     }
-  }, [isDropdownOpen, isDownloadDropdownOpen]);
+  }, [isDropdownOpen, isDownloadDropdownOpen, isControlsOpen]);
 
   const toggleDropdown = () => {
     setIsDropdownOpen(!isDropdownOpen);
@@ -110,77 +128,105 @@ const Header = memo(({
     <header className="header">
       <div className="header-container">
         
-        {/* Left Section - Logo */}
+        {/* Left Section - Brand + Tournament */}
         <div className="header-left">
           <a href="/" className="logo" title="Go to Home">
             <img src="/auction-logo.png" alt="GoldenBidX" className="logo-img" />
-            <span className="logo-text">
+            <span className="logo-text gbx-wordmark">
               <span className="logo-gold">Golden</span><span className="logo-white">Bid</span><span className="logo-gold">X</span>
             </span>
           </a>
-          <button type="button" onClick={toggleTheme} className="theme-toggle-btn" title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} aria-label="Toggle theme">
-            {theme === 'dark' ? '☀️' : '🌙'}
-          </button>
+          {eventName && (
+            <>
+              <span className="gbx-hd-sep" aria-hidden="true" />
+              <span className="gbx-hd-tournament" title={eventName}>{eventName}</span>
+            </>
+          )}
         </div>
 
         {/* Center Section - Auction Status */}
         <div className="header-center">
-          {eventName && (
-            <span className="max-w-[46vw] truncate text-sm sm:text-base font-bold text-amber-300" title={eventName}>
-              {eventName}
-            </span>
-          )}
-          {auctionStatus && (
-            <div className={`auction-status-badge ${
-              auctionStatus === 'running' 
-                ? 'status-live' 
-                : auctionStatus === 'fast-track'
-                ? 'status-fast'
-                : auctionStatus === 'finished'
-                ? 'status-done'
-                : auctionStatus === 'stopped'
-                ? 'status-paused'
-                : 'status-default'
-            }`}>
-              {auctionStatus === 'running' && '🔴 LIVE'}
-              {auctionStatus === 'fast-track' && '⚡ FAST'}
-              {auctionStatus === 'finished' && '✅ DONE'}
-              {auctionStatus === 'stopped' && '⏸️ PAUSED'}
-            </div>
-          )}
+          <div className={`gbx-status gbx-status-${phase}`}>
+            <span className="gbx-status-dot" aria-hidden="true" />
+            <span className="gbx-status-label">{phaseLabel}</span>
+          </div>
         </div>
 
         {/* Right Section - User Controls */}
         <div className="header-right">
           
-          {/* Auction Toggle - Only for admin roles */}
-          {onToggleAuction && (canConfigure || userRole === 'sub-admin') && (
-            <div className="auction-toggle-container">
-              <AuctionToggleButton
-                isActive={isAuctionOn}
-                onToggle={onToggleAuction}
-                loading={auctionLoading}
-              />
-            </div>
-          )}
-
-          {/* Undo Last Sale Button - Super Admin Only */}
-          {userRole === 'super-admin' && onUndoLastSale && (
+          {/* Primary auction action: Start / Pause / Resume */}
+          {canOperateAuction && !isEnded && (
             <button
-              onClick={onUndoLastSale}
-              disabled={undoLoading || !canUndoLastSale}
-              className="undo-last-sale-btn"
-              title="Undo Last Action - Reverses the last sale or unsold and makes the player available again"
+              type="button"
+              onClick={() => onToggleAuction(!isAuctionOn)}
+              disabled={auctionLoading}
+              className={`gbx-pa gbx-pa-${phase}`}
+              title={primaryLabel}
             >
-              {undoLoading ? (
-                <div className="undo-loading-spinner"></div>
+              {auctionLoading ? (
+                <span className="gbx-pa-spin" />
               ) : (
                 <>
-                  <span className="undo-icon">↩️</span>
-                  <span className="undo-text">Undo Sale</span>
+                  <span className="gbx-pa-ico">{phase === 'live' ? '‖' : '▶'}</span>
+                  <span className="gbx-pa-txt">{primaryLabel}</span>
                 </>
               )}
             </button>
+          )}
+
+          {/* Auction Controls menu: Undo Sale, Revert Bid, End Auction */}
+          {showControls && (
+            <div className="gbx-menu-wrap" ref={controlsRef}>
+              <button
+                type="button"
+                className="gbx-hd-btn"
+                onClick={() => setIsControlsOpen((v) => !v)}
+                aria-haspopup="true"
+                aria-expanded={isControlsOpen}
+                title="Auction Controls"
+              >
+                <span className="gbx-hd-btn-ico">⚙</span>
+                <span className="gbx-hd-btn-txt">Controls</span>
+              </button>
+              {isControlsOpen && (
+                <div className="gbx-menu" role="menu">
+                  <div className="gbx-menu-head">Auction Controls</div>
+                  {canUndo && onUndoLastSale && (
+                    <button
+                      className="gbx-menu-item"
+                      role="menuitem"
+                      disabled={!canUndoLastSale || undoLoading}
+                      onClick={() => { setIsControlsOpen(false); onUndoLastSale(); }}
+                    >
+                      <span className="gbx-menu-ico">↶</span> Undo Sale
+                    </button>
+                  )}
+                  {canUndo && onRevertBid && (
+                    <button
+                      className="gbx-menu-item"
+                      role="menuitem"
+                      disabled={!canRevertBid}
+                      onClick={() => { setIsControlsOpen(false); onRevertBid(); }}
+                    >
+                      <span className="gbx-menu-ico">↶</span> Revert Bid
+                    </button>
+                  )}
+                  {canConfigure && onEndAuction && !isEnded && (
+                    <>
+                      <div className="gbx-menu-sep" />
+                      <button
+                        className="gbx-menu-item gbx-menu-danger"
+                        role="menuitem"
+                        onClick={() => { setIsControlsOpen(false); onEndAuction(); }}
+                      >
+                        <span className="gbx-menu-ico">■</span> End Auction
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
+            </div>
           )}
 
           {/* Download Button with Dropdown */}
@@ -189,12 +235,12 @@ const Header = memo(({
               <button
                 onClick={() => setIsDownloadDropdownOpen(!isDownloadDropdownOpen)}
                 className="download-btn"
-                title="Download Results"
+                title="Export"
               >
                 <svg className="download-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                 </svg>
-                <span className="download-text">Download</span>
+                <span className="download-text">Export</span>
                 <svg className={`download-chevron ${isDownloadDropdownOpen ? 'rotate-180' : ''}`} fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
                 </svg>
@@ -374,6 +420,18 @@ const Header = memo(({
                   </button>
                 )}
 
+                {/* Appearance toggle (moved out of the header bar) */}
+                <button
+                  onClick={() => toggleTheme()}
+                  className="menu-option"
+                  role="menuitem"
+                >
+                  <svg className="menu-option-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                  </svg>
+                  {theme === 'dark' ? 'Light appearance' : 'Dark appearance'}
+                </button>
+
                 {/* Logout Option */}
                 <button 
                   onClick={handleLogoutFromDropdown}
@@ -392,6 +450,27 @@ const Header = memo(({
 
         </div>
       </div>
+
+      {totalCount > 0 && (
+        <div
+          className="gbx-progress"
+          role="progressbar"
+          aria-valuenow={progressPct}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="Auction progress"
+        >
+          <div className="gbx-progress-meta">
+            <span className="gbx-progress-count">
+              {completedCount} / {totalCount} <span className="gbx-progress-word">completed</span>
+            </span>
+            <span className="gbx-progress-pct">{progressPct}%</span>
+          </div>
+          <div className="gbx-progress-track">
+            <div className={`gbx-progress-fill gbx-progress-${phase}`} style={{ width: `${progressPct}%` }} />
+          </div>
+        </div>
+      )}
     </header>
   );
 });

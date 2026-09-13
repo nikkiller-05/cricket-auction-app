@@ -1177,6 +1177,130 @@
   }
 }
 
+/* ============================================================
+   Redesigned header controls (2026) — compact, premium, responsive
+   ============================================================ */
+
+/* Keep the three sections in-flow so nothing overlaps the status pill. */
+.header-center { position: static; left: auto; top: auto; transform: none; pointer-events: auto; flex: 0 0 auto; }
+.header-right { flex: 0 0 auto; gap: 0.5rem; }
+
+/* Brand → Tournament */
+.gbx-hd-sep { width: 1px; height: 1.15rem; background: rgba(255,255,255,0.18); flex-shrink: 0; }
+.gbx-hd-tournament {
+  min-width: 0; max-width: 34ch;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font-size: 0.9rem; font-weight: 700; letter-spacing: 0.01em; color: #fde9b8;
+}
+.dash-root[data-theme="light"] .gbx-hd-tournament { color: #4a350a; }
+.dash-root[data-theme="light"] .gbx-hd-sep { background: rgba(74,53,10,0.28); }
+
+/* Semantic status pill */
+.gbx-status {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  padding: 0.34rem 0.8rem; border-radius: 9999px;
+  font-size: 0.7rem; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase;
+  white-space: nowrap; border: 1px solid transparent;
+}
+.gbx-status-dot { width: 0.5rem; height: 0.5rem; border-radius: 9999px; flex-shrink: 0; }
+.gbx-status-live { color: #6ee7b7; background: rgba(16,185,129,0.14); border-color: rgba(16,185,129,0.4); }
+.gbx-status-live .gbx-status-dot { background: #34d399; animation: gbxDotPulse 1.8s ease-out infinite; }
+.gbx-status-paused { color: #fcd34d; background: rgba(245,158,11,0.14); border-color: rgba(245,158,11,0.4); }
+.gbx-status-paused .gbx-status-dot { background: #f59e0b; }
+.gbx-status-notstarted { color: #cbd5e1; background: rgba(148,163,184,0.14); border-color: rgba(148,163,184,0.35); }
+.gbx-status-notstarted .gbx-status-dot { background: #94a3b8; }
+.gbx-status-ended { color: #fca5a5; background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.35); }
+.gbx-status-ended .gbx-status-dot { background: #ef4444; }
+@keyframes gbxDotPulse { 0%,100%{ box-shadow: 0 0 0 0 rgba(52,211,153,0.55);} 50%{ box-shadow: 0 0 0 5px rgba(52,211,153,0);} }
+
+/* Primary action: Start / Pause / Resume */
+.gbx-pa {
+  display: inline-flex; align-items: center; gap: 0.45rem;
+  padding: 0.46rem 1rem; border-radius: 9999px; border: none; cursor: pointer;
+  font-size: 0.82rem; font-weight: 700;
+  box-shadow: 0 6px 16px -6px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.35);
+  transition: transform 0.15s ease, filter 0.2s ease;
+}
+.gbx-pa:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.06); }
+.gbx-pa:disabled { opacity: 0.6; cursor: default; }
+.gbx-pa-ico { font-size: 0.9rem; line-height: 1; }
+.gbx-pa-notstarted, .gbx-pa-paused { background: linear-gradient(135deg,#34d399,#059669); color: #062012; }
+.gbx-pa-live { background: linear-gradient(135deg,#fbbf24,#f59e0b); color: #2a1806; }
+.gbx-pa-spin { width: 1rem; height: 1rem; border: 2px solid rgba(0,0,0,0.25); border-top-color: #000; border-radius: 9999px; animation: spin 1s linear infinite; }
+
+/* Header utility button (Auction Controls trigger) */
+.gbx-menu-wrap { position: relative; }
+.gbx-hd-btn {
+  display: inline-flex; align-items: center; gap: 0.4rem;
+  padding: 0.44rem 0.85rem; border-radius: 9999px; cursor: pointer;
+  font-size: 0.82rem; font-weight: 600; color: #f1f5f9;
+  background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.16);
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+.gbx-hd-btn:hover { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.28); transform: translateY(-1px); }
+.gbx-hd-btn-ico { font-size: 0.95rem; line-height: 1; }
+.dash-root[data-theme="light"] .gbx-hd-btn { color: #3a2a08; background: rgba(74,53,10,0.1); border-color: rgba(74,53,10,0.28); }
+.dash-root[data-theme="light"] .gbx-hd-btn:hover { background: rgba(74,53,10,0.18); }
+
+/* Dark dropdown menu (Auction Controls) */
+.gbx-menu {
+  position: absolute; top: calc(100% + 0.5rem); right: 0;
+  min-width: 210px; max-width: calc(100vw - 2rem);
+  background: #14121c; border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 0.85rem; padding: 0.4rem; z-index: 1200;
+  box-shadow: 0 24px 60px -18px rgba(0,0,0,0.8);
+  animation: dropdownSlide 0.18s ease-out;
+}
+.gbx-menu-head {
+  font-size: 0.65rem; font-weight: 800; letter-spacing: 0.12em; text-transform: uppercase;
+  color: rgba(226,232,240,0.5); padding: 0.4rem 0.6rem 0.35rem;
+}
+.gbx-menu-item {
+  display: flex; align-items: center; gap: 0.6rem; width: 100%;
+  padding: 0.6rem 0.65rem; border-radius: 0.55rem; border: none; background: none;
+  color: #e5e7eb; font-size: 0.85rem; font-weight: 600; cursor: pointer; text-align: left;
+  transition: background 0.16s ease, color 0.16s ease;
+}
+.gbx-menu-item:hover:not(:disabled) { background: rgba(255,255,255,0.07); }
+.gbx-menu-item:disabled { opacity: 0.4; cursor: not-allowed; }
+.gbx-menu-ico { width: 1.1rem; text-align: center; font-size: 0.95rem; flex-shrink: 0; color: #cbd5e1; }
+.gbx-menu-sep { height: 1px; background: rgba(255,255,255,0.08); margin: 0.35rem 0.4rem; }
+.gbx-menu-danger { color: #fca5a5; }
+.gbx-menu-danger:hover { background: rgba(239,68,68,0.14); color: #fecaca; }
+.gbx-menu-danger .gbx-menu-ico { color: #f87171; }
+
+/* Compact progress strip */
+.gbx-progress { max-width: 1400px; margin: 0 auto; padding: 0.3rem 1.5rem 0.5rem; }
+.gbx-progress-meta {
+  display: flex; align-items: center; justify-content: space-between;
+  font-size: 0.72rem; font-weight: 700; color: rgba(255,255,255,0.72);
+  margin-bottom: 0.28rem; letter-spacing: 0.02em;
+}
+.dash-root[data-theme="light"] .gbx-progress-meta { color: rgba(60,42,8,0.75); }
+.gbx-progress-pct { color: #fcd34d; }
+.dash-root[data-theme="light"] .gbx-progress-pct { color: #92400e; }
+.gbx-progress-track { height: 5px; border-radius: 9999px; overflow: hidden; background: rgba(255,255,255,0.12); }
+.dash-root[data-theme="light"] .gbx-progress-track { background: rgba(74,53,10,0.16); }
+.gbx-progress-fill { height: 100%; border-radius: 9999px; transition: width 0.5s cubic-bezier(0.4,0,0.2,1); background: linear-gradient(90deg,#f59e0b,#fcd34d); }
+.gbx-progress-live { background: linear-gradient(90deg,#10b981,#34d399); }
+.gbx-progress-ended { background: linear-gradient(90deg,#64748b,#94a3b8); }
+
+/* Responsive: collapse labels to icons, protect the viewport */
+@media (max-width: 1023px) {
+  .gbx-pa-txt { display: none; }
+  .gbx-hd-btn-txt { display: none; }
+  .gbx-hd-btn { padding: 0.44rem 0.6rem; }
+  .gbx-pa { padding: 0.46rem 0.7rem; }
+}
+@media (max-width: 640px) {
+  .gbx-hd-tournament { max-width: 15ch; font-size: 0.82rem; }
+  .gbx-hd-sep { display: none; }
+  .gbx-status { padding: 0.3rem 0.58rem; font-size: 0.62rem; }
+  .gbx-progress { padding: 0.25rem 1rem 0.45rem; }
+  .gbx-progress-word { display: none; }
+  .gbx-menu { position: fixed; top: 3.75rem; right: 0.75rem; }
+}
+
 /* Focus States for Accessibility */
 .modern-menu-button:focus,
 .download-btn:focus {
