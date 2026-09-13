@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { decodeToken, isExpired, clearAdminSession } from '../../../lib/session';
+import { decodeToken, isExpired, clearAdminSession, clearAllSessions } from '../../../lib/session';
 
 // Resolves admin/spectator identity from router state + stored token, keeps the
 // axios Authorization header in sync, and exposes logout. Extracted verbatim
@@ -35,10 +35,26 @@ export default function useAuth(location) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.state]);
 
+  // Logging out in another tab (or the console) clears the shared token; mirror
+  // that here so the dashboard drops admin access everywhere at once.
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key === 'adminToken' && e.newValue === null) {
+        setIsAdmin(false);
+        setUserRole('spectator');
+        delete axios.defaults.headers.common['Authorization'];
+        navigate('/');
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   const logout = () => {
     setIsAdmin(false);
     setUserRole('spectator');
-    localStorage.removeItem('adminToken');
+    clearAllSessions();
     delete axios.defaults.headers.common['Authorization'];
     navigate('/');
   };

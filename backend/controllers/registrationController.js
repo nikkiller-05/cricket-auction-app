@@ -26,6 +26,7 @@ const slugify = (name) =>
 
 // Only the fields a public visitor is allowed to see.
 const publicEvent = (e) => ({
+  id: e.id,
   slug: e.slug,
   name: e.name,
   registration_open: e.registration_open,
