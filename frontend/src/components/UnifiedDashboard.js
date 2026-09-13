@@ -575,6 +575,7 @@ const UnifiedDashboard = () => {
           fetchActionHistory={fetchActionHistory}
           handleUndoCurrentBid={handleUndoCurrentBid}
           undoLoading={undoLoading}
+          canUndo={canUndo}
         />
 
         {/* Quick Stats */}

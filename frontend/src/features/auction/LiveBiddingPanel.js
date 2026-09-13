@@ -26,6 +26,7 @@ const LiveBiddingPanel = ({
   fetchActionHistory,
   handleUndoCurrentBid,
   undoLoading,
+  canUndo,
 }) => {
   if (!auctionData?.currentBid || !currentPlayer) return null;
 
@@ -264,8 +265,8 @@ const LiveBiddingPanel = ({
               </button>
             </div>
 
-            {/* Undo Controls - Only for super-admin */}
-            {userRole === 'super-admin' && (
+            {/* Undo + Cancel controls — super-admin and the owning organizer */}
+            {canUndo && (
               <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mt-4 pt-4 border-t border-white/15">
                 <button
                   onClick={handleUndoCurrentBid}
@@ -305,8 +306,8 @@ const LiveBiddingPanel = ({
               </div>
             )}
 
-            {/* Cancel Button for Regular Admins (when super-admin controls not shown) */}
-            {isAdmin && userRole !== 'super-admin' && (
+            {/* Cancel-only for admins without undo rights */}
+            {isAdmin && !canUndo && (
               <div className="flex flex-wrap justify-center gap-2 sm:gap-3 mt-4 pt-4 border-t border-white/15">
                 <button
                   onClick={async () => {
