@@ -1204,14 +1204,14 @@
 }
 .gbx-status-dot { width: 0.5rem; height: 0.5rem; border-radius: 9999px; flex-shrink: 0; }
 .gbx-status-live { color: #6ee7b7; background: rgba(16,185,129,0.14); border-color: rgba(16,185,129,0.4); }
-.gbx-status-live .gbx-status-dot { background: #34d399; animation: gbxDotPulse 1.8s ease-out infinite; }
+.gbx-status-live .gbx-status-dot { background: #ef4444; animation: gbxDotPulse 1.8s ease-out infinite; }
 .gbx-status-paused { color: #3a2406; background: linear-gradient(135deg, #fbbf24, #f59e0b); border-color: rgba(180,83,9,0.5); }
 .gbx-status-paused .gbx-status-dot { background: #7c2d12; }
 .gbx-status-notstarted { color: #cbd5e1; background: rgba(148,163,184,0.14); border-color: rgba(148,163,184,0.35); }
 .gbx-status-notstarted .gbx-status-dot { background: #94a3b8; }
 .gbx-status-ended { color: #fca5a5; background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.35); }
 .gbx-status-ended .gbx-status-dot { background: #ef4444; }
-@keyframes gbxDotPulse { 0%,100%{ box-shadow: 0 0 0 0 rgba(52,211,153,0.55);} 50%{ box-shadow: 0 0 0 5px rgba(52,211,153,0);} }
+@keyframes gbxDotPulse { 0%,100%{ box-shadow: 0 0 0 0 rgba(239,68,68,0.6);} 50%{ box-shadow: 0 0 0 5px rgba(239,68,68,0);} }
 
 /* Primary action: Start / Pause / Resume */
 .gbx-pa {
