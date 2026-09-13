@@ -325,6 +325,8 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
   const [selected, setSelected] = useState(null);
   const [modal, setModal] = useState(null); // 'password' | 'profile'
   const [loading, setLoading] = useState(true);
+  const [auctionsLayout, setAuctionsLayout] = useState(() => localStorage.getItem('auctionsLayout') || 'cards');
+  const setAuctionsLayoutPersist = (v) => { setAuctionsLayout(v); localStorage.setItem('auctionsLayout', v); };
 
   const loadEvents = useCallback(async () => {
     try {
@@ -428,30 +430,64 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
           events.length === 0 ? (
             <div className={`${T.card} p-10 text-center ${T.sub}`}>{canManageEvents ? 'Create an event first (Events tab).' : 'No event assigned to you yet.'}</div>
           ) : (
-            <div className="grid gap-3 sm:grid-cols-2">
-              {events.map((ev) => (
-                <div key={ev.id} className={`${T.card} p-4 flex flex-col gap-3`}>
-                  <div className="flex items-center gap-3 min-w-0">
-                    {ev.logo_url
-                      ? <img src={ev.logo_url} alt="" className="w-11 h-11 rounded-xl object-cover flex-shrink-0" />
-                      : <div className="w-11 h-11 rounded-xl bg-amber-400/20 grid place-items-center text-amber-300 font-bold flex-shrink-0">{initials(ev.name)}</div>}
-                    <div className="min-w-0">
-                      <h3 className={`font-bold truncate ${T.heading}`}>{ev.name}</h3>
-                      <p className={`text-xs ${T.sub} truncate`}>Public link: {window.location.origin}/a/{ev.slug}</p>
-                    </div>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
-                    {canImport && (
-                      <button onClick={() => openAuction(ev)} className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 px-4 py-2 text-sm font-semibold shadow hover:-translate-y-0.5 transition">
-                        🎯 Operate auction
-                      </button>
-                    )}
-                    <button onClick={() => { navigator.clipboard?.writeText(`${window.location.origin}/a/${ev.slug}`); showSuccess('Public auction link copied'); }} className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${T.chip}`}>
-                      🔗 Copy public link
-                    </button>
-                  </div>
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className={`text-xs ${T.sub}`}>{events.length} shown</span>
+                <div className={`inline-flex rounded-lg border p-0.5 ${T.soft}`}>
+                  <button onClick={() => setAuctionsLayoutPersist('cards')} title="Card view" className={`px-2.5 py-0.5 rounded-md text-sm ${auctionsLayout === 'cards' ? 'bg-amber-400 text-slate-900' : T.tabIdle}`}>▦</button>
+                  <button onClick={() => setAuctionsLayoutPersist('list')} title="List view" className={`px-2.5 py-0.5 rounded-md text-sm ${auctionsLayout === 'list' ? 'bg-amber-400 text-slate-900' : T.tabIdle}`}>☰</button>
                 </div>
-              ))}
+              </div>
+
+              {auctionsLayout === 'cards' ? (
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {events.map((ev) => (
+                    <div key={ev.id} className={`${T.card} p-4 flex flex-col gap-3`}>
+                      <div className="flex items-center gap-3 min-w-0">
+                        {ev.logo_url
+                          ? <img src={ev.logo_url} alt="" className="w-11 h-11 rounded-xl object-cover flex-shrink-0" />
+                          : <div className="w-11 h-11 rounded-xl bg-amber-400/20 grid place-items-center text-amber-300 font-bold flex-shrink-0">{initials(ev.name)}</div>}
+                        <div className="min-w-0">
+                          <h3 className={`font-bold truncate ${T.heading}`}>{ev.name}</h3>
+                          <p className={`text-xs ${T.sub} truncate`}>Public link: {window.location.origin}/a/{ev.slug}</p>
+                        </div>
+                      </div>
+                      <div className="flex flex-wrap gap-2">
+                        {canImport && (
+                          <button onClick={() => openAuction(ev)} className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 px-4 py-2 text-sm font-semibold shadow hover:-translate-y-0.5 transition">
+                            🎯 Operate auction
+                          </button>
+                        )}
+                        <button onClick={() => { navigator.clipboard?.writeText(`${window.location.origin}/a/${ev.slug}`); showSuccess('Public auction link copied'); }} className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${T.chip}`}>
+                          🔗 Copy public link
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className={`rounded-xl border ${T.card}`}>
+                  {events.map((ev, i) => (
+                    <div key={ev.id} className={`flex items-center gap-3 p-2.5 ${i > 0 ? `border-t ${T.divide}` : ''}`}>
+                      {ev.logo_url
+                        ? <img src={ev.logo_url} alt="" className="w-9 h-9 rounded-lg object-cover flex-shrink-0" />
+                        : <div className="w-9 h-9 rounded-lg bg-amber-400/20 grid place-items-center text-amber-300 font-bold flex-shrink-0">{initials(ev.name)}</div>}
+                      <div className="min-w-0 flex-1">
+                        <h3 className={`font-semibold truncate ${T.heading}`}>{ev.name}</h3>
+                        <p className={`text-xs ${T.sub} truncate`}>{window.location.origin}/a/{ev.slug}</p>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        {canImport && (
+                          <button onClick={() => openAuction(ev)} className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 px-3.5 py-1.5 text-sm font-semibold shadow hover:-translate-y-0.5 transition">
+                            🎯 Operate
+                          </button>
+                        )}
+                        <IconBtn T={T} title="Copy public link" onClick={() => { navigator.clipboard?.writeText(`${window.location.origin}/a/${ev.slug}`); showSuccess('Public auction link copied'); }}><IcoCopy /></IconBtn>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
             </div>
           )
         )}
