@@ -45,7 +45,7 @@ const PORT = process.env.PORT || 5000;
 // or redeploy resumes the auction instead of starting empty.
 dataService.loadSnapshot()
   .then((restored) => {
-    if (restored) console.log('♻️  Restored auction state from Supabase snapshot');
+    if (restored) console.log(`♻️  Restored ${restored} auction(s) from Supabase snapshot`);
   })
   .catch((err) => console.log('⚠️  Snapshot restore skipped:', err.message))
   .finally(() => {

@@ -19,53 +19,70 @@
 const supabase = require('../config/supabase');
 
 const TABLE = 'auction_state';
-const ROW_ID = 'default';
 
 /**
- * Upsert the full serialized auction state into the single snapshot row.
+ * Upsert one auction's serialized state into its own row (id = auctionId).
  */
-async function saveState(state) {
-  if (!supabase || !state) return;
+async function saveState(id, state) {
+  if (!supabase || !id || !state) return;
   try {
     const { error } = await supabase
       .from(TABLE)
       .upsert(
         {
-          id: ROW_ID,
+          id,
           state,
           updated_at: new Date().toISOString(),
         },
         { onConflict: 'id' }
       );
     if (error) {
-      console.log(`   ⚠️  snapshot save error: ${error.message}`);
+      console.log(`   ⚠️  snapshot save error (${id}): ${error.message}`);
     }
   } catch (e) {
-    console.log(`   ⚠️  snapshot save exception: ${e.message}`);
+    console.log(`   ⚠️  snapshot save exception (${id}): ${e.message}`);
   }
 }
 
 /**
- * Load the last saved snapshot. Returns the stored state object, or null if
- * there is no snapshot yet / Supabase is unavailable.
+ * Load one auction's snapshot by id. Returns the stored state object, or null.
  */
-async function loadState() {
-  if (!supabase) return null;
+async function loadState(id) {
+  if (!supabase || !id) return null;
   try {
     const { data, error } = await supabase
       .from(TABLE)
       .select('state')
-      .eq('id', ROW_ID)
+      .eq('id', id)
       .maybeSingle();
     if (error) {
-      console.log(`   ⚠️  snapshot load error: ${error.message}`);
+      console.log(`   ⚠️  snapshot load error (${id}): ${error.message}`);
       return null;
     }
     return data?.state || null;
   } catch (e) {
-    console.log(`   ⚠️  snapshot load exception: ${e.message}`);
+    console.log(`   ⚠️  snapshot load exception (${id}): ${e.message}`);
     return null;
   }
 }
 
-module.exports = { saveState, loadState };
+/**
+ * Load every saved auction snapshot for restore-on-boot.
+ * Returns an array of { id, state }, or [] when unavailable/empty.
+ */
+async function loadAllStates() {
+  if (!supabase) return [];
+  try {
+    const { data, error } = await supabase.from(TABLE).select('id, state');
+    if (error) {
+      console.log(`   ⚠️  snapshot load-all error: ${error.message}`);
+      return [];
+    }
+    return (data || []).filter((r) => r && r.id && r.state);
+  } catch (e) {
+    console.log(`   ⚠️  snapshot load-all exception: ${e.message}`);
+    return [];
+  }
+}
+
+module.exports = { saveState, loadState, loadAllStates };

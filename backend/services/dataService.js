@@ -79,9 +79,12 @@ const snapshotStore = require('./snapshotStore');
 
 const SNAPSHOT_DEBOUNCE_MS = 1000;
 let snapshotTimer = null;
+// Auctions mutated since the last flush; each is written to its own row. The id
+// is captured at schedule time (inside the request context) so a deferred timer
+// never misattributes the write to the default auction.
+const dirtyAuctions = new Set();
 
-function serializeState() {
-  const s = S();
+function serializeStateFor(s) {
   return {
     auctionData: s.auctionData,
     settings: s.settings,
@@ -90,13 +93,19 @@ function serializeState() {
   };
 }
 
-// Throttle-trailing: coalesce a burst of mutations into a single write and
-// never keep the process alive just for a pending snapshot.
+// Throttle-trailing: coalesce a burst of mutations into a single write per
+// auction and never keep the process alive just for a pending snapshot.
 function scheduleSnapshot() {
+  dirtyAuctions.add(currentAuctionId() || DEFAULT_AUCTION_ID);
   if (snapshotTimer) return;
   snapshotTimer = setTimeout(() => {
     snapshotTimer = null;
-    snapshotStore.saveState(serializeState());
+    const ids = Array.from(dirtyAuctions);
+    dirtyAuctions.clear();
+    for (const id of ids) {
+      const s = auctions.get(id);
+      if (s) snapshotStore.saveState(id, serializeStateFor(s));
+    }
   }, SNAPSHOT_DEBOUNCE_MS);
   if (snapshotTimer.unref) snapshotTimer.unref();
 }
@@ -358,25 +367,33 @@ const dataService = {
 
   // --- Persistence API (best-effort; safe no-op when Supabase is off) ---
 
-  // Restore state from the last Supabase snapshot. Call once on startup.
+  // Restore every saved auction from Supabase into the in-memory map. Call once
+  // on startup. Returns the number of auctions restored.
   async loadSnapshot() {
-    const snap = await snapshotStore.loadState();
-    if (!snap) return false;
-    const s = S();
-    if (snap.auctionData) s.auctionData = snap.auctionData;
-    if (snap.settings) s.settings = snap.settings;
-    if (snap.actionHistory) s.actionHistory = snap.actionHistory;
-    if (snap.playerBiddingHistory) s.playerBiddingHistory = snap.playerBiddingHistory;
-    return true;
+    const rows = await snapshotStore.loadAllStates();
+    if (!rows || rows.length === 0) return 0;
+    for (const { id, state } of rows) {
+      if (!state) continue;
+      const s = blankState();
+      if (state.auctionData) s.auctionData = state.auctionData;
+      if (state.settings) s.settings = state.settings;
+      if (state.actionHistory) s.actionHistory = state.actionHistory;
+      if (state.playerBiddingHistory) s.playerBiddingHistory = state.playerBiddingHistory;
+      auctions.set(id, s);
+    }
+    return rows.length;
   },
 
-  // Force an immediate snapshot write (e.g. on graceful shutdown).
+  // Force an immediate write of every auction (e.g. on graceful shutdown).
   async flushSnapshot() {
     if (snapshotTimer) {
       clearTimeout(snapshotTimer);
       snapshotTimer = null;
     }
-    await snapshotStore.saveState(serializeState());
+    dirtyAuctions.clear();
+    for (const [id, s] of auctions) {
+      await snapshotStore.saveState(id, serializeStateFor(s));
+    }
   }
 };
 
