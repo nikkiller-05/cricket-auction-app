@@ -1,11 +1,8 @@
 // Builds the dashboard tab list for a given role. Pure so it is unit-testable.
 export const buildDashboardTabs = ({
   isAdmin,
-  userRole,
-  canConfigure,
   playersCount = 0,
   teamsCount = 0,
-  unsoldCount = 0,
 }) => {
   const spectatorTabs = [
     { id: 'live', name: 'Live Status', icon: '🔴' },
@@ -16,16 +13,11 @@ export const buildDashboardTabs = ({
 
   if (!isAdmin) return spectatorTabs;
 
-  // Prefer the authoritative flag from the backend; fall back to role for tests.
-  const configurable =
-    typeof canConfigure === 'boolean' ? canConfigure : ['super-admin', 'admin'].includes(userRole);
-  const baseAdminTabs = [{ id: 'live', name: 'Live Status', icon: '🔴' }];
-  const configTabs = [{ id: 'reset', name: 'Auction Tools', icon: '🔄', badge: unsoldCount }];
-  const commonTabs = [
+  // Auction Tools (reset / fast-track / end) moved into the header controls menu.
+  return [
+    { id: 'live', name: 'Live Status', icon: '🔴' },
     { id: 'players', name: 'Players', icon: '👥', count: playersCount },
     { id: 'teamsquads', name: 'Squads', icon: '🏏', count: teamsCount },
     { id: 'stats', name: 'Statistics', icon: '📊' },
   ];
-
-  return [...baseAdminTabs, ...(configurable ? configTabs : []), ...commonTabs];
 };

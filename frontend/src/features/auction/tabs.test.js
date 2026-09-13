@@ -5,7 +5,7 @@ test('spectators get the read-only tab set', () => {
   expect(ids).toEqual(['live', 'teams', 'players', 'stats']);
 });
 
-test('super-admin gets config tabs including Auction Tools with the unsold badge', () => {
+test('admins get the operator tab set (Auction Tools moved to the header menu)', () => {
   const tabs = buildDashboardTabs({
     isAdmin: true,
     userRole: 'super-admin',
@@ -14,12 +14,11 @@ test('super-admin gets config tabs including Auction Tools with the unsold badge
     unsoldCount: 4,
   });
   const ids = tabs.map((t) => t.id);
-  expect(ids).toEqual(['live', 'reset', 'players', 'teamsquads', 'stats']);
-  expect(tabs.find((t) => t.id === 'reset').badge).toBe(4);
+  expect(ids).toEqual(['live', 'players', 'teamsquads', 'stats']);
   expect(tabs.find((t) => t.id === 'players').count).toBe(30);
 });
 
-test('sub-admin (cannot configure) has no config tabs', () => {
+test('sub-admin gets the same operator tab set', () => {
   const ids = buildDashboardTabs({ isAdmin: true, userRole: 'sub-admin' }).map((t) => t.id);
   expect(ids).toEqual(['live', 'players', 'teamsquads', 'stats']);
 });

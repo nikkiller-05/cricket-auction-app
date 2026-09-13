@@ -3,7 +3,6 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import PlayerUploadModal from './PlayerUploadModal';
 import TeamManagement from './TeamManagement';
-import ResetControls from './ResetControls';
 import PlayersList from './PlayersList';
 import PlayerFormModal from './PlayerFormModal';
 import TeamSquadsModal from './TeamSquadsModal';
@@ -339,6 +338,53 @@ const UnifiedDashboard = () => {
     }
   };
 
+  // Auction Tools (folded from the old Auction Tools tab) — existing endpoints.
+  const handleResetAuction = async () => {
+    const ok = await confirm(
+      'Reset the entire auction? All players go back to available, team budgets are restored, and bids are cleared. Manually assigned captains stay. This cannot be undone.',
+      'Reset Auction?'
+    );
+    if (!ok) return;
+    try {
+      const res = await axios.post(`${API_BASE_URL}/api/auction/reset`);
+      showSuccess(res.data?.message || 'Auction reset', 'Reset Complete');
+      fetchAuctionData();
+    } catch (error) {
+      showError(error.response?.data?.error || 'Error resetting auction');
+    }
+  };
+
+  const handleStartFastTrack = async () => {
+    const unsold = unsoldPlayers.length;
+    if (unsold === 0) {
+      showWarning('No unsold players available for fast track', 'No Players Available');
+      return;
+    }
+    const ok = await confirm(
+      `Start Fast Track for ${unsold} unsold player(s)? They move back to available for bidding.`,
+      'Start Fast Track?'
+    );
+    if (!ok) return;
+    try {
+      await axios.post(`${API_BASE_URL}/api/auction/fast-track/start`);
+    } catch (error) {
+      showError(error.response?.data?.error || 'Error starting fast track');
+    }
+  };
+
+  const handleEndFastTrack = async () => {
+    const ok = await confirm(
+      'End Fast Track? Returns to the main auction if players remain, or finishes the auction if none are left.',
+      'End Fast Track?'
+    );
+    if (!ok) return;
+    try {
+      await axios.post(`${API_BASE_URL}/api/auction/fast-track/end`);
+    } catch (error) {
+      showError(error.response?.data?.error || 'Error ending fast track');
+    }
+  };
+
   if (loading) {
     return (
       <div className="dash-root min-h-screen flex items-center justify-center" data-theme={theme}>
@@ -467,9 +513,13 @@ const UnifiedDashboard = () => {
         )}
         undoLoading={undoLoading}
         canUndo={canUndo}
-        onRevertBid={handleUndoCurrentBid}
-        canRevertBid={!!auctionData.currentBid}
         onEndAuction={isAdmin && canConfigure ? handleEndAuction : null}
+        onResetAuction={isAdmin && canConfigure ? handleResetAuction : null}
+        onStartFastTrack={isAdmin && canConfigure ? handleStartFastTrack : null}
+        onEndFastTrack={isAdmin && canConfigure ? handleEndFastTrack : null}
+        isFastTrack={auctionData.auctionStatus === 'fast-track'}
+        unsoldCount={unsoldPlayers.length}
+        fileUploaded={auctionData.fileUploaded}
         progressCompleted={soldPlayers.length + unsoldPlayers.length}
         progressTotal={auctionData.players?.length || 0}
         auctionStatus={auctionData.auctionStatus}
@@ -607,10 +657,6 @@ const UnifiedDashboard = () => {
 
           {/* Admin-only tabs with role restrictions */}
           {/* Upload Players moved to modal - see PlayerUploadModal component */}
-
-          {isAdmin && activeTab === 'reset' && canConfigure && (
-            <ResetControls auctionData={auctionData} onReset={fetchAuctionData} />
-          )}
 
           {/* NEW: Sub-Admin Management Tab (admin and super-admin only) */}
           {isAdmin && activeTab === 'subadmins' && canConfigure && (

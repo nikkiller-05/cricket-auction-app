@@ -27,9 +27,13 @@ const Header = memo(({
   canConfigure = false,
   eventName = '',
   canUndo = false,
-  onRevertBid = null,
-  canRevertBid = false,
   onEndAuction = null,
+  onResetAuction = null,
+  onStartFastTrack = null,
+  onEndFastTrack = null,
+  isFastTrack = false,
+  unsoldCount = 0,
+  fileUploaded = false,
   progressCompleted = 0,
   progressTotal = 0
 }) => {
@@ -55,7 +59,9 @@ const Header = memo(({
   const primaryLabel = phase === 'live' ? 'Pause' : phase === 'paused' ? 'Resume' : 'Start';
   const showControls =
     !isSpectator &&
-    ((canUndo && (onUndoLastSale || onRevertBid)) || (canConfigure && onEndAuction && !isEnded));
+    ((canUndo && onUndoLastSale) ||
+      (canConfigure &&
+        (onResetAuction || onStartFastTrack || onEndFastTrack || (onEndAuction && !isEnded))));
   const progressPct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   // Close dropdown when clicking outside
@@ -198,14 +204,33 @@ const Header = memo(({
                       <span className="gbx-menu-ico">↶</span> Undo Sale
                     </button>
                   )}
-                  {canUndo && onRevertBid && (
+                  {canConfigure && isFastTrack && onEndFastTrack && (
                     <button
                       className="gbx-menu-item"
                       role="menuitem"
-                      disabled={!canRevertBid}
-                      onClick={() => { setIsControlsOpen(false); onRevertBid(); }}
+                      onClick={() => { setIsControlsOpen(false); onEndFastTrack(); }}
                     >
-                      <span className="gbx-menu-ico">↶</span> Revert Bid
+                      <span className="gbx-menu-ico">⚡</span> End Fast Track
+                    </button>
+                  )}
+                  {canConfigure && !isFastTrack && onStartFastTrack && (
+                    <button
+                      className="gbx-menu-item"
+                      role="menuitem"
+                      disabled={unsoldCount === 0}
+                      onClick={() => { setIsControlsOpen(false); onStartFastTrack(); }}
+                    >
+                      <span className="gbx-menu-ico">⚡</span> Start Fast Track{unsoldCount ? ` (${unsoldCount})` : ''}
+                    </button>
+                  )}
+                  {canConfigure && onResetAuction && (
+                    <button
+                      className="gbx-menu-item"
+                      role="menuitem"
+                      disabled={!fileUploaded}
+                      onClick={() => { setIsControlsOpen(false); onResetAuction(); }}
+                    >
+                      <span className="gbx-menu-ico">🔄</span> Reset Auction
                     </button>
                   )}
                   {canConfigure && onEndAuction && !isEnded && (
