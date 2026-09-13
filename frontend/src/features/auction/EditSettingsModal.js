@@ -244,7 +244,7 @@ const EditSettingsModal = ({
         </div>
 
         {/* Modal Footer */}
-        <div className="sticky bottom-0 bg-gray-50 border-t px-4 sm:px-6 py-3 sm:py-4 flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3">
+        <div className="sticky bottom-0 bg-gray-50 px-4 sm:px-6 py-3 sm:py-4 flex flex-col-reverse sm:flex-row justify-end gap-2 sm:gap-3">
           <button
             onClick={onClose}
             disabled={saving}
