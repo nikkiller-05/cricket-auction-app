@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 const ctrl = require('../controllers/registrationController');
 const {
-  verifyConfigPermission,
   verifyRegistrationManager,
 } = require('../middlewares/authMiddleware');
 
@@ -22,7 +21,7 @@ router.get('/events/:eventId/export', verifyRegistrationManager, ctrl.exportRegi
 router.patch('/registrations/:id/status', verifyRegistrationManager, ctrl.setRegistrationStatus);
 router.delete('/registrations/:id', verifyRegistrationManager, ctrl.deleteRegistration);
 
-// ---- Import verified players into the live auction (admin / super-admin) ----
-router.post('/events/:eventId/import-to-auction', verifyConfigPermission, ctrl.importToAuction);
+// ---- Import verified players into the event's live auction (super-admin / admin / owning organizer) ----
+router.post('/events/:eventId/import-to-auction', verifyRegistrationManager, ctrl.importToAuction);
 
 module.exports = router;

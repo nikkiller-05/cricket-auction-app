@@ -50,6 +50,12 @@ const UnifiedDashboard = () => {
 
   const { isAdmin, userRole, logout } = useAuth(location);
   const [activeTab, setActiveTab] = useState('live');
+  // Multi-tenant: an event-scoped auction is addressed by ?auctionId=<event.id>.
+  // Absent (the classic main auction) it falls back to the shared 'default'.
+  const auctionId = useMemo(
+    () => new URLSearchParams(location.search).get('auctionId') || 'default',
+    [location.search]
+  );
   const {
     selectionMode,
     setSelectionMode,
@@ -82,6 +88,7 @@ const UnifiedDashboard = () => {
     setCurrentPage,
     setCelebration,
     notify: { showSuccess, showWarning, showInfo },
+    auctionId,
   });
 
   // Seed the activity feed once from the initial data; afterwards the socket
@@ -424,6 +431,7 @@ const UnifiedDashboard = () => {
         }
         userRole={userRole}
         onLogout={logout}
+        onConsole={['super-admin', 'admin', 'organizer'].includes(userRole) ? () => navigate('/console') : null}
         isAuctionOn={['running', 'fast-track'].includes(auctionData.auctionStatus)}
         onToggleAuction={isAdmin ? handleAuctionToggle : null}
         auctionLoading={auctionToggleLoading}

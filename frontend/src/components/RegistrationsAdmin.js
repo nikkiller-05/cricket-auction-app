@@ -4,7 +4,7 @@ import { useNotification } from './NotificationSystem';
 import BrandFooter from './BrandFooter';
 
 import { API_BASE_URL } from '../config';
-import { decodeToken, isExpired, clearConsoleSession } from '../lib/session';
+import { decodeToken, isExpired, clearConsoleSession, clearAllSessions, saveSession } from '../lib/session';
 
 // Isolated axios instance so this page's auth never clobbers the dashboard's.
 const api = axios.create({ baseURL: API_BASE_URL, timeout: 25000 });
@@ -116,9 +116,21 @@ const RegistrationsAdmin = () => {
     setBooting(false);
   }, []);
 
+  // Sign out here logs the user out everywhere (dashboard + console). A storage
+  // event mirrors that logout into any other open tab.
+  useEffect(() => {
+    const onStorage = (e) => {
+      if (e.key === 'regToken' && e.newValue === null) {
+        setAuth(null);
+        window.location.href = '/';
+      }
+    };
+    window.addEventListener('storage', onStorage);
+    return () => window.removeEventListener('storage', onStorage);
+  }, []);
+
   const onLogout = () => {
-    localStorage.removeItem('regToken');
-    localStorage.removeItem('regUser');
+    clearAllSessions();
     delete api.defaults.headers.common.Authorization;
     setAuth(null);
     // Return to the public landing page after signing out.
@@ -152,8 +164,7 @@ const LoginView = ({ onAuthed, showSuccess, showError, T, theme, toggleTheme }) 
         return;
       }
       api.defaults.headers.common.Authorization = `Bearer ${token}`;
-      localStorage.setItem('regToken', token);
-      localStorage.setItem('regUser', JSON.stringify(user));
+      saveSession(token, user);
       onAuthed({ token, user });
     } catch (err) {
       showError(err.response?.data?.error || 'Login failed');
@@ -304,7 +315,7 @@ const ProfileMenu = ({ auth, onChangePassword, onProfile, onLogout, onTestEmail,
 const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showConfirm, T, theme, toggleTheme }) => {
   const isSuper = auth.user.role === 'super-admin';
   const isOrganizer = auth.user.role === 'organizer';
-  const canImport = ['super-admin', 'admin'].includes(auth.user.role);
+  const canImport = ['super-admin', 'admin', 'organizer'].includes(auth.user.role);
   const canManageEvents = isSuper || isOrganizer || auth.user.role === 'admin';
   const canAssignOrganizer = isSuper || auth.user.role === 'admin';
 
@@ -983,6 +994,11 @@ const RegistrationsPanel = ({ event, canImport, reloadEvents, showSuccess, showE
           {canImport && (
             <button onClick={importToAuction} disabled={importing} className="rounded-full bg-gradient-to-b from-emerald-500 to-teal-600 text-white px-4 py-2 text-sm font-semibold shadow hover:-translate-y-0.5 transition disabled:opacity-50">
               {importing ? 'Importing…' : '⬇ Import to auction'}
+            </button>
+          )}
+          {canImport && (
+            <button onClick={() => { window.location.href = `/dashboard?auctionId=${encodeURIComponent(event.id)}`; }} className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 px-4 py-2 text-sm font-semibold shadow hover:-translate-y-0.5 transition">
+              🎯 Operate auction
             </button>
           )}
         </div>

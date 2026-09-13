@@ -54,6 +54,17 @@ export function clearAllSessions() {
   clearConsoleSession();
 }
 
+// Sign in once, everywhere. The backend issues a single JWT for every role, so
+// one login authenticates both the operator dashboard (adminToken) and the
+// organizer console (regToken). Writing both keys keeps the two surfaces in
+// sync while clearAllSessions() logs the user out of all of them at once.
+export function saveSession(token, user) {
+  if (!token) return;
+  localStorage.setItem(ADMIN_TOKEN, token);
+  localStorage.setItem(REG_TOKEN, token);
+  if (user) localStorage.setItem(REG_USER, JSON.stringify(user));
+}
+
 // Inspect both stored sessions, purging any that are expired/malformed.
 // Returns { admin, console } where each is null or { token, user, destination }.
 export function getSessions() {

@@ -1,7 +1,7 @@
 const express = require('express');
 const router = express.Router();
 const auctionController = require('../controllers/auctionController');
-const { verifyConfigPermission, verifyBiddingPermission, verifySuperAdmin } = require('../middlewares/authMiddleware');
+const { requireAuctionAccess } = require('../middlewares/authMiddleware');
 
 // Debug logging
 console.log('Loading auction routes...');
@@ -10,39 +10,39 @@ console.log('Controller methods:', Object.keys(auctionController));
 // Public routes
 router.get('/data', auctionController.getAuctionData);
 
-// Configuration routes (admin/super-admin only)
-router.post('/settings', verifyConfigPermission, auctionController.saveSettings);
-router.get('/config', verifyConfigPermission, auctionController.getConfig);
-router.put('/config', verifyConfigPermission, auctionController.updateConfig);
-router.post('/features', verifyConfigPermission, auctionController.updateFeatures);
-router.post('/start', verifyConfigPermission, auctionController.startAuction);
-router.post('/stop', verifyConfigPermission, auctionController.stopAuction);
-router.post('/finish', verifyConfigPermission, auctionController.finishAuction);
-router.post('/reset', verifyConfigPermission, auctionController.resetAuction);
+// Configuration routes (admin/super-admin on main auction; owner-organizer/super on event auctions)
+router.post('/settings', requireAuctionAccess('config'), auctionController.saveSettings);
+router.get('/config', requireAuctionAccess('config'), auctionController.getConfig);
+router.put('/config', requireAuctionAccess('config'), auctionController.updateConfig);
+router.post('/features', requireAuctionAccess('config'), auctionController.updateFeatures);
+router.post('/start', requireAuctionAccess('config'), auctionController.startAuction);
+router.post('/stop', requireAuctionAccess('config'), auctionController.stopAuction);
+router.post('/finish', requireAuctionAccess('config'), auctionController.finishAuction);
+router.post('/reset', requireAuctionAccess('config'), auctionController.resetAuction);
 
-// Fast track routes (admin/super-admin only)
-router.post('/fast-track/start', verifyConfigPermission, auctionController.startFastTrack);
-router.post('/fast-track/end', verifyConfigPermission, auctionController.endFastTrack);
+// Fast track routes
+router.post('/fast-track/start', requireAuctionAccess('config'), auctionController.startFastTrack);
+router.post('/fast-track/end', requireAuctionAccess('config'), auctionController.endFastTrack);
 
-// Smart Random selection / mystery-reveal flow (all admin roles)
-router.post('/selection/pick', verifyBiddingPermission, auctionController.pickPlayer);
-router.post('/selection/reveal', verifyBiddingPermission, auctionController.revealPlayer);
-router.post('/selection/cancel', verifyBiddingPermission, auctionController.cancelSelection);
+// Smart Random selection / mystery-reveal flow
+router.post('/selection/pick', requireAuctionAccess('bid'), auctionController.pickPlayer);
+router.post('/selection/reveal', requireAuctionAccess('bid'), auctionController.revealPlayer);
+router.post('/selection/cancel', requireAuctionAccess('bid'), auctionController.cancelSelection);
 
-// Bidding routes (all admin roles including sub-admin)
-router.post('/bidding/start/:playerId', verifyBiddingPermission, auctionController.startBidding);
-router.post('/bidding/place', verifyBiddingPermission, auctionController.placeBid);
-router.post('/bidding/sell', verifyBiddingPermission, auctionController.sellPlayer);
-router.post('/bidding/unsold', verifyBiddingPermission, auctionController.markUnsold);
-router.post('/bidding/cancel', verifyBiddingPermission, auctionController.cancelBidding);
+// Bidding routes
+router.post('/bidding/start/:playerId', requireAuctionAccess('bid'), auctionController.startBidding);
+router.post('/bidding/place', requireAuctionAccess('bid'), auctionController.placeBid);
+router.post('/bidding/sell', requireAuctionAccess('bid'), auctionController.sellPlayer);
+router.post('/bidding/unsold', requireAuctionAccess('bid'), auctionController.markUnsold);
+router.post('/bidding/cancel', requireAuctionAccess('bid'), auctionController.cancelBidding);
 
-// Correct a sold player's price (admin + super-admin)
-router.post('/edit-sale-price', verifyConfigPermission, auctionController.editSalePrice);
+// Correct a sold player's price
+router.post('/edit-sale-price', requireAuctionAccess('config'), auctionController.editSalePrice);
 
-// NEW: Undo functionality (super-admin only)
-router.post('/undo/sale', verifySuperAdmin, auctionController.undoLastSale);
-router.post('/undo/bid', verifySuperAdmin, auctionController.undoCurrentBid);
-router.get('/history', verifySuperAdmin, auctionController.getActionHistory);
+// Undo functionality (super-admin on main auction; owner-organizer/super on event auctions)
+router.post('/undo/sale', requireAuctionAccess('undo'), auctionController.undoLastSale);
+router.post('/undo/bid', requireAuctionAccess('undo'), auctionController.undoCurrentBid);
+router.get('/history', requireAuctionAccess('undo'), auctionController.getActionHistory);
 
 console.log('Auction routes loaded successfully');
 module.exports = router;

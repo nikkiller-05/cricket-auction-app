@@ -15,6 +15,7 @@ const UnifiedDashboard = lazy(() => import('./components/UnifiedDashboard'));
 const RegisterPage = lazy(() => import('./components/RegisterPage'));
 const RegistrationsAdmin = lazy(() => import('./components/RegistrationsAdmin'));
 const ResetPasswordPage = lazy(() => import('./components/ResetPasswordPage'));
+const PublicAuctionPage = lazy(() => import('./components/PublicAuctionPage'));
 
 // Loading component for suspense fallback
 const LoadingSpinner = () => (
@@ -46,6 +47,9 @@ function App() {
               
               {/* Public player registration form */}
               <Route path="/register/:slug" element={<RegisterPage />} />
+
+              {/* Public view-only live auction */}
+              <Route path="/a/:slug" element={<PublicAuctionPage />} />
               
               {/* Organizer / admin dashboard (renamed from /registrations) */}
               <Route path="/console" element={<RegistrationsAdmin />} />

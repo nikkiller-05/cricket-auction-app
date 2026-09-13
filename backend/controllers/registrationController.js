@@ -3,6 +3,7 @@ const { v4: uuidv4 } = require('uuid');
 const registrationService = require('../services/registrationService');
 const dataService = require('../services/dataService');
 const socketService = require('../services/socketService');
+const { runWithAuction } = require('../services/auctionContext');
 const { calculateStats } = require('../utils/biddingRules');
 
 // In-memory multipart handling; files are streamed to Supabase Storage.
@@ -25,6 +26,7 @@ const slugify = (name) =>
 
 // Only the fields a public visitor is allowed to see.
 const publicEvent = (e) => ({
+  id: e.id,
   slug: e.slug,
   name: e.name,
   registration_open: e.registration_open,
@@ -340,64 +342,74 @@ const registrationController = {
     }
   },
 
-  // ---------- Import verified registrations into the live auction ----------
+  // ---------- Import verified registrations into the event's live auction ----------
   async importToAuction(req, res) {
     try {
       const { eventId } = req.params;
+      const event = await registrationService.getEventById(eventId);
+      if (!event) return res.status(404).json({ error: 'Event not found' });
+      // Organizers may only import their own event; super-admin/admin may import any.
+      if (req.user?.role === 'organizer' && String(event.organizer_id) !== String(req.user.id)) {
+        return res.status(403).json({ error: 'Not authorized for this event' });
+      }
+
       const verified = await registrationService.getVerifiedRegistrations(eventId);
       if (verified.length === 0) return res.status(400).json({ error: 'No verified players to import for this event' });
 
-      const players = dataService.getPlayers();
-      const existingKeys = new Set(
-        players.map((p) => (p.cricHeroesLink || '').trim().toLowerCase() || (p.mobile || '').trim())
-      );
+      // Scope every write + socket emit to THIS event's isolated auction (auctionId = event.id).
+      const result = runWithAuction(String(eventId), () => {
+        const players = dataService.getPlayers();
+        const existingKeys = new Set(
+          players.map((p) => (p.cricHeroesLink || '').trim().toLowerCase() || (p.mobile || '').trim())
+        );
 
-      let imported = 0;
-      verified.forEach((r) => {
-        const key = (r.profile_link || '').trim().toLowerCase() || (r.mobile || '').trim();
-        if (key && existingKeys.has(key)) return; // dedupe
-        existingKeys.add(key);
-        players.push({
-          id: uuidv4(),
-          slNo: players.length + 1,
-          name: r.name,
-          role: r.role,
-          category: ROLE_TO_CATEGORY[r.role] || 'other',
-          cricHeroesLink: r.profile_link || '',
-          manualId: '',
-          imageUrl: r.profile_pic_url || '',
-          mobile: r.mobile || '',
-          matches: r.matches || '',
-          runs: r.runs || '',
-          battingAvg: '',
-          highestScore: '',
-          wickets: r.wickets || '',
-          economy: '',
-          bestBowling: '',
-          strikeRate: '',
-          status: 'available',
-          currentBid: 0,
-          finalBid: 0,
-          team: null,
-          biddingTeam: null,
+        let imported = 0;
+        verified.forEach((r) => {
+          const key = (r.profile_link || '').trim().toLowerCase() || (r.mobile || '').trim();
+          if (key && existingKeys.has(key)) return; // dedupe
+          existingKeys.add(key);
+          players.push({
+            id: uuidv4(),
+            slNo: players.length + 1,
+            name: r.name,
+            role: r.role,
+            category: ROLE_TO_CATEGORY[r.role] || 'other',
+            cricHeroesLink: r.profile_link || '',
+            manualId: '',
+            imageUrl: r.profile_pic_url || '',
+            mobile: r.mobile || '',
+            matches: r.matches || '',
+            runs: r.runs || '',
+            battingAvg: '',
+            highestScore: '',
+            wickets: r.wickets || '',
+            economy: '',
+            bestBowling: '',
+            strikeRate: '',
+            status: 'available',
+            currentBid: 0,
+            finalBid: 0,
+            team: null,
+            biddingTeam: null,
+          });
+          imported++;
         });
-        imported++;
+
+        dataService.setPlayers(players);
+        // Mark the auction as populated so the Players tab renders (mirrors the upload flow).
+        const fileName = event?.name ? `${event.name} (registrations)` : 'Registrations import';
+        dataService.updateAuctionData({ fileUploaded: true, fileName });
+        const teams = dataService.ensureTeamsInitialized();
+        const stats = calculateStats(players);
+        dataService.updateStats(stats);
+        socketService.emit('playersUpdated', players);
+        socketService.emit('teamsUpdated', teams);
+        socketService.emit('statsUpdated', stats);
+        socketService.emit('fileUploaded', { fileName, playerCount: players.length });
+        return { imported, total: players.length };
       });
 
-      dataService.setPlayers(players);
-      // Mark the auction as populated so the Players tab renders (mirrors the upload flow).
-      const event = await registrationService.getEventById(eventId);
-      const fileName = event?.name ? `${event.name} (registrations)` : 'Registrations import';
-      dataService.updateAuctionData({ fileUploaded: true, fileName });
-      const teams = dataService.ensureTeamsInitialized();
-      const stats = calculateStats(players);
-      dataService.updateStats(stats);
-      socketService.emit('playersUpdated', players);
-      socketService.emit('teamsUpdated', teams);
-      socketService.emit('statsUpdated', stats);
-      socketService.emit('fileUploaded', { fileName, playerCount: players.length });
-
-      res.json({ message: `Imported ${imported} player(s)`, imported, skipped: verified.length - imported });
+      res.json({ message: `Imported ${result.imported} player(s)`, imported: result.imported, skipped: verified.length - result.imported });
     } catch (e) {
       res.status(500).json({ error: e.message });
     }
