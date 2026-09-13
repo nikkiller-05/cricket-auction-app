@@ -15,7 +15,6 @@ const LiveBiddingPanel = ({
   currentPlayer,
   biddingTeam,
   isAdmin,
-  userRole,
   customBidTeamId,
   setCustomBidTeamId,
   customBidAmount,
@@ -214,7 +213,7 @@ const LiveBiddingPanel = ({
                 onClick={async () => {
                   try {
                     await axios.post(`${API_BASE_URL}/api/auction/bidding/sell`);
-                    if (userRole === 'super-admin') {
+                    if (canUndo) {
                       fetchActionHistory();
                     }
                   } catch (error) {
@@ -241,7 +240,7 @@ const LiveBiddingPanel = ({
                 onClick={async () => {
                   try {
                     await axios.post(`${API_BASE_URL}/api/auction/bidding/unsold`);
-                    if (userRole === 'super-admin') {
+                    if (canUndo) {
                       fetchActionHistory();
                     }
                   } catch (error) {

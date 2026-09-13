@@ -1243,6 +1243,18 @@
 .dash-root[data-theme="light"] .gbx-hd-btn { color: #3730a3; background: rgba(99,102,241,0.16); border-color: rgba(79,70,229,0.42); }
 .dash-root[data-theme="light"] .gbx-hd-btn:hover { background: rgba(99,102,241,0.26); border-color: rgba(79,70,229,0.55); }
 
+/* Controls = slate/grey pill (both themes) */
+.gbx-hd-grey { color: #e5e7eb; background: rgba(148,163,184,0.2); border-color: rgba(148,163,184,0.42); }
+.gbx-hd-grey:hover { background: rgba(148,163,184,0.32); border-color: rgba(148,163,184,0.6); }
+.dash-root[data-theme="light"] .gbx-hd-grey { color: #334155; background: rgba(100,116,139,0.18); border-color: rgba(71,85,105,0.42); }
+.dash-root[data-theme="light"] .gbx-hd-grey:hover { background: rgba(100,116,139,0.28); border-color: rgba(71,85,105,0.55); }
+
+/* Export = deep sky-blue pill (both themes) */
+.gbx-hd-sky { color: #bae6fd; background: rgba(2,132,199,0.3); border-color: rgba(56,189,248,0.45); }
+.gbx-hd-sky:hover { background: rgba(2,132,199,0.44); border-color: rgba(56,189,248,0.62); }
+.dash-root[data-theme="light"] .gbx-hd-sky { color: #075985; background: rgba(2,132,199,0.16); border-color: rgba(3,105,161,0.45); }
+.dash-root[data-theme="light"] .gbx-hd-sky:hover { background: rgba(2,132,199,0.26); border-color: rgba(3,105,161,0.6); }
+
 /* Status pill — light theme (cream header needs darker ink + stronger fills) */
 .dash-root[data-theme="light"] .gbx-status-live {
   color: #ffffff;

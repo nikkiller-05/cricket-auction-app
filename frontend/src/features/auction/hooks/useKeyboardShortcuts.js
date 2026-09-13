@@ -8,7 +8,8 @@ import { computeNextBid } from '../../../domain/bidding';
 // sale/unsold, Ctrl+B undo bid, number keys 1-9 quick team bids (teams < 10).
 // Extracted verbatim from UnifiedDashboard — behavior is intentionally unchanged.
 export default function useKeyboardShortcuts({
-  userRole,
+  isAdmin,
+  canUndo,
   undoLoading,
   auctionData,
   actionHistory,
@@ -17,14 +18,14 @@ export default function useKeyboardShortcuts({
   showError,
 }) {
   useEffect(() => {
-    if (userRole !== 'super-admin') return undefined;
+    if (!isAdmin) return undefined;
 
     const handleKeyDown = (e) => {
       // Prevent keyboard shortcuts when typing in input fields
       if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
 
       // Ctrl+Z or Cmd+Z: Smart undo (bid if active, otherwise last sale/unsold)
-      if ((e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
+      if (canUndo && (e.ctrlKey || e.metaKey) && e.key === 'z' && !e.shiftKey) {
         e.preventDefault();
         if (undoLoading) return;
 
@@ -36,7 +37,7 @@ export default function useKeyboardShortcuts({
       }
 
       // Ctrl+Shift+Z: Undo Last Sale/Unsold
-      if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'Z') {
+      if (canUndo && (e.ctrlKey || e.metaKey) && e.shiftKey && e.key === 'Z') {
         e.preventDefault();
         if (!undoLoading) {
           handleUndoLastSale();
@@ -44,7 +45,7 @@ export default function useKeyboardShortcuts({
       }
 
       // Ctrl+B: Undo Last Bid
-      if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+      if (canUndo && (e.ctrlKey || e.metaKey) && e.key === 'b') {
         e.preventDefault();
         if (auctionData?.currentBid && !undoLoading) {
           handleUndoCurrentBid();
@@ -87,7 +88,8 @@ export default function useKeyboardShortcuts({
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, [
-    userRole,
+    isAdmin,
+    canUndo,
     undoLoading,
     auctionData,
     actionHistory,

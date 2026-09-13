@@ -237,7 +237,8 @@ const UnifiedDashboard = () => {
 
   // Super-admin keyboard shortcuts (undo + quick team bids).
   useKeyboardShortcuts({
-    userRole,
+    isAdmin,
+    canUndo,
     undoLoading,
     auctionData,
     actionHistory,

@@ -182,7 +182,7 @@ const Header = memo(({
             <div className="gbx-menu-wrap" ref={controlsRef}>
               <button
                 type="button"
-                className="gbx-hd-btn"
+                className="gbx-hd-btn gbx-hd-grey"
                 onClick={() => setIsControlsOpen((v) => !v)}
                 aria-haspopup="true"
                 aria-expanded={isControlsOpen}
@@ -255,7 +255,7 @@ const Header = memo(({
             <div className="download-dropdown-container" ref={downloadDropdownRef}>
               <button
                 onClick={() => setIsDownloadDropdownOpen(!isDownloadDropdownOpen)}
-                className="gbx-hd-btn"
+                className="gbx-hd-btn gbx-hd-sky"
                 title="Export"
               >
                 <svg className="gbx-hd-btn-svg" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -424,20 +424,6 @@ const Header = memo(({
                   </button>
                 )}
 
-                {/* Return to the organizer console (multi-tenant nav) */}
-                {onConsole && (
-                  <button
-                    onClick={() => { setIsDropdownOpen(false); onConsole(); }}
-                    className="logout-option"
-                    role="menuitem"
-                  >
-                    <svg className="logout-option-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
-                    </svg>
-                    Console
-                  </button>
-                )}
-
                 {/* Appearance toggle (moved out of the header bar) */}
                 <button
                   onClick={() => toggleTheme()}
@@ -447,8 +433,22 @@ const Header = memo(({
                   <svg className="menu-option-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
                   </svg>
-                  {theme === 'dark' ? 'Light appearance' : 'Dark appearance'}
+                  {theme === 'dark' ? 'Light theme' : 'Dark theme'}
                 </button>
+
+                {/* Return to the organizer console (multi-tenant nav) */}
+                {onConsole && (
+                  <button
+                    onClick={() => { setIsDropdownOpen(false); onConsole(); }}
+                    className="menu-option"
+                    role="menuitem"
+                  >
+                    <svg className="menu-option-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
+                    </svg>
+                    Console
+                  </button>
+                )}
 
                 {/* Logout Option */}
                 <button 
