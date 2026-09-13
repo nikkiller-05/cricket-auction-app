@@ -13,6 +13,7 @@ export default function useAuth(location) {
   const [isAdmin, setIsAdmin] = useState(false);
   const [userRole, setUserRole] = useState('spectator');
   const [username, setUsername] = useState('');
+  const [eventName, setEventName] = useState('');
   const [canConfigure, setCanConfigure] = useState(false);
   const [canUndo, setCanUndo] = useState(false);
 
@@ -24,24 +25,28 @@ export default function useAuth(location) {
     const token = rawToken && payload && !isExpired(payload) ? rawToken : null;
     if (rawToken && !token) clearAdminSession();
 
-    const enteredAsSpectator = adminFromState === false;
-
-    // Public/spectator entry, or no session: read-only, no backend probe.
-    if (enteredAsSpectator || !token) {
-      setIsAdmin(false);
-      setUserRole('spectator');
-      setUsername('');
-      setCanConfigure(false);
-      setCanUndo(false);
-      return;
+    // Public/spectator entry (explicit, or no session) is read-only regardless
+    // of any lingering token; operators pass their token for the ownership check.
+    const spectator = adminFromState === false || !token;
+    if (token && !spectator) {
+      axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     }
 
-    axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     let active = true;
+    const headers = token && !spectator ? { Authorization: `Bearer ${token}` } : {};
     axios
-      .get(`${API_BASE_URL}/api/auction/access`, { params: { auctionId } })
+      .get(`${API_BASE_URL}/api/auction/access`, { params: { auctionId }, headers })
       .then(({ data }) => {
         if (!active) return;
+        setEventName(data.eventName || '');
+        if (spectator) {
+          setIsAdmin(false);
+          setUserRole('spectator');
+          setUsername('');
+          setCanConfigure(false);
+          setCanUndo(false);
+          return;
+        }
         setIsAdmin(!!data.canOperate);
         setUserRole(data.role || 'spectator');
         setUsername(data.username || '');
@@ -85,5 +90,5 @@ export default function useAuth(location) {
     navigate('/');
   };
 
-  return { isAdmin, userRole, username, canConfigure, canUndo, logout };
+  return { isAdmin, userRole, username, eventName, canConfigure, canUndo, logout };
 }

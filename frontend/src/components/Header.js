@@ -25,7 +25,8 @@ const Header = memo(({
   onEditSettings = null,
   onOpenTeamSetup = null,
   onConsole = null,
-  canConfigure = false
+  canConfigure = false,
+  eventName = ''
 }) => {
   const { theme, toggleTheme } = useTheme();
   const isSpectator = userRole === 'spectator';
@@ -124,6 +125,11 @@ const Header = memo(({
 
         {/* Center Section - Auction Status */}
         <div className="header-center">
+          {eventName && (
+            <span className="max-w-[46vw] truncate text-sm sm:text-base font-bold text-amber-300" title={eventName}>
+              {eventName}
+            </span>
+          )}
           {auctionStatus && (
             <div className={`auction-status-badge ${
               auctionStatus === 'running' 

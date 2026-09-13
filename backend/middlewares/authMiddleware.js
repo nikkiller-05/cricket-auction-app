@@ -4,17 +4,21 @@ const registrationService = require('../services/registrationService');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-// Short-lived cache of event ownership so per-bid authz stays fast.
-const eventOwnerCache = new Map(); // auctionId -> { organizerId, ts }
-const OWNER_TTL_MS = 60 * 1000;
+// Short-lived cache of event info so per-bid authz + header lookups stay fast.
+const eventInfoCache = new Map(); // auctionId -> { organizerId, name, ts }
+const INFO_TTL_MS = 60 * 1000;
 
-async function getEventOwnerId(auctionId) {
-  const cached = eventOwnerCache.get(auctionId);
-  if (cached && Date.now() - cached.ts < OWNER_TTL_MS) return cached.organizerId;
+async function getEventInfo(auctionId) {
+  const cached = eventInfoCache.get(auctionId);
+  if (cached && Date.now() - cached.ts < INFO_TTL_MS) return cached;
   const event = await registrationService.getEventById(auctionId);
-  const organizerId = event ? String(event.organizer_id) : null;
-  eventOwnerCache.set(auctionId, { organizerId, ts: Date.now() });
-  return organizerId; // null when the event does not exist
+  const info = {
+    organizerId: event ? String(event.organizer_id) : null,
+    name: event ? event.name : null,
+    ts: Date.now(),
+  };
+  eventInfoCache.set(auctionId, info);
+  return info;
 }
 
 // What an authenticated user may do on a given auction.
@@ -34,8 +38,8 @@ async function computeAuctionAccess(user, auctionId) {
   }
   if (role === 'super-admin') return { canConfigure: true, canBid: true, canUndo: true };
   if (role === 'organizer') {
-    const ownerId = await getEventOwnerId(auctionId);
-    if (ownerId && ownerId === String(user.id)) {
+    const { organizerId } = await getEventInfo(auctionId);
+    if (organizerId && organizerId === String(user.id)) {
       return { canConfigure: true, canBid: true, canUndo: true };
     }
   }
@@ -225,5 +229,6 @@ module.exports = {
   verifyConfigPermission,
   verifyRegistrationManager,
   requireAuctionAccess,
-  computeAuctionAccess
+  computeAuctionAccess,
+  getEventInfo
 };

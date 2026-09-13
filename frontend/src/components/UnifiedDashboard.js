@@ -48,7 +48,7 @@ const UnifiedDashboard = () => {
   // Full-screen SOLD/UNSOLD celebration overlay
   const [celebration, setCelebration] = useState(null);
 
-  const { isAdmin, userRole, username, canConfigure, canUndo, logout } = useAuth(location);
+  const { isAdmin, userRole, username, eventName, canConfigure, canUndo, logout } = useAuth(location);
   const [activeTab, setActiveTab] = useState('live');
   // Multi-tenant: an event-scoped auction is addressed by ?auctionId=<event.id>.
   // Absent (the classic main auction) it falls back to the shared 'default'.
@@ -433,6 +433,7 @@ const UnifiedDashboard = () => {
         onLogout={logout}
         onConsole={['super-admin', 'admin', 'organizer'].includes(userRole) ? () => navigate('/console') : null}
         canConfigure={canConfigure}
+        eventName={eventName}
         isAuctionOn={['running', 'fast-track'].includes(auctionData.auctionStatus)}
         onToggleAuction={isAdmin ? handleAuctionToggle : null}
         auctionLoading={auctionToggleLoading}

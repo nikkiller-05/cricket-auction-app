@@ -3,8 +3,9 @@ const socketService = require('../services/socketService');
 const { getNextBidIncrement, calculateStats } = require('../utils/biddingRules');
 const { matchesCategory } = require('../utils/categoryParser');
 const { currentAuctionId, runWithAuction } = require('../services/auctionContext');
+const { DEFAULT_AUCTION_ID } = require('../services/auctionContext');
 const jwt = require('jsonwebtoken');
-const { computeAuctionAccess } = require('../middlewares/authMiddleware');
+const { computeAuctionAccess, getEventInfo } = require('../middlewares/authMiddleware');
 
 const auctionController = {
   // Tell the client what it may do on the CURRENT auction (from x-auction-id /
@@ -24,6 +25,11 @@ const auctionController = {
       }
       const auctionId = currentAuctionId();
       const access = await computeAuctionAccess(user, auctionId);
+      // Event auctions carry the event's name for the dashboard header.
+      let eventName = null;
+      if (auctionId && auctionId !== DEFAULT_AUCTION_ID) {
+        eventName = (await getEventInfo(auctionId)).name;
+      }
       res.json({
         canOperate: access.canConfigure || access.canBid,
         canConfigure: access.canConfigure,
@@ -31,6 +37,7 @@ const auctionController = {
         canUndo: access.canUndo,
         role: user?.role || 'spectator',
         username: user?.username || null,
+        eventName,
       });
     } catch (e) {
       res.status(500).json({ error: e.message });
