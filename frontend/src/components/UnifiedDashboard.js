@@ -699,6 +699,7 @@ const UnifiedDashboard = () => {
                     currentBid={auctionData.currentBid}
                     auctionStatus={auctionData.auctionStatus}
                     userRole={userRole}
+                    canConfigure={canConfigure}
                     onDataRefresh={fetchAuctionData}
                   />
                 ) : (

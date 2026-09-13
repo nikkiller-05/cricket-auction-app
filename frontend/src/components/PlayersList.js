@@ -64,7 +64,7 @@ const CATEGORY_STYLES = {
 const getCategoryStyle = (category) =>
   CATEGORY_STYLES[category] || 'bg-gray-100 text-gray-800 border-gray-300';
 
-const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole, onDataRefresh }) => {
+const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole, canConfigure: canConfigureProp, onDataRefresh }) => {
   const { showWarning, showError, showConfirm, showSuccess } = useNotification();
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
@@ -77,8 +77,10 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
   const [playerFormMode, setPlayerFormMode] = useState('add');
   const [editingPlayer, setEditingPlayer] = useState(null);
 
-  // Only admins/super-admins can add/edit/delete players (matches backend).
-  const canConfigure = ['super-admin', 'admin'].includes(userRole);
+  // Who can add/edit/delete players + edit sale price. Authoritative flag from
+  // the dashboard (super-admin, admin, or the owning organizer); role fallback.
+  const canConfigure =
+    typeof canConfigureProp === 'boolean' ? canConfigureProp : ['super-admin', 'admin'].includes(userRole);
 
   const openAddPlayer = useCallback(() => {
     setPlayerFormMode('add');
@@ -116,7 +118,7 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
 
   // FIXED: Include fast-track mode in bidding conditions
   const canStartBidding = (auctionStatus === 'running' || auctionStatus === 'fast-track');
-  const canPerformBidActions = ['super-admin', 'admin', 'sub-admin'].includes(userRole);
+  const canPerformBidActions = canConfigure || ['super-admin', 'admin', 'sub-admin'].includes(userRole);
 
   const handleStartBidding = useCallback(async (playerId) => {
     if (currentBid && currentBid.playerId !== playerId) {
