@@ -3,8 +3,40 @@ const socketService = require('../services/socketService');
 const { getNextBidIncrement, calculateStats } = require('../utils/biddingRules');
 const { matchesCategory } = require('../utils/categoryParser');
 const { currentAuctionId, runWithAuction } = require('../services/auctionContext');
+const jwt = require('jsonwebtoken');
+const { computeAuctionAccess } = require('../middlewares/authMiddleware');
 
 const auctionController = {
+  // Tell the client what it may do on the CURRENT auction (from x-auction-id /
+  // ?auctionId). Non-blocking companion to requireAuctionAccess so the dashboard
+  // can render operator controls only when the user actually owns the auction.
+  getAccess: async (req, res) => {
+    try {
+      const authHeader = req.headers['authorization'];
+      const token = authHeader && authHeader.split(' ')[1];
+      let user = null;
+      if (token) {
+        try {
+          user = jwt.verify(token, process.env.JWT_SECRET);
+        } catch {
+          user = null;
+        }
+      }
+      const auctionId = currentAuctionId();
+      const access = await computeAuctionAccess(user, auctionId);
+      res.json({
+        canOperate: access.canConfigure || access.canBid,
+        canConfigure: access.canConfigure,
+        canBid: access.canBid,
+        canUndo: access.canUndo,
+        role: user?.role || 'spectator',
+        username: user?.username || null,
+      });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  },
+
   // Save auction settings
   saveSettings: async (req, res) => {
     try {

@@ -4,17 +4,45 @@ const registrationService = require('../services/registrationService');
 
 const JWT_SECRET = process.env.JWT_SECRET;
 
-// Role tiers that apply to the legacy main (default) auction only.
-const TIER_ROLES = {
-  bid: ['super-admin', 'admin', 'sub-admin'],
-  config: ['super-admin', 'admin'],
-  undo: ['super-admin'],
-};
+// Short-lived cache of event ownership so per-bid authz stays fast.
+const eventOwnerCache = new Map(); // auctionId -> { organizerId, ts }
+const OWNER_TTL_MS = 60 * 1000;
+
+async function getEventOwnerId(auctionId) {
+  const cached = eventOwnerCache.get(auctionId);
+  if (cached && Date.now() - cached.ts < OWNER_TTL_MS) return cached.organizerId;
+  const event = await registrationService.getEventById(auctionId);
+  const organizerId = event ? String(event.organizer_id) : null;
+  eventOwnerCache.set(auctionId, { organizerId, ts: Date.now() });
+  return organizerId; // null when the event does not exist
+}
+
+// What an authenticated user may do on a given auction.
+// - Default/main auction: legacy role tiers (no regression).
+// - Event auction (auctionId = event.id): super-admin (global override) or the
+//   owning organizer get full control; everyone else gets nothing.
+async function computeAuctionAccess(user, auctionId) {
+  const none = { canConfigure: false, canBid: false, canUndo: false };
+  if (!user || !user.role) return none;
+  const role = user.role;
+  if (!auctionId || auctionId === DEFAULT_AUCTION_ID) {
+    return {
+      canConfigure: ['super-admin', 'admin'].includes(role),
+      canBid: ['super-admin', 'admin', 'sub-admin'].includes(role),
+      canUndo: role === 'super-admin',
+    };
+  }
+  if (role === 'super-admin') return { canConfigure: true, canBid: true, canUndo: true };
+  if (role === 'organizer') {
+    const ownerId = await getEventOwnerId(auctionId);
+    if (ownerId && ownerId === String(user.id)) {
+      return { canConfigure: true, canBid: true, canUndo: true };
+    }
+  }
+  return none;
+}
 
 // Gate a live-auction operator action by BOTH permission tier and tenant ownership.
-// - Default/main auction: preserve existing role tiers exactly (no regression).
-// - Event-scoped auction (auctionId = event.id): super-admin (global override) or the
-//   organizer who owns that event. Everyone else is denied.
 const requireAuctionAccess = (tier) => (req, res, next) => {
   try {
     const authHeader = req.headers['authorization'];
@@ -29,22 +57,13 @@ const requireAuctionAccess = (tier) => (req, res, next) => {
       req.user = user;
       try {
         const auctionId = currentAuctionId();
-        if (!auctionId || auctionId === DEFAULT_AUCTION_ID) {
-          const allowed = TIER_ROLES[tier] || [];
-          if (!allowed.includes(user.role)) {
-            return res.status(403).json({ error: 'Insufficient permission for this action' });
-          }
-          return next();
+        const access = await computeAuctionAccess(user, auctionId);
+        const allowed =
+          tier === 'config' ? access.canConfigure : tier === 'undo' ? access.canUndo : access.canBid;
+        if (!allowed) {
+          return res.status(403).json({ error: 'Not authorized to operate this auction' });
         }
-        if (user.role === 'super-admin') return next();
-        const event = await registrationService.getEventById(auctionId);
-        if (!event) {
-          return res.status(404).json({ error: 'Auction event not found' });
-        }
-        if (user.role === 'organizer' && String(event.organizer_id) === String(user.id)) {
-          return next();
-        }
-        return res.status(403).json({ error: 'Not authorized to operate this auction' });
+        return next();
       } catch (e) {
         console.error('Auction access check error:', e);
         return res.status(500).json({ error: 'Authorization error' });
@@ -205,5 +224,6 @@ module.exports = {
   verifyBiddingPermission,
   verifyConfigPermission,
   verifyRegistrationManager,
-  requireAuctionAccess
+  requireAuctionAccess,
+  computeAuctionAccess
 };

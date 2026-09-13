@@ -48,7 +48,7 @@ const UnifiedDashboard = () => {
   // Full-screen SOLD/UNSOLD celebration overlay
   const [celebration, setCelebration] = useState(null);
 
-  const { isAdmin, userRole, logout } = useAuth(location);
+  const { isAdmin, userRole, username, canConfigure, canUndo, logout } = useAuth(location);
   const [activeTab, setActiveTab] = useState('live');
   // Multi-tenant: an event-scoped auction is addressed by ?auctionId=<event.id>.
   // Absent (the classic main auction) it falls back to the shared 'default'.
@@ -152,7 +152,7 @@ const UnifiedDashboard = () => {
     handleUndoCurrentBid,
     executeUndoAction,
     cancelUndoAction,
-  } = useUndo({ showError, isAdmin, userRole });
+  } = useUndo({ showError, isAdmin, canUndo });
 
   // Auction toggle state
   const [auctionToggleLoading, setAuctionToggleLoading] = useState(false);
@@ -365,11 +365,10 @@ const UnifiedDashboard = () => {
       : null;
 
   // Define tabs based on user role
-  const canConfigure = ['super-admin', 'admin'].includes(userRole);
-
   const tabs = buildDashboardTabs({
     isAdmin,
     userRole,
+    canConfigure,
     playersCount: auctionData.players?.length || 0,
     teamsCount: auctionData.teams?.length || 0,
     unsoldCount: unsoldPlayers.length,
@@ -419,7 +418,8 @@ const UnifiedDashboard = () => {
       {/* New Modern Header */}
       <Header
         username={
-          userRole === 'super-admin'
+          username ||
+          (userRole === 'super-admin'
             ? 'Super Admin'
             : userRole === 'admin'
               ? 'Admin'
@@ -427,7 +427,7 @@ const UnifiedDashboard = () => {
                 ? 'Sub-Admin'
                 : userRole === 'spectator'
                   ? 'Spectator'
-                  : 'User'
+                  : 'User')
         }
         userRole={userRole}
         onLogout={logout}
@@ -612,8 +612,8 @@ const UnifiedDashboard = () => {
             </div>
           )}
 
-          {/* Access Denied for non-super-admins trying to access undo tab */}
-          {isAdmin && activeTab === 'undo' && userRole !== 'super-admin' && (
+          {/* Access Denied for users without undo rights on this auction */}
+          {isAdmin && activeTab === 'undo' && !canUndo && (
             <div className="text-center py-12 bg-white bg-opacity-25 rounded-lg border-2 border-red-300 border-opacity-60 shadow-xl">
               <div className="text-6xl mb-4">🔒</div>
               <h3 className="text-lg font-medium mb-2 text-gray-900">

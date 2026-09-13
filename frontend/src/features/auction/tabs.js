@@ -2,6 +2,7 @@
 export const buildDashboardTabs = ({
   isAdmin,
   userRole,
+  canConfigure,
   playersCount = 0,
   teamsCount = 0,
   unsoldCount = 0,
@@ -15,7 +16,9 @@ export const buildDashboardTabs = ({
 
   if (!isAdmin) return spectatorTabs;
 
-  const canConfigure = ['super-admin', 'admin'].includes(userRole);
+  // Prefer the authoritative flag from the backend; fall back to role for tests.
+  const configurable =
+    typeof canConfigure === 'boolean' ? canConfigure : ['super-admin', 'admin'].includes(userRole);
   const baseAdminTabs = [{ id: 'live', name: 'Live Status', icon: '🔴' }];
   const configTabs = [{ id: 'reset', name: 'Auction Tools', icon: '🔄', badge: unsoldCount }];
   const commonTabs = [
@@ -24,5 +27,5 @@ export const buildDashboardTabs = ({
     { id: 'stats', name: 'Statistics', icon: '📊' },
   ];
 
-  return [...baseAdminTabs, ...(canConfigure ? configTabs : []), ...commonTabs];
+  return [...baseAdminTabs, ...(configurable ? configTabs : []), ...commonTabs];
 };
