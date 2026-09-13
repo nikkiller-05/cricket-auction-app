@@ -12,6 +12,7 @@ const TeamSetupModal = ({
   onToggleFeature,
   onTeamsUpdate,
   onPlayersUpdate,
+  onEditSettings = null,
 }) => {
   if (!open) return null;
 
@@ -75,6 +76,14 @@ const TeamSetupModal = ({
             Turn a feature on to show its card on the dashboards and reveal its assignment section
             below.
           </p>
+          {onEditSettings && (
+            <p className="mb-3 -mt-1 text-xs">
+              Need to change the number of teams, budget or base price?{' '}
+              <button onClick={onEditSettings} className="font-semibold text-indigo-600 hover:text-indigo-800 underline">
+                Edit auction settings →
+              </button>
+            </p>
+          )}
           {auctionData.fileUploaded ? (
             <TeamManagement
               teams={auctionData.teams || []}

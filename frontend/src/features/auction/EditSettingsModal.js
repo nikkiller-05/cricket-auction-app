@@ -13,7 +13,7 @@ const EditSettingsModal = ({
   onRemoveIncrement,
   onSave,
   saving = false,
-  onOpenTeamSquads = null,
+  onEditTeams = null,
 }) => {
   if (!open) return null;
 
@@ -50,13 +50,13 @@ const EditSettingsModal = ({
                 <span className="mr-2">⚙️</span>
                 Basic Configuration
               </h3>
-              {onOpenTeamSquads && (
+              {onEditTeams && (
                 <button
                   type="button"
-                  onClick={onOpenTeamSquads}
+                  onClick={onEditTeams}
                   className="text-xs sm:text-sm font-semibold text-indigo-600 hover:text-indigo-800 underline whitespace-nowrap"
                 >
-                  View team squads →
+                  Edit teams (names, captains) →
                 </button>
               )}
             </div>

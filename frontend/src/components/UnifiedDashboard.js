@@ -988,7 +988,6 @@ const UnifiedDashboard = () => {
         onClose={() => setShowTeamSquadsModal(false)}
         teams={auctionData.teams || []}
         players={auctionData.players || []}
-        onEditSettings={isAdmin && canConfigure ? () => { setShowTeamSquadsModal(false); handleOpenEditSettings(); } : null}
       />
 
       {/* Team Setup Modal — team naming, captains, retention (replaces Manage tab) */}
@@ -1001,6 +1000,7 @@ const UnifiedDashboard = () => {
         onToggleFeature={handleToggleFeature}
         onTeamsUpdate={handleTeamsUpdate}
         onPlayersUpdate={handlePlayersUpdate}
+        onEditSettings={() => { setShowTeamSetup(false); handleOpenEditSettings(); }}
       />
 
       <ShareAuctionModal
@@ -1020,7 +1020,7 @@ const UnifiedDashboard = () => {
         onRemoveIncrement={removeSettingsIncrement}
         onSave={handleSaveSettings}
         saving={settingsSaveLoading}
-        onOpenTeamSquads={() => { setShowEditSettingsModal(false); setShowTeamSquadsModal(true); }}
+        onEditTeams={() => { setShowEditSettingsModal(false); setShowTeamSetup(true); }}
       />
 
       <BrandFooter />
