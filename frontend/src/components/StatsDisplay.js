@@ -236,36 +236,36 @@ const StatsDisplay = ({ stats, teams, players, settings }) => {
       <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white/90 p-6 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)]">
         <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-fuchsia-500 to-purple-500" />
         <h4 className="text-xs uppercase tracking-[0.18em] font-semibold text-slate-500 mb-4">Team Budget Analysis</h4>
-        <div className="space-y-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
           {teams?.map((team) => {
             const teamPlayers = players?.filter(p => p.team === team.id && (p.status === 'sold' || p.status === 'assigned')) || [];
             const boughtPlayers = teamPlayers.filter(p => p.category !== 'captain');
             const totalSpentByTeam = boughtPlayers.reduce((sum, p) => sum + (p.finalBid || 0), 0);
             const startingBudget = settings?.startingBudget || 1000;
             const budgetUsed = ((totalSpentByTeam / startingBudget) * 100);
-            
+
             return (
-              <div key={team.id} className="space-y-2">
-                <div className="flex justify-between items-center">
-                  <span className="font-medium text-gray-900">{team.name}</span>
-                  <div className="flex items-center space-x-4 text-sm">
-                    <span className="text-gray-600">Players: {teamPlayers.length}</span>
-                    <span className="text-green-600">Spent: {formatCurrency(totalSpentByTeam)}</span>
-                    <span className="text-blue-600">Remaining: {formatCurrency(team.budget)}</span>
-                  </div>
+              <div key={team.id} className="rounded-xl border border-slate-200 bg-white p-3.5 space-y-2 shadow-sm">
+                <div className="flex items-center justify-between gap-2">
+                  <span className="font-semibold text-gray-900 truncate">{team.name}</span>
+                  <span className="shrink-0 text-xs text-gray-500">{teamPlayers.length} players</span>
                 </div>
                 <div className="w-full bg-gray-200 rounded-full h-2">
-                  <div 
+                  <div
                     className={`h-2 rounded-full transition-colors duration-200 ${
-                      budgetUsed > 90 ? 'bg-red-500' : 
+                      budgetUsed > 90 ? 'bg-red-500' :
                       budgetUsed > 70 ? 'bg-yellow-500' : 'bg-green-500'
                     }`}
                     style={{ width: `${Math.min(budgetUsed, 100)}%` }}
                   ></div>
                 </div>
-                <div className="flex justify-between text-xs text-gray-500">
-                  <span>{Math.round(budgetUsed)}% budget used</span>
-                  <span>Avg: {formatCurrency(boughtPlayers.length > 0 ? Math.round(totalSpentByTeam / boughtPlayers.length) : 0)} per player</span>
+                <div className="flex justify-between text-xs">
+                  <span className="text-green-600 font-medium">Spent {formatCurrency(totalSpentByTeam)}</span>
+                  <span className="text-blue-600 font-medium">Left {formatCurrency(team.budget)}</span>
+                </div>
+                <div className="flex justify-between text-[11px] text-gray-500">
+                  <span>{Math.round(budgetUsed)}% used</span>
+                  <span>Avg {formatCurrency(boughtPlayers.length > 0 ? Math.round(totalSpentByTeam / boughtPlayers.length) : 0)}/player</span>
                 </div>
               </div>
             );
