@@ -9,6 +9,7 @@ console.log('Controller methods:', Object.keys(auctionController));
 
 // Public routes
 router.get('/data', auctionController.getAuctionData);
+router.get('/access', auctionController.getAccess);
 
 // Configuration routes (admin/super-admin on main auction; owner-organizer/super on event auctions)
 router.post('/settings', requireAuctionAccess('config'), auctionController.saveSettings);

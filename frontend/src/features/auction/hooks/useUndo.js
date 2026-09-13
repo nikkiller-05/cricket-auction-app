@@ -6,7 +6,7 @@ import { API_BASE_URL } from '../../../config';
 // the super-admin action-history feed. Extracted verbatim from UnifiedDashboard
 // — behavior is intentionally unchanged. The 'saleUndone' / 'bidUndone' socket
 // events broadcast the single notification to everyone.
-export default function useUndo({ showError, isAdmin, userRole }) {
+export default function useUndo({ showError, isAdmin, canUndo }) {
   const [undoLoading, setUndoLoading] = useState(false);
   const [actionHistory, setActionHistory] = useState([]);
   const [showUndoConfirmModal, setShowUndoConfirmModal] = useState(false);
@@ -22,10 +22,10 @@ export default function useUndo({ showError, isAdmin, userRole }) {
   }, []);
 
   useEffect(() => {
-    if (userRole === 'super-admin' && isAdmin) {
+    if (canUndo && isAdmin) {
       fetchActionHistory();
     }
-  }, [userRole, isAdmin, fetchActionHistory]);
+  }, [canUndo, isAdmin, fetchActionHistory]);
 
   const handleUndoLastSale = useCallback(async () => {
     const lastAction = actionHistory.find(

@@ -411,11 +411,35 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
         )}
 
         {view === 'auctions' && (
-          <div className={`${T.card} p-10 text-center`}>
-            <div className="text-4xl mb-2">🔨</div>
-            <h3 className={`font-bold text-lg ${T.heading}`}>Auctions — coming soon</h3>
-            <p className={`text-sm mt-1 max-w-md mx-auto ${T.sub}`}>Create and run live player auctions for your events, right from your dashboard. We're building this next.</p>
-          </div>
+          events.length === 0 ? (
+            <div className={`${T.card} p-10 text-center ${T.sub}`}>{canManageEvents ? 'Create an event first (Events tab).' : 'No event assigned to you yet.'}</div>
+          ) : (
+            <div className="grid gap-3 sm:grid-cols-2">
+              {events.map((ev) => (
+                <div key={ev.id} className={`${T.card} p-4 flex flex-col gap-3`}>
+                  <div className="flex items-center gap-3 min-w-0">
+                    {ev.logo_url
+                      ? <img src={ev.logo_url} alt="" className="w-11 h-11 rounded-xl object-cover flex-shrink-0" />
+                      : <div className="w-11 h-11 rounded-xl bg-amber-400/20 grid place-items-center text-amber-300 font-bold flex-shrink-0">{initials(ev.name)}</div>}
+                    <div className="min-w-0">
+                      <h3 className={`font-bold truncate ${T.heading}`}>{ev.name}</h3>
+                      <p className={`text-xs ${T.sub} truncate`}>Public link: {window.location.origin}/a/{ev.slug}</p>
+                    </div>
+                  </div>
+                  <div className="flex flex-wrap gap-2">
+                    {canImport && (
+                      <button onClick={() => { window.location.href = `/dashboard?auctionId=${encodeURIComponent(ev.id)}`; }} className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 px-4 py-2 text-sm font-semibold shadow hover:-translate-y-0.5 transition">
+                        🎯 Operate auction
+                      </button>
+                    )}
+                    <button onClick={() => { navigator.clipboard?.writeText(`${window.location.origin}/a/${ev.slug}`); showSuccess('Public auction link copied'); }} className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${T.chip}`}>
+                      🔗 Copy public link
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )
         )}
 
         {view === 'organizers' && isSuper && (
