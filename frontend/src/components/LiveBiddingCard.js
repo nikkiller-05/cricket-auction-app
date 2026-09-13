@@ -37,11 +37,6 @@ const buildStats = (p = {}) => {
     { label: 'Matches', value: dash(p.matches) },
     { label: 'Runs', value: dash(p.runs) },
     { label: 'Wickets', value: dash(p.wickets) },
-    { label: 'Avg', value: dash(p.battingAvg) },
-    { label: 'HS', value: dash(p.highestScore) },
-    { label: 'SR', value: dash(p.strikeRate) },
-    { label: 'Econ', value: dash(p.economy) },
-    { label: 'BB', value: dash(p.bestBowling) },
   ];
 };
 
@@ -85,11 +80,6 @@ const LiveBiddingCardInner = ({
     player.matches,
     player.runs,
     player.wickets,
-    player.battingAvg,
-    player.highestScore,
-    player.strikeRate,
-    player.economy,
-    player.bestBowling,
   ]);
   const meta = useMemo(
     () => [player.battingHand, player.bowlingStyle].filter(Boolean).join(' · '),

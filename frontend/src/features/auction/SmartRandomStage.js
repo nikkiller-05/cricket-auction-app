@@ -38,12 +38,7 @@ const matchesCategory = (role, mode) => {
 const STAT_FIELDS = [
   { key: 'matches', label: 'Matches' },
   { key: 'runs', label: 'Runs' },
-  { key: 'battingAvg', label: 'Average' },
-  { key: 'strikeRate', label: 'SR' },
   { key: 'wickets', label: 'Wickets' },
-  { key: 'economy', label: 'Economy' },
-  { key: 'highestScore', label: 'HS' },
-  { key: 'bestBowling', label: 'Best' },
 ];
 
 const hasValue = (v) => v !== undefined && v !== null && String(v).trim() !== '' && String(v) !== '0';

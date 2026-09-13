@@ -13,23 +13,20 @@ const BLANK = {
   imageUrl: '',
   matches: '',
   runs: '',
-  battingAvg: '',
-  highestScore: '',
   wickets: '',
-  economy: '',
-  bestBowling: '',
+  battingHand: '',
+  bowlingStyle: '',
 };
 
 // Fields shown in the "stats" grid (label + key)
 const STAT_FIELDS = [
   ['Matches', 'matches'],
   ['Runs', 'runs'],
-  ['Batting Avg', 'battingAvg'],
-  ['Highest Score', 'highestScore'],
   ['Wickets', 'wickets'],
-  ['Economy', 'economy'],
-  ['Best Bowling', 'bestBowling'],
 ];
+
+const BATTING_HANDS = ['', 'Right-hand bat', 'Left-hand bat'];
+const BOWLING_STYLES = ['', 'Right-arm pace', 'Right-arm medium', 'Right-arm spin', 'Left-arm pace', 'Left-arm medium', 'Left-arm spin'];
 
 // Reusable modal for adding a new player or editing an existing one.
 // When `onSubmitOverride` is provided, the form data is handed back to the
@@ -72,11 +69,9 @@ const PlayerFormModal = ({ isOpen, mode = 'add', player = null, onClose, onSubmi
         imageUrl: form.imageUrl,
         matches: form.matches,
         runs: form.runs,
-        battingAvg: form.battingAvg,
-        highestScore: form.highestScore,
         wickets: form.wickets,
-        economy: form.economy,
-        bestBowling: form.bestBowling,
+        battingHand: form.battingHand,
+        bowlingStyle: form.bowlingStyle,
       };
 
       // Setup flow collects players locally instead of persisting immediately.
@@ -182,6 +177,21 @@ const PlayerFormModal = ({ isOpen, mode = 'add', player = null, onClose, onSubmi
                   onError={(e) => { e.currentTarget.style.display = 'none'; }}
                 />
               )}
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className={labelCls}>Batting hand</label>
+              <select className={inputCls} value={form.battingHand} onChange={(e) => setField('battingHand', e.target.value)}>
+                {BATTING_HANDS.map((o) => <option key={o} value={o}>{o || '—'}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className={labelCls}>Bowling style</label>
+              <select className={inputCls} value={form.bowlingStyle} onChange={(e) => setField('bowlingStyle', e.target.value)}>
+                {BOWLING_STYLES.map((o) => <option key={o} value={o}>{o || '—'}</option>)}
+              </select>
             </div>
           </div>
 
