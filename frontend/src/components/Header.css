@@ -1215,8 +1215,8 @@
 
 /* Primary action: Start / Pause / Resume */
 .gbx-pa {
-  display: inline-flex; align-items: center; gap: 0.45rem;
-  padding: 0.46rem 1rem; border-radius: 9999px; border: none; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem;
+  height: 2.25rem; padding: 0 1rem; border-radius: 9999px; border: none; cursor: pointer;
   font-size: 0.82rem; font-weight: 700;
   box-shadow: 0 6px 16px -6px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.35);
   transition: transform 0.15s ease, filter 0.2s ease;
@@ -1231,16 +1231,27 @@
 /* Header utility button (Auction Controls trigger) */
 .gbx-menu-wrap { position: relative; }
 .gbx-hd-btn {
-  display: inline-flex; align-items: center; gap: 0.4rem;
-  padding: 0.44rem 0.85rem; border-radius: 9999px; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem;
+  height: 2.25rem; padding: 0 0.95rem; border-radius: 9999px; cursor: pointer;
   font-size: 0.82rem; font-weight: 600; color: #f1f5f9;
   background: rgba(255,255,255,0.08); border: 1px solid rgba(255,255,255,0.16);
   transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
 }
 .gbx-hd-btn:hover { background: rgba(255,255,255,0.14); border-color: rgba(255,255,255,0.28); transform: translateY(-1px); }
 .gbx-hd-btn-ico { font-size: 0.95rem; line-height: 1; }
+.gbx-hd-btn-svg { width: 1rem; height: 1rem; flex-shrink: 0; }
 .dash-root[data-theme="light"] .gbx-hd-btn { color: #3a2a08; background: rgba(74,53,10,0.1); border-color: rgba(74,53,10,0.28); }
 .dash-root[data-theme="light"] .gbx-hd-btn:hover { background: rgba(74,53,10,0.18); }
+
+/* Status pill — light theme (cream header needs darker ink + stronger fills) */
+.dash-root[data-theme="light"] .gbx-status-live { color: #065f46; background: rgba(5,150,105,0.16); border-color: rgba(6,95,70,0.4); }
+.dash-root[data-theme="light"] .gbx-status-live .gbx-status-dot { background: #059669; }
+.dash-root[data-theme="light"] .gbx-status-paused { color: #7c2d12; background: rgba(217,119,6,0.18); border-color: rgba(124,45,18,0.38); }
+.dash-root[data-theme="light"] .gbx-status-paused .gbx-status-dot { background: #b45309; }
+.dash-root[data-theme="light"] .gbx-status-notstarted { color: #334155; background: rgba(71,85,105,0.16); border-color: rgba(51,65,85,0.32); }
+.dash-root[data-theme="light"] .gbx-status-notstarted .gbx-status-dot { background: #475569; }
+.dash-root[data-theme="light"] .gbx-status-ended { color: #991b1b; background: rgba(220,38,38,0.15); border-color: rgba(153,27,27,0.34); }
+.dash-root[data-theme="light"] .gbx-status-ended .gbx-status-dot { background: #dc2626; }
 
 /* Dark dropdown menu (Auction Controls) */
 .gbx-menu {
