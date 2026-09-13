@@ -432,6 +432,7 @@ const UnifiedDashboard = () => {
         userRole={userRole}
         onLogout={logout}
         onConsole={['super-admin', 'admin', 'organizer'].includes(userRole) ? () => navigate('/console') : null}
+        canConfigure={canConfigure}
         isAuctionOn={['running', 'fast-track'].includes(auctionData.auctionStatus)}
         onToggleAuction={isAdmin ? handleAuctionToggle : null}
         auctionLoading={auctionToggleLoading}

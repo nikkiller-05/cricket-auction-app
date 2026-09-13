@@ -1,6 +1,7 @@
 const express = require('express');
 const router = express.Router();
-const { verifyConfigPermission } = require('../middlewares/authMiddleware');
+const { requireAuctionAccess } = require('../middlewares/authMiddleware');
+const verifyConfigPermission = requireAuctionAccess('config');
 
 console.log('Download routes file loaded');
 

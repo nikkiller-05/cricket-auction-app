@@ -348,6 +348,20 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
 
   useEffect(() => { loadEvents(); loadOrganizers(); }, [loadEvents, loadOrganizers]);
 
+  // Open an event's auction: first time (nothing set up yet) go through Auction
+  // Setup; once it has players, jump straight to the live dashboard.
+  const openAuction = async (ev) => {
+    try {
+      const res = await api.get('/api/auction/data', { headers: { 'x-auction-id': ev.id } });
+      const configured = !!(res.data?.fileUploaded && res.data?.players?.length > 0);
+      window.location.href = configured
+        ? `/dashboard?auctionId=${encodeURIComponent(ev.id)}`
+        : `/setup?auctionId=${encodeURIComponent(ev.id)}`;
+    } catch {
+      window.location.href = `/setup?auctionId=${encodeURIComponent(ev.id)}`;
+    }
+  };
+
   return (
     <div className={`gbx-console min-h-screen flex flex-col ${T.pageCls}`} style={T.pageStyle}>
       <header className={`gbx-console-header sticky top-0 z-40 border-b px-4 sm:px-6 py-3 flex items-center justify-between ${T.header}`}>
@@ -428,7 +442,7 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
                   </div>
                   <div className="flex flex-wrap gap-2">
                     {canImport && (
-                      <button onClick={() => { window.location.href = `/dashboard?auctionId=${encodeURIComponent(ev.id)}`; }} className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 px-4 py-2 text-sm font-semibold shadow hover:-translate-y-0.5 transition">
+                      <button onClick={() => openAuction(ev)} className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 px-4 py-2 text-sm font-semibold shadow hover:-translate-y-0.5 transition">
                         🎯 Operate auction
                       </button>
                     )}
@@ -1018,11 +1032,6 @@ const RegistrationsPanel = ({ event, canImport, reloadEvents, showSuccess, showE
           {canImport && (
             <button onClick={importToAuction} disabled={importing} className="rounded-full bg-gradient-to-b from-emerald-500 to-teal-600 text-white px-4 py-2 text-sm font-semibold shadow hover:-translate-y-0.5 transition disabled:opacity-50">
               {importing ? 'Importing…' : '⬇ Import to auction'}
-            </button>
-          )}
-          {canImport && (
-            <button onClick={() => { window.location.href = `/dashboard?auctionId=${encodeURIComponent(event.id)}`; }} className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 px-4 py-2 text-sm font-semibold shadow hover:-translate-y-0.5 transition">
-              🎯 Operate auction
             </button>
           )}
         </div>

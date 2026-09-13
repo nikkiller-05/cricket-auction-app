@@ -1,7 +1,9 @@
 const express = require('express');
 const router = express.Router();
 const teamController = require('../controllers/teamController');
-const { verifyConfigPermission, verifyAdmin } = require('../middlewares/authMiddleware');
+const { requireAuctionAccess, verifyAdmin } = require('../middlewares/authMiddleware');
+// Owner-organizer (their event) / admin (main) / super-admin (any).
+const verifyConfigPermission = requireAuctionAccess('config');
 
 // Get all teams (public)
 router.get('/', teamController.getTeams);

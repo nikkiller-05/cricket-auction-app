@@ -1,7 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const playerController = require('../controllers/playerController');
-const { verifyConfigPermission } = require('../middlewares/authMiddleware');
+const { requireAuctionAccess } = require('../middlewares/authMiddleware');
+// Config actions are allowed for the main auction's admins and, on an event's
+// auction, its owning organizer (super-admin overrides everywhere).
+const verifyConfigPermission = requireAuctionAccess('config');
 
 // Upload players file (admin/super-admin only)
 router.post('/upload', playerController.uploadMiddleware, verifyConfigPermission, playerController.uploadPlayers);

@@ -24,7 +24,8 @@ const Header = memo(({
   undoLoading = false,
   onEditSettings = null,
   onOpenTeamSetup = null,
-  onConsole = null
+  onConsole = null,
+  canConfigure = false
 }) => {
   const { theme, toggleTheme } = useTheme();
   const isSpectator = userRole === 'spectator';
@@ -147,7 +148,7 @@ const Header = memo(({
         <div className="header-right">
           
           {/* Auction Toggle - Only for admin roles */}
-          {onToggleAuction && (userRole === 'super-admin' || userRole === 'admin' || userRole === 'sub-admin') && (
+          {onToggleAuction && (canConfigure || userRole === 'sub-admin') && (
             <div className="auction-toggle-container">
               <AuctionToggleButton
                 isActive={isAuctionOn}
@@ -301,8 +302,8 @@ const Header = memo(({
                 {/* Divider */}
                 <div className="menu-divider"></div>
 
-                {/* Edit Settings Option - Admin only */}
-                {(userRole === 'super-admin' || userRole === 'admin') && onEditSettings && (
+                {/* Edit Settings Option - operators who can configure */}
+                {canConfigure && onEditSettings && (
                   <button 
                     onClick={() => {
                       onEditSettings();
@@ -319,8 +320,8 @@ const Header = memo(({
                   </button>
                 )}
 
-                {/* Team Setup Option - Admin only */}
-                {(userRole === 'super-admin' || userRole === 'admin') && onOpenTeamSetup && (
+                {/* Team Setup Option - operators who can configure */}
+                {canConfigure && onOpenTeamSetup && (
                   <button 
                     onClick={() => {
                       onOpenTeamSetup();
@@ -336,8 +337,8 @@ const Header = memo(({
                   </button>
                 )}
 
-                {/* Upload Players Option - Admin only */}
-                {(userRole === 'super-admin' || userRole === 'admin') && (
+                {/* Upload Players Option - operators who can configure */}
+                {canConfigure && (
                   <button 
                     onClick={() => {
                       if (onUploadPlayers) onUploadPlayers();

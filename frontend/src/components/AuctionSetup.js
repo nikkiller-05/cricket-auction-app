@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
 import PlayerFormModal from './PlayerFormModal';
 import Button from './Button';
@@ -9,6 +9,19 @@ import { formatCurrency } from '../lib/format';
 
 const AuctionSetup = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+  // Setup writes into a specific auction. An event's auction is addressed by
+  // ?auctionId=<event.id>; absent it configures the classic main ('default').
+  const auctionId = new URLSearchParams(location.search).get('auctionId') || 'default';
+
+  // Scope every request on this screen to that auction and re-attach the token
+  // (a full-page navigation here resets axios defaults).
+  useEffect(() => {
+    axios.defaults.headers.common['x-auction-id'] = auctionId;
+    const token = localStorage.getItem('adminToken');
+    if (token) axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+  }, [auctionId]);
+
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -201,7 +214,7 @@ const AuctionSetup = () => {
 
       // Navigate to unified dashboard; open Team Setup so the admin can name
       // teams and assign captains/retentions right after setup.
-      navigate('/dashboard', { state: { isAdmin: true, openTeamSetup: true } });
+      navigate(`/dashboard?auctionId=${encodeURIComponent(auctionId)}`, { state: { isAdmin: true, openTeamSetup: true } });
 
     } catch (error) {
       console.error('Setup error:', error);
