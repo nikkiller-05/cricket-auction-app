@@ -525,7 +525,7 @@ const UnifiedDashboard = () => {
         auctionStatus={auctionData.auctionStatus}
       />
 
-      <div className="gbx-dashboard-content max-w-7xl mx-auto mt-5 sm:mt-6 px-4 sm:px-6 lg:px-8 py-8 rounded-2xl border border-white/60 bg-white/55 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_12px_28px_-16px_rgba(15,23,42,0.18)]">
+      <div className="gbx-dashboard-content max-w-7xl mx-auto mt-5 sm:mt-6 px-4 sm:px-6 lg:px-8 py-6 sm:py-8 rounded-2xl border border-white/60 bg-white/70 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_12px_28px_-16px_rgba(15,23,42,0.18)]">
         {/* Smart Random / mystery-reveal stage — runs before live bidding */}
         {!auctionData.currentBid &&
           ['running', 'fast-track'].includes(auctionData.auctionStatus) &&

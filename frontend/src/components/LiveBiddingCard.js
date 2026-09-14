@@ -133,7 +133,7 @@ const LiveBiddingCardInner = ({
 
       <div className="relative grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6 p-4 sm:p-6 pt-4">
         {/* Player profile (spans 2 cols on lg) */}
-        <div className="gbx-live-player lg:col-span-2 relative flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-8 bg-gradient-to-br from-white/15 to-white/5 rounded-2xl p-6 sm:p-8 border border-white/20 shadow-2xl overflow-hidden">
+        <div className="gbx-live-player lg:col-span-2 relative flex flex-col sm:flex-row items-center sm:items-start gap-5 sm:gap-8 bg-gradient-to-br from-white/15 to-white/5 rounded-2xl p-5 sm:p-8 border border-white/20 shadow-2xl overflow-hidden">
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
           {/* Player photo in rounded frame */}
           <div className="relative shrink-0">
