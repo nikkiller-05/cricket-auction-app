@@ -482,6 +482,36 @@ const secureExcelService = {
     return workbook.xlsx.writeBuffer();
   },
 
+  // Generate an unsold-players-only Excel file
+  async generateUnsoldPlayersExcel(auctionData) {
+    if (!auctionData || !auctionData.players) {
+      throw new Error('No auction data provided');
+    }
+    const workbook = new ExcelJS.Workbook();
+    workbook.created = new Date();
+    const ws = workbook.addWorksheet('Players Unsold');
+    const unsold = auctionData.players.filter((p) => p.status === 'unsold');
+    const rows = unsold.map((player) => ({
+      'Player Name': player.name || '',
+      'Role': player.role || '',
+      'Base Price': player.basePrice ? `₹${player.basePrice}` : '',
+      'Category': player.category || '',
+      'Experience': player.experience || '',
+      'Age': player.age || '',
+      'Batting Style': player.battingStyle || '',
+      'Bowling Style': player.bowlingStyle || '',
+      'Nationality': player.nationality || '',
+    }));
+    if (rows.length > 0) {
+      ws.addRow(Object.keys(rows[0]));
+      rows.forEach((row) => ws.addRow(Object.values(row)));
+      this.setColumnWidths(ws, rows);
+    } else {
+      ws.addRow(['No unsold players']);
+    }
+    return workbook.xlsx.writeBuffer();
+  },
+
   // Generate team squads only Excel file
   async generateTeamSquadsExcel(auctionData) {
     try {

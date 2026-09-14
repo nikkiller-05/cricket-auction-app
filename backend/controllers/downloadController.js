@@ -60,6 +60,28 @@ const downloadController = {
     }
   },
 
+  // Download the unsold players list (Excel)
+  async downloadUnsold(req, res) {
+    try {
+      const auctionData = dataService.getAuctionData();
+      if (!auctionData || !auctionData.players) {
+        return res.status(400).json({ error: 'No auction data available for download' });
+      }
+
+      const buffer = await secureExcelService.generateUnsoldPlayersExcel(auctionData);
+      const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, '-');
+      const filename = `unsold-players-${timestamp}.xlsx`;
+
+      res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+      res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+      res.setHeader('Content-Length', buffer.length);
+      res.send(buffer);
+    } catch (error) {
+      console.error('Error generating unsold players file:', error);
+      res.status(500).json({ error: 'Failed to generate unsold players file' });
+    }
+  },
+
   // Download full auction backup as JSON (admin/super-admin only - route-guarded)
   async downloadBackup(req, res) {
     try {

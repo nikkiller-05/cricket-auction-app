@@ -9,7 +9,7 @@ export default function useDownloads({ showSuccess, showError }) {
       const endpoint =
         format === 'csv'
           ? `${API_BASE_URL}/api/download-results-csv`
-          : `${API_BASE_URL}/api/download-results`;
+          : `${API_BASE_URL}/api/downloads/results`;
       const response = await axios.get(endpoint, { responseType: 'blob' });
 
       const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -40,7 +40,7 @@ export default function useDownloads({ showSuccess, showError }) {
 
   const downloadSaleLog = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/download-sale-log`, {
+      const response = await axios.get(`${API_BASE_URL}/api/downloads/sale-log`, {
         responseType: 'blob',
       });
       const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -66,7 +66,7 @@ export default function useDownloads({ showSuccess, showError }) {
 
   const downloadBackup = async () => {
     try {
-      const response = await axios.get(`${API_BASE_URL}/api/download-backup`, {
+      const response = await axios.get(`${API_BASE_URL}/api/downloads/backup`, {
         responseType: 'blob',
       });
       const url = window.URL.createObjectURL(new Blob([response.data]));
@@ -90,5 +90,31 @@ export default function useDownloads({ showSuccess, showError }) {
     }
   };
 
-  return { downloadResults, downloadSaleLog, downloadBackup };
+  const downloadUnsold = async () => {
+    try {
+      const response = await axios.get(`${API_BASE_URL}/api/downloads/unsold`, {
+        responseType: 'blob',
+      });
+      const url = window.URL.createObjectURL(new Blob([response.data]));
+      const link = document.createElement('a');
+      link.href = url;
+      const contentDisposition = response.headers['content-disposition'];
+      let filename = 'unsold-players.xlsx';
+      if (contentDisposition) {
+        const filenameMatch = contentDisposition.match(/filename[^;=\n]*=((['"]).*?\2|[^;\n]*)/);
+        if (filenameMatch) filename = filenameMatch[1].replace(/['"]/g, '');
+      }
+      link.setAttribute('download', filename);
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      setTimeout(() => window.URL.revokeObjectURL(url), 100);
+      showSuccess('Unsold players downloaded successfully');
+    } catch (error) {
+      console.error('Error downloading unsold players:', error);
+      showError('Error downloading unsold players');
+    }
+  };
+
+  return { downloadResults, downloadSaleLog, downloadUnsold, downloadBackup };
 }

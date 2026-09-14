@@ -13,6 +13,7 @@ const Header = memo(({
   showDownloadOptions = false,
   onDownloadExcel = () => {},
   onDownloadSaleLog = () => {},
+  onDownloadUnsold = () => {},
   onOpenTeamSquads = () => {},
   onDownloadBackup = () => {},
   canBackup = false,
@@ -331,6 +332,20 @@ const Header = memo(({
                     <div className="download-item-content">
                       <div className="download-item-title">Sale Log (Excel)</div>
                       <div className="download-item-subtitle">Chronological record of every purchase</div>
+                    </div>
+                  </button>
+
+                  <button
+                    onClick={() => {
+                      onDownloadUnsold();
+                      setIsDownloadDropdownOpen(false);
+                    }}
+                    className="download-dropdown-item"
+                  >
+                    <span className="download-item-icon">📄</span>
+                    <div className="download-item-content">
+                      <div className="download-item-title">Unsold Players (Excel)</div>
+                      <div className="download-item-subtitle">Everyone who went unsold</div>
                     </div>
                   </button>
 

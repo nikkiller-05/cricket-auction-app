@@ -135,7 +135,7 @@ const UnifiedDashboard = ({ publicAuctionId = null }) => {
     addSettingsIncrement,
     removeSettingsIncrement,
   } = useAuctionSettings({ showError, showSuccess, setShowEditSettingsModal, setAuctionData });
-  const { downloadResults, downloadSaleLog, downloadBackup } = useDownloads({
+  const { downloadResults, downloadSaleLog, downloadUnsold, downloadBackup } = useDownloads({
     showSuccess,
     showError,
   });
@@ -517,6 +517,7 @@ const UnifiedDashboard = ({ publicAuctionId = null }) => {
         showDownloadOptions={auctionData.fileUploaded}
         onDownloadExcel={() => downloadResults('excel')}
         onDownloadSaleLog={downloadSaleLog}
+        onDownloadUnsold={downloadUnsold}
         onOpenTeamSquads={() => setShowTeamSquadsModal(true)}
         onDownloadBackup={downloadBackup}
         canBackup={isAdmin && canConfigure}

@@ -1,10 +1,11 @@
-import React, { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 import { formatCurrency, cleanTeamName } from '../lib/format';
 import { getTeamIcon } from '../sports';
 import BrandFooter from './BrandFooter';
+import TeamSquadsModal from './TeamSquadsModal';
 
 // Distinct accent per team card (cycled) — mirrors the squad export palette.
 const TEAM_ACCENTS = [
@@ -29,8 +30,17 @@ const PublicCompletedAuction = ({ event }) => {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState('');
-  const [downloading, setDownloading] = useState(false);
+  const [downloadingKind, setDownloadingKind] = useState('');
   const [downloadErr, setDownloadErr] = useState('');
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [showSquads, setShowSquads] = useState(false);
+  const menuRef = useRef(null);
+
+  useEffect(() => {
+    const onDoc = (e) => { if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false); };
+    document.addEventListener('mousedown', onDoc);
+    return () => document.removeEventListener('mousedown', onDoc);
+  }, []);
 
   useEffect(() => {
     let active = true;
@@ -71,18 +81,19 @@ const PublicCompletedAuction = ({ event }) => {
     };
   }, [data]);
 
-  const downloadSquads = async () => {
-    setDownloading(true);
+  const downloadFile = async (kind, suffix) => {
+    setDownloadingKind(kind);
     setDownloadErr('');
+    setMenuOpen(false);
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/download-results`, {
+      const res = await axios.get(`${API_BASE_URL}/api/downloads/${kind}`, {
         headers: { 'x-auction-id': event.id },
         responseType: 'blob',
       });
       const url = URL.createObjectURL(res.data);
       const a = document.createElement('a');
       a.href = url;
-      a.download = `${event.slug || 'auction'}-squads.xlsx`;
+      a.download = `${event.slug || 'auction'}-${suffix}.xlsx`;
       document.body.appendChild(a);
       a.click();
       a.remove();
@@ -90,7 +101,7 @@ const PublicCompletedAuction = ({ event }) => {
     } catch {
       setDownloadErr('Download is not available right now. Please try again.');
     } finally {
-      setDownloading(false);
+      setDownloadingKind('');
     }
   };
 
@@ -107,13 +118,40 @@ const PublicCompletedAuction = ({ event }) => {
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-400">X</span>
             </span>
           </button>
-          <button
-            onClick={downloadSquads}
-            disabled={downloading || loading || !!err}
-            className="shrink-0 rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 text-sm font-bold px-4 py-1.5 hover:-translate-y-0.5 transition disabled:opacity-50 disabled:translate-y-0"
-          >
-            {downloading ? 'Preparing…' : '⬇ Download squads'}
-          </button>
+          <div className="relative shrink-0" ref={menuRef}>
+            <button
+              onClick={() => setMenuOpen((v) => !v)}
+              disabled={loading || !!err}
+              className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 text-sm font-bold px-4 py-1.5 hover:-translate-y-0.5 transition disabled:opacity-50 disabled:translate-y-0"
+            >
+              {downloadingKind ? 'Preparing…' : '⬇ Download ▾'}
+            </button>
+            {menuOpen && (
+              <div className="absolute right-0 mt-2 w-64 rounded-2xl border border-white/10 bg-[#14121c] shadow-2xl z-50 overflow-hidden">
+                <button onClick={() => { setShowSquads(true); setMenuOpen(false); }} className="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-white/5">
+                  <span className="text-lg">🖼️</span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold text-white">Team Squads (PDF / PNG)</span>
+                    <span className="block text-xs text-amber-100/60">Designed, shareable team cards</span>
+                  </span>
+                </button>
+                <button onClick={() => downloadFile('results', 'complete-report')} className="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-white/5">
+                  <span className="text-lg">📊</span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold text-white">Complete Report (Excel)</span>
+                    <span className="block text-xs text-amber-100/60">Every sheet: squads, finances & more</span>
+                  </span>
+                </button>
+                <button onClick={() => downloadFile('unsold', 'unsold-players')} className="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-white/5">
+                  <span className="text-lg">📄</span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold text-white">Unsold Players (Excel)</span>
+                    <span className="block text-xs text-amber-100/60">Everyone who went unsold</span>
+                  </span>
+                </button>
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
@@ -233,6 +271,13 @@ const PublicCompletedAuction = ({ event }) => {
       </main>
 
       <BrandFooter theme="dark" compact />
+
+      <TeamSquadsModal
+        isOpen={showSquads}
+        onClose={() => setShowSquads(false)}
+        teams={data?.teams || []}
+        players={data?.players || []}
+      />
     </div>
   );
 };

@@ -35,7 +35,8 @@ app.use('/api/auth', authRoutes);
 app.use('/api/auction', auctionRoutes);
 app.use('/api/players', playerRoutes);
 app.use('/api/teams', teamRoutes);
-app.use('/api', downloadRoutes);
+app.use('/api/downloads', downloadRoutes.router);
+app.use('/api', downloadRoutes.legacy);
 app.use('/api/registrations', registrationRoutes);
 
 // ENHANCED ERROR HANDLING MIDDLEWARE (Must be AFTER routes)

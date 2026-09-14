@@ -588,9 +588,12 @@ node -e "console.log(require('crypto').randomBytes(48).toString('hex'))"
 - `POST /api/teams/:teamId/retained` - Add retained player
 
 ### **Downloads & Reports**
-- `GET /api/download-results` - Complete auction results
-- `GET /api/download-team-squads` - Team squad reports  
-- `GET /api/download-auction-summary` - Financial summaries
+- `GET /api/downloads/results` - Complete auction report (Excel, all sheets)
+- `GET /api/downloads/sale-log` - Sale log (Excel, chronological purchases)
+- `GET /api/downloads/unsold` - Unsold players (Excel)
+- `GET /api/downloads/backup` - Full auction snapshot (JSON, admin only)
+
+Legacy flat paths (`/api/download-results`, `/api/download-sale-log`, `/api/download-unsold`, `/api/download-backup`) remain as temporary back-compat aliases.
 
 ## 🛠️ Technology Stack
 
