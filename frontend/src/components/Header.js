@@ -28,6 +28,7 @@ const Header = memo(({
   eventName = '',
   canUndo = false,
   onEndAuction = null,
+  onReopen = null,
   onResetAuction = null,
   onStartFastTrack = null,
   onEndFastTrack = null,
@@ -61,7 +62,7 @@ const Header = memo(({
     !isSpectator &&
     ((canUndo && onUndoLastSale) ||
       (canConfigure &&
-        (onResetAuction || onStartFastTrack || onEndFastTrack || (onEndAuction && !isEnded))));
+        (onResetAuction || onStartFastTrack || onEndFastTrack || (onEndAuction && !isEnded) || (onReopen && isEnded))));
   const progressPct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   // Close dropdown when clicking outside
@@ -209,6 +210,15 @@ const Header = memo(({
               {isControlsOpen && (
                 <div className="gbx-menu" role="menu">
                   <div className="gbx-menu-head">Auction Controls</div>
+                  {canConfigure && isEnded && onReopen && (
+                    <button
+                      className="gbx-menu-item"
+                      role="menuitem"
+                      onClick={() => { setIsControlsOpen(false); onReopen(); }}
+                    >
+                      <span className="gbx-menu-ico">↺</span> Reopen auction
+                    </button>
+                  )}
                   {canUndo && onUndoLastSale && (
                     <button
                       className="gbx-menu-item"

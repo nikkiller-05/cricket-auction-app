@@ -338,6 +338,21 @@ const UnifiedDashboard = () => {
     }
   };
 
+  // Reopen a finished auction for edits — resumes the running state via /start.
+  const handleReopenAuction = async () => {
+    const ok = await confirm(
+      'Reopen this auction for editing? It goes back to a running state so you can correct results.',
+      'Reopen Auction?'
+    );
+    if (!ok) return;
+    try {
+      await axios.post(`${API_BASE_URL}/api/auction/start`);
+      showSuccess('Auction reopened', 'Reopened');
+    } catch (error) {
+      showError(error.response?.data?.error || 'Could not reopen the auction');
+    }
+  };
+
   // Auction Tools (folded from the old Auction Tools tab) — existing endpoints.
   const handleResetAuction = async () => {
     const ok = await confirm(
@@ -514,6 +529,7 @@ const UnifiedDashboard = () => {
         undoLoading={undoLoading}
         canUndo={canUndo}
         onEndAuction={isAdmin && canConfigure ? handleEndAuction : null}
+        onReopen={isAdmin && canConfigure ? handleReopenAuction : null}
         onResetAuction={isAdmin && canConfigure ? handleResetAuction : null}
         onStartFastTrack={isAdmin && canConfigure ? handleStartFastTrack : null}
         onEndFastTrack={isAdmin && canConfigure ? handleEndFastTrack : null}

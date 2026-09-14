@@ -4,6 +4,7 @@ const { getNextBidIncrement, calculateStats } = require('../utils/biddingRules')
 const { matchesCategory } = require('../utils/categoryParser');
 const { currentAuctionId, runWithAuction } = require('../services/auctionContext');
 const { DEFAULT_AUCTION_ID } = require('../services/auctionContext');
+const registrationService = require('../services/registrationService');
 const jwt = require('jsonwebtoken');
 const { computeAuctionAccess, getEventInfo } = require('../middlewares/authMiddleware');
 
@@ -172,6 +173,9 @@ const auctionController = {
 
       dataService.setAuctionStatus('running');
       socketService.emit('auctionStatusChanged', 'running');
+      // Persist lifecycle status for event-scoped auctions (best-effort).
+      const startAid = currentAuctionId();
+      if (startAid && startAid !== DEFAULT_AUCTION_ID) registrationService.setEventStatus(startAid, 'live');
       
       console.log('Auction started successfully');
       res.json({ 
@@ -1175,6 +1179,10 @@ const auctionController = {
       socketService.emit('playersUpdated', players);
       socketService.emit('statsUpdated', stats);
       socketService.emit('auctionFinished');
+
+      // Persist lifecycle status for event-scoped auctions (best-effort).
+      const finishAid = currentAuctionId();
+      if (finishAid && finishAid !== DEFAULT_AUCTION_ID) registrationService.setEventStatus(finishAid, 'completed');
 
       console.log('Entire auction completed and finished');
       res.json({ 

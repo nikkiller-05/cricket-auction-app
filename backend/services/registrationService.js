@@ -61,6 +61,23 @@ const registrationService = {
     return data;
   },
 
+  // Best-effort lifecycle status (upcoming | live | completed). Never throws, so
+  // starting/finishing an auction never fails if the column/DB is unavailable.
+  async setEventStatus(id, status) {
+    if (!supabase || !id) return false;
+    try {
+      const { error } = await supabase.from(EVENTS).update({ status }).eq('id', id);
+      if (error) {
+        console.log(`   ⚠️  event status update skipped (${id}): ${error.message}`);
+        return false;
+      }
+      return true;
+    } catch (e) {
+      console.log(`   ⚠️  event status update exception (${id}): ${e.message}`);
+      return false;
+    }
+  },
+
   async deleteEvent(id) {
     ensure();
     const { error } = await supabase.from(EVENTS).delete().eq('id', id);
