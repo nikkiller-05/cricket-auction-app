@@ -75,7 +75,7 @@ const PublicCompletedAuction = ({ event }) => {
     setDownloading(true);
     setDownloadErr('');
     try {
-      const res = await axios.get(`${API_BASE_URL}/api/download/download-results`, {
+      const res = await axios.get(`${API_BASE_URL}/api/download-results`, {
         headers: { 'x-auction-id': event.id },
         responseType: 'blob',
       });
