@@ -3,6 +3,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 import PublicCompletedAuction from './PublicCompletedAuction';
+import PublicUpcomingAuction from './PublicUpcomingAuction';
 import UnifiedDashboard from './UnifiedDashboard';
 
 // Public, view-only entry point for an auction: /a/:slug — the single, permanent
@@ -63,10 +64,14 @@ const PublicAuctionPage = () => {
     );
   }
 
-  // Finished auctions get a read-only summary; live/upcoming show the spectator
-  // dashboard in place — the URL stays /a/{slug} in every case.
+  // Finished auctions get a read-only summary; upcoming ones get a preview of
+  // who's registered so far; live shows the spectator dashboard in place — the
+  // URL stays /a/{slug} in every case.
   if (event.status === 'completed') {
     return <PublicCompletedAuction event={event} />;
+  }
+  if (event.status === 'upcoming') {
+    return <PublicUpcomingAuction event={event} />;
   }
   return <UnifiedDashboard publicAuctionId={event.id} />;
 };

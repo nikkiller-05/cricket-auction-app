@@ -31,7 +31,7 @@ const StatusPill = ({ status }) => {
 };
 
 const ctaLabel = (ev) =>
-  ev.status === 'live' ? 'Watch live' : ev.status === 'completed' ? 'View results' : ev.registration_open ? 'Register / View' : 'View';
+  ev.status === 'live' ? 'Watch live' : ev.status === 'completed' ? 'View results' : 'View';
 
 const TournamentsDirectory = () => {
   const navigate = useNavigate();

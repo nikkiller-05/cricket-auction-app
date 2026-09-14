@@ -200,6 +200,28 @@ const registrationController = {
     }
   },
 
+  // Public, safe list of approved players for an event (upcoming preview).
+  // Never exposes mobile, payment reference or screenshots.
+  async getPublicPlayers(req, res) {
+    try {
+      const event = await registrationService.getEventBySlug(req.params.slug);
+      if (!event) return res.status(404).json({ error: 'Event not found' });
+      const regs = await registrationService.getVerifiedRegistrations(event.id);
+      const players = (regs || []).map((r) => ({
+        id: r.id,
+        name: r.name,
+        role: r.role,
+        profile_pic_url: r.profile_pic_url || null,
+        matches: r.matches || null,
+        runs: r.runs || null,
+        wickets: r.wickets || null,
+      }));
+      res.json({ players, count: players.length });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  },
+
   async submitRegistration(req, res) {
     try {
       const event = await registrationService.getEventBySlug(req.params.slug);
