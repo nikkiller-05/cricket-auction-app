@@ -182,6 +182,24 @@ const registrationController = {
     }
   },
 
+  // Public tournaments directory — a lightweight, safe list of every event.
+  async listPublicEvents(req, res) {
+    try {
+      const events = await registrationService.listEvents();
+      const cards = (events || []).map((e) => ({
+        id: e.id,
+        slug: e.slug,
+        name: e.name,
+        status: e.status || 'upcoming',
+        logo_url: e.logo_url || null,
+        registration_open: !!e.registration_open,
+      }));
+      res.json({ events: cards });
+    } catch (e) {
+      res.status(500).json({ error: e.message });
+    }
+  },
+
   async submitRegistration(req, res) {
     try {
       const event = await registrationService.getEventBySlug(req.params.slug);

@@ -16,6 +16,7 @@ const RegisterPage = lazy(() => import('./components/RegisterPage'));
 const RegistrationsAdmin = lazy(() => import('./components/RegistrationsAdmin'));
 const ResetPasswordPage = lazy(() => import('./components/ResetPasswordPage'));
 const PublicAuctionPage = lazy(() => import('./components/PublicAuctionPage'));
+const TournamentsDirectory = lazy(() => import('./components/TournamentsDirectory'));
 
 // Loading component for suspense fallback
 const LoadingSpinner = () => (
@@ -50,6 +51,9 @@ function App() {
 
               {/* Public view-only live auction */}
               <Route path="/a/:slug" element={<PublicAuctionPage />} />
+
+              {/* Public tournaments directory */}
+              <Route path="/tournaments" element={<TournamentsDirectory />} />
               
               {/* Organizer / admin dashboard (renamed from /registrations) */}
               <Route path="/console" element={<RegistrationsAdmin />} />

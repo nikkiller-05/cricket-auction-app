@@ -6,6 +6,7 @@ const {
 } = require('../middlewares/authMiddleware');
 
 // ---- Public (no auth) ----
+router.get('/public-events', ctrl.listPublicEvents);
 router.get('/public/:slug', ctrl.getPublicEvent);
 router.post('/public/:slug/submit', ctrl.uploadFields, ctrl.submitRegistration);
 

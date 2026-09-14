@@ -133,6 +133,7 @@ const HomePage = () => {
             <div className="flex items-center gap-4 sm:gap-6">
               <nav className="hidden md:flex items-center gap-6 text-sm font-semibold text-indigo-100/80">
                 <button onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })} className="hover:text-white transition">Home</button>
+                <button onClick={() => navigate('/tournaments')} className="hover:text-white transition">Tournaments</button>
                 <button onClick={() => scrollToId('features')} className="hover:text-white transition">Features</button>
                 <button onClick={() => scrollToId('contact')} className="hover:text-white transition">Contact</button>
               </nav>
@@ -177,6 +178,7 @@ const HomePage = () => {
             </p>
             <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
               <button onClick={scrollToEnter} className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 font-bold px-6 py-3 hover:-translate-y-0.5 transition shadow-lg">Get started</button>
+              <button onClick={() => navigate('/tournaments')} className="rounded-full border border-white/20 text-indigo-100/90 font-semibold px-6 py-3 hover:text-white hover:border-white/40 transition">Browse tournaments</button>
             </div>
           </div>
         </header>
