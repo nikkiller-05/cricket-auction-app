@@ -365,18 +365,18 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
   };
 
   return (
-    <div className={`gbx-console min-h-screen flex flex-col ${T.pageCls}`} style={T.pageStyle}>
-      <header className={`gbx-console-header sticky top-0 z-40 border-b px-4 sm:px-6 py-3 flex items-center justify-between ${T.header}`}>
-        <a href="/" className="flex items-center gap-3 group" title="Back to home">
-          <img src="/auction-logo.png" alt="" className="w-9 h-9 object-contain" />
-          <div>
-            <h1 className="text-lg font-bold tracking-tight">
+    <div className={`gbx-console min-h-screen flex flex-col overflow-x-hidden ${T.pageCls}`} style={T.pageStyle}>
+      <header className={`gbx-console-header sticky top-0 z-40 border-b px-3 sm:px-6 py-3 flex items-center justify-between gap-2 ${T.header}`}>
+        <a href="/" className="flex items-center gap-2 sm:gap-3 group min-w-0" title="Back to home">
+          <img src="/auction-logo.png" alt="" className="w-9 h-9 object-contain shrink-0" />
+          <div className="min-w-0">
+            <h1 className="text-base sm:text-lg font-bold tracking-tight truncate">
               <span className={`text-transparent bg-clip-text bg-gradient-to-r ${theme === 'light' ? 'from-amber-500 to-amber-700' : 'from-amber-200 to-amber-400'}`}>Golden</span><span className={T.heading}>Bid</span><span className={`text-transparent bg-clip-text bg-gradient-to-r ${theme === 'light' ? 'from-amber-500 to-amber-700' : 'from-amber-200 to-amber-400'}`}>X</span>
             </h1>
-            <p className={`text-xs ${T.sub}`}>Organizer dashboard</p>
+            <p className={`text-xs ${T.sub} truncate`}>Organizer dashboard</p>
           </div>
         </a>
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-2 shrink-0">
           <button onClick={toggleTheme} title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} className={`grid h-9 w-9 place-items-center rounded-full border text-base shadow-sm ${T.toggleBtn}`}>
             {theme === 'dark' ? '☀️' : '🌙'}
           </button>
@@ -392,15 +392,15 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
       ) : (
       <>
       {/* Dashboard tabs */}
-      <div className="gbx-console-tabs-wrap max-w-6xl mx-auto px-4 sm:px-6 pt-5">
-        <div className={`gbx-console-tabs inline-flex flex-wrap gap-1 rounded-2xl border p-1 ${T.soft}`}>
+      <div className="gbx-console-tabs-wrap max-w-6xl mx-auto px-3 sm:px-6 pt-5 overflow-x-auto">
+        <div className={`gbx-console-tabs inline-flex w-max gap-1 rounded-2xl border p-1 ${T.soft}`}>
           {[['events', '🗓️ Events'], ['registrations', '📋 Registrations'], ['auctions', '🔨 Auctions'], ...(isSuper ? [['organizers', '👥 Organizers']] : [])].map(([k, label]) => (
-            <button key={k} onClick={() => setView(k)} className={`gbx-console-tab gbx-console-tab-${k} rounded-xl px-4 sm:px-5 py-2 text-sm font-semibold transition ${view === k ? 'bg-amber-400 text-slate-900 shadow' : T.tabIdle}`}>{label}</button>
+            <button key={k} onClick={() => setView(k)} className={`gbx-console-tab gbx-console-tab-${k} whitespace-nowrap rounded-xl px-3 sm:px-5 py-2 text-sm font-semibold transition ${view === k ? 'bg-amber-400 text-slate-900 shadow' : T.tabIdle}`}>{label}</button>
           ))}
         </div>
       </div>
 
-      <div className="gbx-console-content max-w-6xl mx-auto p-4 sm:p-6">
+      <div className="gbx-console-content max-w-6xl mx-auto px-3 py-4 sm:p-6">
         {view === 'events' && (
           <EventsPanel canManageEvents={canManageEvents} canAssignOrganizer={canAssignOrganizer} events={events} organizers={organizers} selected={selected} onSelect={(ev) => { setSelected(ev); setView('registrations'); }} reload={loadEvents} showSuccess={showSuccess} showError={showError} showConfirm={showConfirm} T={T} />
         )}
@@ -702,7 +702,7 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
   );
 
   return (
-    <div className={`gbx-events-panel ${T.card} p-5`}>
+    <div className={`gbx-events-panel ${T.card} p-4 sm:p-5`}>
       <div className="flex items-center justify-between mb-3">
         <h2 className={`font-bold ${T.heading}`}>Events <span className={`text-xs font-normal ${T.sub}`}>({events.length})</span></h2>
         {canManageEvents && !editing && <button onClick={creating ? closeForm : startCreate} className="gbx-btn-new-event rounded-full bg-amber-400 text-slate-900 px-3 py-1 text-xs font-bold hover:bg-amber-300">{creating ? 'Cancel' : '+ New event'}</button>}
@@ -1052,7 +1052,7 @@ const RegistrationsPanel = ({ event, canImport, reloadEvents, showSuccess, showE
       : new Date(a.created_at) - new Date(b.created_at));
 
   return (
-    <div className={`gbx-registrations-panel ${T.card} p-5`}>
+    <div className={`gbx-registrations-panel ${T.card} p-4 sm:p-5`}>
       <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
         <div className="min-w-0">
           <h2 className={`font-bold ${T.heading}`}>{event.name} — Registrations</h2>
