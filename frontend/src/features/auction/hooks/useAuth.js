@@ -8,7 +8,7 @@ import { decodeToken, isExpired, clearAdminSession, clearAllSessions } from '../
 // the dashboard shows controls only when the user actually owns/administers the
 // auction (super-admin everywhere; organizer only their own event). Falls back
 // to spectator on any failure or when entered explicitly as a spectator.
-export default function useAuth(location) {
+export default function useAuth(location, auctionIdOverride = null, forceSpectator = false) {
   const navigate = useNavigate();
   const [isAdmin, setIsAdmin] = useState(false);
   const [userRole, setUserRole] = useState('spectator');
@@ -18,8 +18,8 @@ export default function useAuth(location) {
   const [canUndo, setCanUndo] = useState(false);
 
   useEffect(() => {
-    const auctionId = new URLSearchParams(location.search).get('auctionId') || 'default';
-    const adminFromState = location.state?.isAdmin;
+    const auctionId = auctionIdOverride || new URLSearchParams(location.search).get('auctionId') || 'default';
+    const adminFromState = forceSpectator ? false : location.state?.isAdmin;
     const rawToken = localStorage.getItem('adminToken');
     const payload = decodeToken(rawToken);
     const token = rawToken && payload && !isExpired(payload) ? rawToken : null;
@@ -27,7 +27,7 @@ export default function useAuth(location) {
 
     // Public/spectator entry (explicit, or no session) is read-only regardless
     // of any lingering token; operators pass their token for the ownership check.
-    const spectator = adminFromState === false || !token;
+    const spectator = forceSpectator || adminFromState === false || !token;
     if (token && !spectator) {
       axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
     }
@@ -64,7 +64,7 @@ export default function useAuth(location) {
       active = false;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.state, location.search]);
+  }, [location.state, location.search, auctionIdOverride, forceSpectator]);
 
   // Logging out in another tab (or the console) clears the shared token; mirror
   // that here so the dashboard drops admin access everywhere at once.

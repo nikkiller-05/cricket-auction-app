@@ -38,7 +38,7 @@ import SpectatorPlayerGroups from '../features/players/SpectatorPlayerGroups';
 import TeamSquadViewer from '../features/teams/TeamSquadViewer';
 
 // Main UnifiedDashboard Component
-const UnifiedDashboard = () => {
+const UnifiedDashboard = ({ publicAuctionId = null }) => {
   const location = useLocation();
   const navigate = useNavigate();
   const { showSuccess, showError, showWarning, showInfo, confirm } = useNotification();
@@ -46,13 +46,14 @@ const UnifiedDashboard = () => {
   // Full-screen SOLD/UNSOLD celebration overlay
   const [celebration, setCelebration] = useState(null);
 
-  const { isAdmin, userRole, username, eventName, canConfigure, canUndo, logout } = useAuth(location);
+  const { isAdmin, userRole, username, eventName, canConfigure, canUndo, logout } = useAuth(location, publicAuctionId, !!publicAuctionId);
   const [activeTab, setActiveTab] = useState('live');
-  // Multi-tenant: an event-scoped auction is addressed by ?auctionId=<event.id>.
+  // Multi-tenant: an event-scoped auction is addressed by ?auctionId=<event.id>,
+  // or by publicAuctionId when reached via the clean /a/{slug} spectator link.
   // Absent (the classic main auction) it falls back to the shared 'default'.
   const auctionId = useMemo(
-    () => new URLSearchParams(location.search).get('auctionId') || 'default',
-    [location.search]
+    () => publicAuctionId || new URLSearchParams(location.search).get('auctionId') || 'default',
+    [publicAuctionId, location.search]
   );
   const {
     selectionMode,
