@@ -681,7 +681,7 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
   const logoThumb = (ev, size = 'w-10 h-10') => ev.logo_url
     ? <img src={ev.logo_url} alt="" className={`${size} rounded-lg object-cover shrink-0 bg-white/10`} />
     : <div className={`${size} rounded-lg bg-white/10 grid place-items-center text-base shrink-0`}>🏆</div>;
-  const statusBadge = (ev) => <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${ev.registration_open ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>{ev.registration_open ? 'OPEN' : 'CLOSED'}</span>;
+  const statusBadge = (ev) => <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${ev.registration_open ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>{ev.registration_open ? 'OPEN' : 'CLOSED'}</span>;
   const metaText = (ev) => <>{ev.payment_required ? `Paid · ${money(ev.reg_fee)}` : 'Free entry'}{ev.organizer_name ? ` · 👤 ${ev.organizer_name}` : (canAssignOrganizer ? ' · 👤 unassigned' : '')}</>;
   const countChips = (ev) => (ev.counts && ev.counts.total > 0) ? (
     <div className="mt-1.5 flex flex-wrap gap-1.5">
@@ -786,7 +786,7 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
               <div className="flex items-start gap-3 cursor-pointer" onClick={() => onSelect(ev)}>
                 {logoThumb(ev)}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2"><span className={`font-semibold truncate ${T.heading}`}>{ev.name}</span>{statusBadge(ev)}</div>
+                  <div className="flex items-center gap-2 min-w-0"><span className={`font-semibold truncate min-w-0 ${T.heading}`}>{ev.name}</span>{statusBadge(ev)}</div>
                   <div className={`mt-0.5 text-xs ${T.sub}`}>{metaText(ev)}</div>
                   {countChips(ev)}
                 </div>
@@ -802,7 +802,7 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
               <button onClick={() => onSelect(ev)} className="flex items-center gap-3 flex-1 min-w-0 text-left">
                 {logoThumb(ev, 'w-9 h-9')}
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2"><span className={`font-semibold truncate ${T.heading}`}>{ev.name}</span>{statusBadge(ev)}</div>
+                  <div className="flex items-center gap-2 min-w-0"><span className={`font-semibold truncate min-w-0 ${T.heading}`}>{ev.name}</span>{statusBadge(ev)}</div>
                   <div className={`text-xs ${T.sub} truncate`}>{metaText(ev)}{ev.counts?.total ? ` · ${ev.counts.total} regs` : ''}</div>
                 </div>
               </button>
