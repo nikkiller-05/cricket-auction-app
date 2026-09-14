@@ -2,28 +2,35 @@ import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
+import PublicCompletedAuction from './PublicCompletedAuction';
 
 // Public, view-only entry point for a live auction: /a/:slug
-// Resolves the event's slug to its auction id and hands off to the shared
-// dashboard in spectator mode. The id in the URL never grants operator access —
-// the backend authorizes every write against the token + event ownership.
+// Resolves the event's slug to its auction id. A completed event shows a
+// read-only results summary; anything else hands off to the shared dashboard in
+// spectator mode. The id in the URL never grants operator access — the backend
+// authorizes every write against the token + event ownership.
 const PublicAuctionPage = () => {
   const { slug } = useParams();
   const navigate = useNavigate();
   const [error, setError] = useState('');
+  const [completedEvent, setCompletedEvent] = useState(null);
 
   useEffect(() => {
     let active = true;
     (async () => {
       try {
         const { data } = await axios.get(`${API_BASE_URL}/api/registrations/public/${slug}`);
-        const eventId = data?.event?.id;
-        if (!eventId) {
+        const event = data?.event;
+        if (!event?.id) {
           if (active) setError('This auction could not be found.');
           return;
         }
-        // Enter as a spectator (isAdmin:false) scoped to this event's auction.
-        navigate(`/dashboard?auctionId=${encodeURIComponent(eventId)}`, {
+        // Finished auctions get a read-only summary; live ones enter as spectator.
+        if (event.status === 'completed') {
+          if (active) setCompletedEvent(event);
+          return;
+        }
+        navigate(`/dashboard?auctionId=${encodeURIComponent(event.id)}`, {
           replace: true,
           state: { isAdmin: false },
         });
@@ -35,6 +42,10 @@ const PublicAuctionPage = () => {
       active = false;
     };
   }, [slug, navigate]);
+
+  if (completedEvent) {
+    return <PublicCompletedAuction event={completedEvent} />;
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0b0a06] via-[#1c1608] to-[#2a1f08] px-4">

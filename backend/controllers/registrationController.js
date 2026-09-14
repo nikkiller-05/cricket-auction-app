@@ -29,6 +29,7 @@ const publicEvent = (e) => ({
   id: e.id,
   slug: e.slug,
   name: e.name,
+  status: e.status || 'upcoming',
   registration_open: e.registration_open,
   payment_required: e.payment_required,
   reg_fee: e.reg_fee,
