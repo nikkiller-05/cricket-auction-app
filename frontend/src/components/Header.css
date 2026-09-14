@@ -1181,9 +1181,44 @@
    Redesigned header controls (2026) — compact, premium, responsive
    ============================================================ */
 
-/* Keep the three sections in-flow so nothing overlaps the status pill. */
-.header-center { position: static; left: auto; top: auto; transform: none; pointer-events: auto; flex: 0 0 auto; }
-.header-right { flex: 0 0 auto; gap: 0.5rem; }
+/* Flat header cells: desktop single row (a spacer pushes the action cluster to
+   the right); an intentional two-row layout kicks in on narrow phones so the
+   tournament name never gets sacrificed to keep one row. */
+.header-container.gbx-hd { justify-content: flex-start; gap: 0.5rem; }
+.gbx-hd-brand, .gbx-hd-status, .gbx-hd-primary, .gbx-hd-user { display: flex; align-items: center; flex-shrink: 0; }
+.gbx-hd-tools { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
+.gbx-hd-tourn { display: flex; align-items: center; gap: 0.55rem; min-width: 0; flex: 0 1 auto; }
+.gbx-hd-spacer { flex: 1 1 auto; min-width: 0.5rem; }
+
+@media (max-width: 480px) {
+  .header-container.gbx-hd {
+    display: grid;
+    grid-template-columns: 1fr auto auto;
+    grid-template-areas:
+      "brand  tools  user"
+      "tourn  tourn  tourn"
+      "status status primary";
+    column-gap: 0.45rem;
+    row-gap: 0.4rem;
+    align-items: center;
+  }
+  .gbx-hd-brand { grid-area: brand; justify-self: start; }
+  .gbx-hd-tools { grid-area: tools; justify-self: end; }
+  .gbx-hd-user { grid-area: user; justify-self: end; }
+  .gbx-hd-tourn { grid-area: tourn; justify-self: start; max-width: 100%; }
+  .gbx-hd-status { grid-area: status; justify-self: start; }
+  .gbx-hd-primary { grid-area: primary; justify-self: end; }
+  .gbx-hd-spacer { display: none; }
+  .gbx-hd-sep { display: none; }
+  /* Tournament owns a full-width row — readable, not clipped. */
+  .gbx-hd-tournament { max-width: 100%; font-size: 0.92rem; }
+  /* Room on their own rows for the wordmark and the primary action label. */
+  .gbx-wordmark { display: inline; }
+  .gbx-hd-primary .gbx-pa-txt { display: inline; }
+  .gbx-hd-primary .gbx-pa { padding: 0 0.9rem; }
+  /* Open dropdowns below the taller two-row header. */
+  .gbx-menu, .download-dropdown-menu, .dropdown-menu { top: 7rem; }
+}
 
 /* Brand → Tournament */
 .gbx-hd-sep { width: 1px; height: 1.15rem; background: rgba(255,255,255,0.18); flex-shrink: 0; }

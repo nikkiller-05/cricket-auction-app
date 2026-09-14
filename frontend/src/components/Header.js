@@ -132,32 +132,41 @@ const Header = memo(({
 
   return (
     <header className="header">
-      <div className="header-container">
-        
-        {/* Left Section - Brand + Tournament + Status */}
-        <div className="header-left">
+      <div className="header-container gbx-hd">
+
+        {/* Brand */}
+        <div className="gbx-hd-brand">
           <a href="/" className="logo" title="Go to Home">
             <img src="/auction-logo.png" alt="GoldenBidX" className="logo-img" />
             <span className="logo-text gbx-wordmark">
               <span className="logo-gold">Golden</span><span className="logo-white">Bid</span><span className="logo-gold">X</span>
             </span>
           </a>
+        </div>
+
+        {/* Tournament */}
+        <div className="gbx-hd-tourn">
           {eventName && (
             <>
               <span className="gbx-hd-sep" aria-hidden="true" />
               <span className="gbx-hd-tournament" title={eventName}>{eventName}</span>
             </>
           )}
+        </div>
+
+        {/* Status */}
+        <div className="gbx-hd-status">
           <div className={`gbx-status gbx-status-${phase}`}>
             <span className="gbx-status-dot" aria-hidden="true" />
             <span className="gbx-status-label">{phaseLabel}</span>
           </div>
         </div>
 
-        {/* Right Section - User Controls */}
-        <div className="header-right">
-          
-          {/* Primary auction action: Start / Pause / Resume */}
+        {/* Flexible spacer keeps the action cluster to the right on desktop */}
+        <div className="gbx-hd-spacer" aria-hidden="true" />
+
+        {/* Primary auction action: Start / Pause / Resume */}
+        <div className="gbx-hd-primary">
           {canOperateAuction && !isEnded && (
             <button
               type="button"
@@ -176,6 +185,10 @@ const Header = memo(({
               )}
             </button>
           )}
+        </div>
+
+        {/* Tools: Auction Controls + Export */}
+        <div className="gbx-hd-tools">
 
           {/* Auction Controls menu: Undo Sale, Revert Bid, End Auction */}
           {showControls && (
@@ -329,6 +342,10 @@ const Header = memo(({
             </div>
           )}
 
+        </div>
+
+        {/* User menu */}
+        <div className="gbx-hd-user">
           {/* User Menu Dropdown */}
           {isSpectator ? (
             <span className="spectator-pill">👁️ Spectator</span>
