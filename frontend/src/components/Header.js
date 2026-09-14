@@ -187,8 +187,10 @@ const Header = memo(({
           )}
         </div>
 
-        {/* Tools: Auction Controls + Export */}
-        <div className="gbx-hd-tools">
+        {/* Actions cluster: Controls + Export + Profile (right-anchored) */}
+        <div className="gbx-hd-actions">
+          {/* Tools: Auction Controls + Export */}
+          <div className="gbx-hd-tools">
 
           {/* Auction Controls menu: Undo Sale, Revert Bid, End Auction */}
           {showControls && (
@@ -483,6 +485,7 @@ const Header = memo(({
           </div>
           )}
 
+        </div>
         </div>
       </div>
 

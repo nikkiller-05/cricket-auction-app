@@ -1186,6 +1186,7 @@
    tournament name never gets sacrificed to keep one row. */
 .header-container.gbx-hd { justify-content: flex-start; gap: 0.5rem; }
 .gbx-hd-brand, .gbx-hd-status, .gbx-hd-primary, .gbx-hd-user { display: flex; align-items: center; flex-shrink: 0; }
+.gbx-hd-actions { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
 .gbx-hd-tools { display: flex; align-items: center; gap: 0.5rem; flex-shrink: 0; }
 .gbx-hd-tourn { display: flex; align-items: center; gap: 0.55rem; min-width: 0; flex: 0 1 auto; }
 .gbx-hd-spacer { flex: 1 1 auto; min-width: 0.5rem; }
@@ -1193,26 +1194,28 @@
 @media (max-width: 480px) {
   .header-container.gbx-hd {
     display: grid;
-    grid-template-columns: 1fr auto auto;
+    grid-template-columns: 1fr auto;
     grid-template-areas:
-      "brand  tools  user"
-      "tourn  tourn  tourn"
-      "status status primary";
-    column-gap: 0.45rem;
-    row-gap: 0.4rem;
+      "brand   actions"
+      "tourn   tourn"
+      "status  primary";
+    column-gap: 0.5rem;
+    row-gap: 0.45rem;
     align-items: center;
   }
   .gbx-hd-brand { grid-area: brand; justify-self: start; }
-  .gbx-hd-tools { grid-area: tools; justify-self: end; }
-  .gbx-hd-user { grid-area: user; justify-self: end; }
-  .gbx-hd-tourn { grid-area: tourn; justify-self: start; max-width: 100%; }
+  .gbx-hd-actions { grid-area: actions; justify-self: end; }
+  .gbx-hd-tourn { grid-area: tourn; display: block; width: 100%; min-width: 0; }
   .gbx-hd-status { grid-area: status; justify-self: start; }
   .gbx-hd-primary { grid-area: primary; justify-self: end; }
   .gbx-hd-spacer { display: none; }
   .gbx-hd-sep { display: none; }
-  /* Tournament owns a full-width row — readable, not clipped. */
-  .gbx-hd-tournament { max-width: 100%; font-size: 0.92rem; }
-  /* Room on their own rows for the wordmark and the primary action label. */
+  /* Tournament owns a genuine full-width row — no artificial width cap. */
+  .gbx-hd-tournament {
+    display: block; max-width: 100%; width: 100%; min-width: 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    font-size: 0.9rem;
+  }
   .gbx-wordmark { display: inline; }
   .gbx-hd-primary .gbx-pa-txt { display: inline; }
   .gbx-hd-primary .gbx-pa { padding: 0 0.9rem; }
