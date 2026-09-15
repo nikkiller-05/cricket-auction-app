@@ -36,11 +36,37 @@ const publicEvent = (e) => ({
   upi_id: e.payment_required ? e.upi_id : null,
   upi_qr_url: e.payment_required ? e.upi_qr_url : null,
   logo_url: e.logo_url || null,
+  team_count: e.team_count ?? null,
+  teams: Array.isArray(e.teams) ? e.teams : null,
   show_contact: !!e.show_contact,
   contact_phone: e.show_contact ? e.contact_phone : null,
   contact_email: e.show_contact ? e.contact_email : null,
   contact_note: e.show_contact ? e.contact_note : null,
 });
+
+// Normalise the optional team plan from a request body. teamCount is a small
+// int (falsy clears it); teams is a JSON array of { name, logoUrl }, both optional.
+const parseTeamPlan = (body = {}) => {
+  const out = {};
+  if (body.teamCount !== undefined) {
+    const n = parseInt(body.teamCount, 10);
+    out.teamCount = Number.isFinite(n) && n > 0 ? Math.min(n, 24) : null;
+  }
+  if (body.teams !== undefined) {
+    let teams = null;
+    try {
+      const parsed = typeof body.teams === 'string' ? JSON.parse(body.teams) : body.teams;
+      if (Array.isArray(parsed)) {
+        teams = parsed.slice(0, 24).map((t) => ({
+          name: (t && typeof t.name === 'string' && t.name.trim()) ? t.name.trim().slice(0, 60) : null,
+          logoUrl: (t && typeof t.logoUrl === 'string' && t.logoUrl) ? t.logoUrl : null,
+        }));
+      }
+    } catch { teams = null; }
+    out.teams = teams;
+  }
+  return out;
+};
 
 const registrationController = {
   uploadFields: upload.fields([
@@ -114,7 +140,16 @@ const registrationController = {
         registration_open: true,
         created_by: req.user?.username || 'super-admin',
       });
-      res.json({ event });
+
+      // Optional team plan (count + optional names/logos) — best-effort so a
+      // pre-migration DB never blocks event creation.
+      const { teamCount, teams } = parseTeamPlan(req.body);
+      let saved = event;
+      if (teamCount !== undefined || teams !== undefined) {
+        const withTeams = await registrationService.setEventTeams(event.id, teamCount, teams);
+        if (withTeams) saved = withTeams;
+      }
+      res.json({ event: saved });
     } catch (e) {
       res.status(500).json({ error: e.message });
     }
@@ -149,7 +184,18 @@ const registrationController = {
       if (req.files?.qr?.[0]) { const f = req.files.qr[0]; payload.upi_qr_url = await registrationService.uploadImage(f.buffer, f.mimetype, `qr/${id}`); }
       if (req.files?.logo?.[0]) { const f = req.files.logo[0]; payload.logo_url = await registrationService.uploadImage(f.buffer, f.mimetype, `logos/${id}`); }
 
-      res.json({ event: await registrationService.updateEvent(id, payload) });
+      let event = Object.keys(payload).length > 0
+        ? await registrationService.updateEvent(id, payload)
+        : await registrationService.getEventById(id);
+
+      // Optional team plan (best-effort).
+      const { teamCount, teams } = parseTeamPlan(body);
+      if (teamCount !== undefined || teams !== undefined) {
+        const withTeams = await registrationService.setEventTeams(id, teamCount, teams);
+        if (withTeams) event = withTeams;
+      }
+
+      res.json({ event });
     } catch (e) {
       res.status(500).json({ error: e.message });
     }

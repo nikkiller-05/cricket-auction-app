@@ -44,6 +44,18 @@ const compressLogo = (file, maxDim = 320, quality = 0.85) => new Promise((resolv
   } catch { resolve(file); }
 });
 
+// Compress then encode as a data URL (used for optional per-team logos stored
+// inline on the event, so no extra upload round-trips are needed).
+const compressLogoDataUrl = async (file, maxDim = 160) => {
+  const f = await compressLogo(file, maxDim, 0.82);
+  return new Promise((resolve) => {
+    const r = new FileReader();
+    r.onload = () => resolve(typeof r.result === 'string' ? r.result : null);
+    r.onerror = () => resolve(null);
+    r.readAsDataURL(f);
+  });
+};
+
 // ---- Theme tokens (dark default, matching the project; light optional) ----
 const THEMES = {
   dark: {
@@ -601,11 +613,12 @@ const ChangePasswordModal = ({ onClose, showSuccess, showError, T }) => {
 };
 
 // ---------------- Events panel ----------------
-const emptyForm = { name: '', paymentRequired: true, regFee: '', upiId: '', organizerId: '', showContact: false, contactPhone: '', contactEmail: '', contactNote: '' };
+const emptyForm = { name: '', paymentRequired: true, regFee: '', upiId: '', organizerId: '', teamCount: '', showContact: false, contactPhone: '', contactEmail: '', contactNote: '' };
 const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, selected, onSelect, reload, showSuccess, showError, showConfirm, T }) => {
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm);
+  const [teamRows, setTeamRows] = useState([]);
   const [qr, setQr] = useState(null);
   const [logo, setLogo] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -614,12 +627,27 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
   const [layout, setLayout] = useState(() => localStorage.getItem('evLayout') || 'cards');
   const setLayoutPersist = (v) => { setLayout(v); localStorage.setItem('evLayout', v); };
 
-  const startCreate = () => { setCreating(true); setEditing(null); setForm(emptyForm); setQr(null); setLogo(null); };
+  const startCreate = () => { setCreating(true); setEditing(null); setForm(emptyForm); setTeamRows([]); setQr(null); setLogo(null); };
   const startEdit = (ev) => {
     setEditing(ev.id); setCreating(false); setQr(null); setLogo(null);
-    setForm({ name: ev.name, paymentRequired: ev.payment_required, regFee: ev.reg_fee || '', upiId: ev.upi_id || '', organizerId: ev.organizer_id || '', showContact: !!ev.show_contact, contactPhone: ev.contact_phone || '', contactEmail: ev.contact_email || '', contactNote: ev.contact_note || '' });
+    setForm({ name: ev.name, paymentRequired: ev.payment_required, regFee: ev.reg_fee || '', upiId: ev.upi_id || '', organizerId: ev.organizer_id || '', teamCount: ev.team_count || '', showContact: !!ev.show_contact, contactPhone: ev.contact_phone || '', contactEmail: ev.contact_email || '', contactNote: ev.contact_note || '' });
+    setTeamRows(Array.isArray(ev.teams) ? ev.teams.map((t) => ({ name: t?.name || '', logoUrl: t?.logoUrl || null })) : []);
   };
-  const closeForm = () => { setCreating(false); setEditing(null); setForm(emptyForm); setQr(null); setLogo(null); };
+  const closeForm = () => { setCreating(false); setEditing(null); setForm(emptyForm); setTeamRows([]); setQr(null); setLogo(null); };
+
+  // Keep the per-team rows in sync with the requested team count.
+  const setTeamCount = (raw) => {
+    const digits = String(raw).replace(/\D/g, '');
+    const n = digits === '' ? '' : Math.min(parseInt(digits, 10) || 0, 24);
+    setForm((f) => ({ ...f, teamCount: n }));
+    const count = n === '' ? 0 : n;
+    setTeamRows((prev) => {
+      const next = prev.slice(0, count);
+      while (next.length < count) next.push({ name: '', logoUrl: null });
+      return next;
+    });
+  };
+  const setTeamField = (i, patch) => setTeamRows((prev) => prev.map((r, idx) => (idx === i ? { ...r, ...patch } : r)));
 
   const submit = async (e) => {
     e.preventDefault();
@@ -640,6 +668,8 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
       }
       if (qr) fd.append('qr', qr);
       if (logo) fd.append('logo', logo);
+      fd.append('teamCount', form.teamCount || 0);
+      fd.append('teams', JSON.stringify(teamRows.map((r) => ({ name: (r.name || '').trim() || null, logoUrl: r.logoUrl || null }))));
       if (editing) { await api.put(`/api/registrations/events/${editing}`, fd); showSuccess('Event updated'); }
       else { await api.post('/api/registrations/events', fd); showSuccess('Event created'); }
       closeForm();
@@ -751,6 +781,28 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
               {organizers.map((o) => <option key={o.id} value={o.id}>{o.name || o.username}</option>)}
             </select>
           )}
+          <div className={`rounded-lg border p-2.5 ${T.soft}`}>
+            <label className={`block text-xs font-semibold ${T.label} mb-1`}>Number of teams (optional)</label>
+            <input inputMode="numeric" value={form.teamCount} onChange={(e) => setTeamCount(e.target.value)} placeholder="e.g. 8 — seeds the auction & shows on the public page" className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} />
+            {teamRows.length > 0 && (
+              <div className="mt-2 space-y-1.5">
+                <p className={`text-[11px] ${T.sub}`}>Team names & logos are optional — leave blank to just advertise the count.</p>
+                {teamRows.map((row, i) => (
+                  <div key={i} className="flex items-center gap-2">
+                    {row.logoUrl
+                      ? <img src={row.logoUrl} alt="" className="w-8 h-8 rounded-lg object-cover shrink-0" />
+                      : <span className="w-8 h-8 rounded-lg bg-white/10 grid place-items-center text-xs shrink-0">{i + 1}</span>}
+                    <input value={row.name} onChange={(e) => setTeamField(i, { name: e.target.value })} placeholder={`Team ${i + 1} name (optional)`} className={`flex-1 min-w-0 rounded-lg border px-3 py-1.5 text-sm ${T.input}`} />
+                    <label className={`shrink-0 cursor-pointer rounded-lg border px-2.5 py-1.5 text-xs font-semibold ${T.chip}`}>
+                      {row.logoUrl ? 'Change' : 'Logo'}
+                      <input type="file" accept="image/*" className="hidden" onChange={async (e) => { const f = e.target.files?.[0]; if (f) setTeamField(i, { logoUrl: await compressLogoDataUrl(f) }); }} />
+                    </label>
+                    {row.logoUrl && <button type="button" onClick={() => setTeamField(i, { logoUrl: null })} className={`shrink-0 text-xs ${T.sub} hover:opacity-80`} title="Remove logo">✕</button>}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
           <label className={`flex items-center gap-2 text-sm ${T.label}`}>
             <input type="checkbox" checked={form.showContact} onChange={(e) => setForm({ ...form, showContact: e.target.checked })} />
             Let players contact the organizer

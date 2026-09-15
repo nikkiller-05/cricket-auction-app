@@ -42,6 +42,22 @@ const AuctionSetup = () => {
     ]
   });
 
+  // For an event auction, seed the default team count (4) from the event's plan.
+  // The organizer can still change it below.
+  useEffect(() => {
+    if (auctionId === 'default') return;
+    let active = true;
+    axios
+      .get(`${API_BASE_URL}/api/registrations/events`)
+      .then(({ data }) => {
+        if (!active) return;
+        const ev = (data.events || []).find((e) => String(e.id) === String(auctionId));
+        if (ev && ev.team_count) setConfig((prev) => ({ ...prev, teamCount: ev.team_count }));
+      })
+      .catch(() => {});
+    return () => { active = false; };
+  }, [auctionId]);
+
   // File upload state
   const [fileData, setFileData] = useState({
     file: null,

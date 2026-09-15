@@ -78,6 +78,28 @@ const registrationService = {
     }
   },
 
+  // Best-effort team plan (team_count + teams jsonb). Never throws, so event
+  // create/update keep working even before the columns exist. Returns the
+  // updated row on success, else null.
+  async setEventTeams(id, teamCount, teams) {
+    if (!supabase || !id) return null;
+    try {
+      const payload = {};
+      if (teamCount !== undefined) payload.team_count = teamCount;
+      if (teams !== undefined) payload.teams = teams;
+      if (Object.keys(payload).length === 0) return null;
+      const { data, error } = await supabase.from(EVENTS).update(payload).eq('id', id).select().single();
+      if (error) {
+        console.log(`   ⚠️  event teams update skipped (${id}): ${error.message}`);
+        return null;
+      }
+      return data;
+    } catch (e) {
+      console.log(`   ⚠️  event teams update exception (${id}): ${e.message}`);
+      return null;
+    }
+  },
+
   async deleteEvent(id) {
     ensure();
     const { error } = await supabase.from(EVENTS).delete().eq('id', id);

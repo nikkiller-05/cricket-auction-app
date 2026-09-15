@@ -27,6 +27,8 @@ const PublicUpcomingAuction = ({ event }) => {
 
   const hasContact = event.show_contact && (event.contact_phone || event.contact_email || event.contact_note);
   const digits = (event.contact_phone || '').replace(/\D/g, '');
+  const teams = Array.isArray(event.teams) ? event.teams : [];
+  const teamCount = event.team_count || teams.length || 0;
 
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden bg-gradient-to-br from-[#0b0a06] via-[#1c1608] to-[#2a1f08] text-white">
@@ -80,6 +82,29 @@ const PublicUpcomingAuction = ({ event }) => {
           )}
           {event.contact_note && <p className="text-amber-100/60 text-xs mt-2">{event.contact_note}</p>}
         </div>
+
+        {/* Teams */}
+        {teamCount > 0 && (
+          <section className="mb-7">
+            <div className="flex items-center justify-between mb-3">
+              <h2 className="text-sm font-bold uppercase tracking-wider text-amber-200/70">Teams</h2>
+              <span className="text-amber-100/60 text-sm font-semibold">{teamCount}</span>
+            </div>
+            <div className="grid gap-3 grid-cols-2 sm:grid-cols-3 xl:grid-cols-4">
+              {Array.from({ length: teamCount }).map((_, i) => {
+                const t = teams[i] || {};
+                return (
+                  <div key={i} className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 flex items-center gap-3">
+                    {t.logoUrl
+                      ? <img src={t.logoUrl} alt="" className="w-10 h-10 rounded-xl object-cover bg-white/10 shrink-0" />
+                      : <div className="w-10 h-10 rounded-xl bg-amber-400/15 grid place-items-center text-amber-200 font-bold shrink-0">{i + 1}</div>}
+                    <span className="min-w-0 font-semibold text-white truncate">{t.name || `Team ${i + 1}`}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </section>
+        )}
 
         {/* Registered players */}
         <div className="flex items-center justify-between mb-3">
