@@ -18,6 +18,8 @@ const IcoPencil = (p) => (<svg viewBox="0 0 24 24" fill="currentColor" width="15
 const IcoTrash = (p) => (<svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15" {...p}><path fillRule="evenodd" clipRule="evenodd" d="M16.5 4.478v.227a48.816 48.816 0 013.878.512.75.75 0 11-.256 1.478l-.209-.035-1.005 13.07a3 3 0 01-2.991 2.77H8.084a3 3 0 01-2.991-2.77L4.087 6.66l-.209.035a.75.75 0 01-.256-1.478A48.567 48.567 0 017.5 4.705v-.227c0-1.564 1.213-2.9 2.816-2.951a52.662 52.662 0 013.369 0c1.603.051 2.815 1.387 2.815 2.951zm-6.136-1.452a51.196 51.196 0 013.273 0C14.39 3.05 15 3.684 15 4.478v.113a49.488 49.488 0 00-6 0v-.113c0-.794.609-1.428 1.364-1.452zm-.355 5.945a.75.75 0 10-1.5.058l.347 9a.75.75 0 101.499-.058l-.347-9zm5.48.058a.75.75 0 10-1.498-.058l-.347 9a.75.75 0 001.5.058l.345-9z" /></svg>);
 const IcoLock = (p) => (<svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15" {...p}><path fillRule="evenodd" clipRule="evenodd" d="M12 1.5a5.25 5.25 0 00-5.25 5.25v3a3 3 0 00-3 3v6.75a3 3 0 003 3h10.5a3 3 0 003-3v-6.75a3 3 0 00-3-3v-3c0-2.9-2.35-5.25-5.25-5.25zm3.75 8.25v-3a3.75 3.75 0 10-7.5 0v3h7.5z" /></svg>);
 const IcoUnlock = (p) => (<svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15" {...p}><path d="M18 1.5c2.9 0 5.25 2.35 5.25 5.25v3.75a.75.75 0 01-1.5 0V6.75a3.75 3.75 0 10-7.5 0v3h.75a3 3 0 013 3v6.75a3 3 0 01-3 3H3.75a3 3 0 01-3-3v-6.75a3 3 0 013-3h9v-3c0-2.9 2.35-5.25 5.25-5.25z" /></svg>);
+const IcoFlagEnd = (p) => (<svg viewBox="0 0 24 24" fill="currentColor" width="15" height="15" {...p}><path d="M5 2a1 1 0 011 1v1l3-.75a4 4 0 013 .25l.6.3a4 4 0 003 .2L20 3.5v10l-2.4.7a4 4 0 01-3-.2l-.6-.3a4 4 0 00-3-.25L8 14v7a1 1 0 11-2 0V3a1 1 0 011-1z" /></svg>);
+const IcoRotate = (p) => (<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" width="15" height="15" {...p}><path d="M3 12a9 9 0 1 0 2.64-6.36" /><path d="M3 4v5h5" /></svg>);
 
 // Icon button with a custom hover tooltip (native title is too slow/inconsistent).
 const IconBtn = ({ title, onClick, danger, T, size = 'h-8 w-8', children }) => (
@@ -70,6 +72,8 @@ const isoToTime = (iso) => { const s = toLocalInput(iso); return s ? s.slice(11,
 // Registration is effectively closed once its deadline passes, regardless of the flag.
 const regClosedByDeadline = (ev) => !!ev.registration_deadline && new Date(ev.registration_deadline).getTime() < Date.now();
 const isRegOpen = (ev) => !!ev.registration_open && !regClosedByDeadline(ev);
+// Event open/close maps to lifecycle status: completed = closed.
+const isEventOpen = (ev) => (ev.status || 'upcoming') !== 'completed';
 // Combine a local date (YYYY-MM-DD) + time (HH:mm) into an ISO timestamp.
 const combineDateTime = (date, time) => {
   if (!date) return '';
@@ -720,6 +724,25 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
     try { await api.put(`/api/registrations/events/${ev.id}`, payload); reload(); }
     catch (err) { showError(err.response?.data?.error || 'Update failed'); }
   };
+
+  // Close event = mark it Completed (results view everywhere) + close registration.
+  // Reopen = back to the live auction view.
+  const toggleEventOpen = (ev) => {
+    const closing = isEventOpen(ev);
+    showConfirm(
+      closing
+        ? `Close “${ev.name}”? It moves to Completed (results view) and registration closes.`
+        : `Reopen “${ev.name}”? It goes back to the live auction view.`,
+      closing ? 'Close event?' : 'Reopen event?',
+      async () => {
+        try {
+          await api.put(`/api/registrations/events/${ev.id}`, closing ? { status: 'completed', registrationOpen: false } : { status: 'live' });
+          showSuccess(closing ? 'Event closed' : 'Event reopened');
+          reload();
+        } catch (err) { showError(err.response?.data?.error || 'Update failed'); }
+      }
+    );
+  };
   const remove = (ev) => {
     showConfirm(
       `“${ev.name}” and all of its registrations will be permanently deleted. This cannot be undone.`,
@@ -749,6 +772,12 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
     ? <img src={ev.logo_url} alt="" className={`${size} rounded-lg object-cover shrink-0 bg-white/10`} />
     : <div className={`${size} rounded-lg bg-white/10 grid place-items-center text-base shrink-0`}>🏆</div>;
   const statusBadge = (ev) => { const open = isRegOpen(ev); return <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${open ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>{open ? 'REG OPEN' : 'REG CLOSED'}</span>; };
+  const eventStatusBadge = (ev) => {
+    const s = ev.status || 'upcoming';
+    const cls = { upcoming: 'bg-amber-100 text-amber-800', live: 'bg-emerald-100 text-emerald-700', completed: 'bg-slate-200 text-slate-600' };
+    const label = { upcoming: 'UPCOMING', live: 'LIVE', completed: 'COMPLETED' };
+    return <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${cls[s] || cls.upcoming}`}>{label[s] || 'UPCOMING'}</span>;
+  };
   const metaText = (ev) => <>{ev.payment_required ? `Paid · ${money(ev.reg_fee)}` : 'Free entry'}{ev.organizer_name ? ` · 👤 ${ev.organizer_name}` : (canAssignOrganizer ? ' · 👤 unassigned' : '')}</>;
   const countChips = (ev) => (ev.counts && ev.counts.total > 0) ? (
     <div className="mt-1.5 flex flex-wrap gap-1.5">
@@ -762,6 +791,7 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
       <IconBtn T={T} title="Copy players' registration link" onClick={(e) => { e.stopPropagation(); copyLink(ev); }}><IcoCopy /></IconBtn>
       <IconBtn T={T} title="Edit event" onClick={(e) => { e.stopPropagation(); startEdit(ev); }}><IcoPencil /></IconBtn>
       <IconBtn T={T} title={isRegOpen(ev) ? 'Close registration' : 'Open registration'} onClick={(e) => { e.stopPropagation(); toggleOpen(ev); }}>{isRegOpen(ev) ? <IcoLock /> : <IcoUnlock />}</IconBtn>
+      <IconBtn T={T} title={isEventOpen(ev) ? 'Close event (mark completed)' : 'Reopen event'} onClick={(e) => { e.stopPropagation(); toggleEventOpen(ev); }}>{isEventOpen(ev) ? <IcoFlagEnd /> : <IcoRotate />}</IconBtn>
       <IconBtn T={T} danger title="Delete event" onClick={(e) => { e.stopPropagation(); remove(ev); }}><IcoTrash /></IconBtn>
     </div>
   ) : (
@@ -915,7 +945,7 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
               <div className="flex items-start gap-3 cursor-pointer" onClick={() => onSelect(ev)}>
                 {logoThumb(ev)}
                 <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 min-w-0"><span className={`font-semibold truncate min-w-0 ${T.heading}`}>{ev.name}</span>{statusBadge(ev)}</div>
+                  <div className="flex items-center gap-2 flex-wrap min-w-0"><span className={`font-semibold truncate min-w-0 ${T.heading}`}>{ev.name}</span>{eventStatusBadge(ev)}{statusBadge(ev)}</div>
                   <div className={`mt-0.5 text-xs ${T.sub}`}>{metaText(ev)}</div>
                   {countChips(ev)}
                 </div>
@@ -931,7 +961,7 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
               <button onClick={() => onSelect(ev)} className="flex items-center gap-3 flex-1 min-w-0 text-left">
                 {logoThumb(ev, 'w-9 h-9')}
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2 min-w-0"><span className={`font-semibold truncate min-w-0 ${T.heading}`}>{ev.name}</span>{statusBadge(ev)}</div>
+                  <div className="flex items-center gap-2 flex-wrap min-w-0"><span className={`font-semibold truncate min-w-0 ${T.heading}`}>{ev.name}</span>{eventStatusBadge(ev)}{statusBadge(ev)}</div>
                   <div className={`text-xs ${T.sub} truncate`}>{metaText(ev)}{ev.counts?.total ? ` · ${ev.counts.total} regs` : ''}</div>
                 </div>
               </button>

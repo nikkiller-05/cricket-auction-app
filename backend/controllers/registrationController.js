@@ -225,6 +225,12 @@ const registrationController = {
         if (withSchedule) event = withSchedule;
       }
 
+      // Event open/close maps to the lifecycle status (completed = closed).
+      if (body.status && ['upcoming', 'live', 'completed'].includes(body.status)) {
+        const ok = await registrationService.setEventStatus(id, body.status);
+        if (ok) event = { ...event, status: body.status };
+      }
+
       res.json({ event });
     } catch (e) {
       res.status(500).json({ error: e.message });
