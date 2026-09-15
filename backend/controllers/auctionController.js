@@ -113,7 +113,13 @@ const auctionController = {
       };
       
       dataService.updateSettings(newSettings);
-      
+
+      // If the event supplied a team plan (names/logos), seed the auction's
+      // teams from it now — only when no teams exist yet (fresh setup).
+      if (Array.isArray(req.body.teams) && req.body.teams.length > 0) {
+        dataService.ensureTeamsInitialized(req.body.teams);
+      }
+
       // Broadcast settings update to all connected clients
       socketService.emit('settingsUpdated', newSettings);
       

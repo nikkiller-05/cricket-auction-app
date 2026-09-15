@@ -44,6 +44,7 @@ const AuctionSetup = () => {
 
   // For an event auction, seed the default team count (4) from the event's plan.
   // The organizer can still change it below.
+  const [eventTeams, setEventTeams] = useState([]);
   useEffect(() => {
     if (auctionId === 'default') return;
     let active = true;
@@ -53,6 +54,7 @@ const AuctionSetup = () => {
         if (!active) return;
         const ev = (data.events || []).find((e) => String(e.id) === String(auctionId));
         if (ev && ev.team_count) setConfig((prev) => ({ ...prev, teamCount: ev.team_count }));
+        if (ev && Array.isArray(ev.teams)) setEventTeams(ev.teams);
       })
       .catch(() => {});
     return () => { active = false; };
@@ -212,8 +214,9 @@ const AuctionSetup = () => {
         biddingIncrements: config.biddingIncrements
       };
 
-      // First, save auction settings
-      await axios.post(`${API_BASE_URL}/api/auction/settings`, sanitizedConfig);
+      // First, save auction settings (pass the event's team plan so the live
+      // auction's teams inherit the organizer's names/logos).
+      await axios.post(`${API_BASE_URL}/api/auction/settings`, { ...sanitizedConfig, teams: eventTeams });
 
       // Then add players: either from an uploaded file or a manual list.
       if (fileData.file) {

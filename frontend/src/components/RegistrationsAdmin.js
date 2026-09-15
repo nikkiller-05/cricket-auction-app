@@ -735,7 +735,7 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
     <div className={`gbx-events-panel ${T.card} p-4 sm:p-5`}>
       <div className="flex items-center justify-between mb-3">
         <h2 className={`font-bold ${T.heading}`}>Events <span className={`text-xs font-normal ${T.sub}`}>({events.length})</span></h2>
-        {canManageEvents && !editing && <button onClick={creating ? closeForm : startCreate} className="gbx-btn-new-event rounded-full bg-amber-400 text-slate-900 px-3 py-1 text-xs font-bold hover:bg-amber-300">{creating ? 'Cancel' : '+ New event'}</button>}
+        {canManageEvents && <button onClick={startCreate} className="gbx-btn-new-event rounded-full bg-amber-400 text-slate-900 px-3 py-1 text-xs font-bold hover:bg-amber-300">+ New event</button>}
       </div>
 
       {(events.length > 4 || (canAssignOrganizer && organizers.length > 0)) && (
@@ -754,7 +754,14 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
       )}
 
       {canManageEvents && (creating || editing) && (
-        <form onSubmit={submit} className={`space-y-2 mb-4 rounded-xl border p-3 ${T.soft}`}>
+        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeForm} />
+          <div className={`relative w-full max-w-lg ${T.card} p-5 max-h-[90vh] overflow-y-auto`}>
+            <div className="flex items-center justify-between mb-3">
+              <h3 className={`text-lg font-bold ${T.heading}`}>{editing ? 'Edit event' : 'New event'}</h3>
+              <button type="button" onClick={closeForm} aria-label="Close" className={`text-2xl leading-none ${T.sub} hover:opacity-80`}>×</button>
+            </div>
+            <form onSubmit={submit} className="space-y-2">
           <input className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} placeholder="Event name" value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} />
           <label className={`flex items-center gap-3 text-xs ${T.sub}`}>
             {logo ? <img src={URL.createObjectURL(logo)} alt="" className="w-9 h-9 rounded-lg object-cover" /> : <span className="w-9 h-9 rounded-lg bg-white/10 grid place-items-center">🏆</span>}
@@ -818,7 +825,9 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
             <button disabled={busy} className="gbx-btn-save-event flex-1 rounded-full bg-indigo-600 text-white px-4 py-2 text-sm font-semibold hover:bg-indigo-500 disabled:opacity-50">{busy ? 'Saving…' : editing ? 'Update event' : 'Create event'}</button>
             <button type="button" onClick={closeForm} className={`rounded-full border px-4 py-2 text-sm font-semibold ${T.chip}`}>Cancel</button>
           </div>
-        </form>
+            </form>
+          </div>
+        </div>
       )}
 
       <div className="flex items-center justify-between mb-2">

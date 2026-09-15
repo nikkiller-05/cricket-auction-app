@@ -182,22 +182,25 @@ const dataService = {
 
   // Create default teams from settings.teamCount when none exist yet.
   // Used by flows that start an auction without an Excel upload (manual add,
-  // registrations import). Returns the current teams either way.
-  ensureTeamsInitialized() {
+  // registrations import). An optional plan ([{name, logoUrl}]) seeds the team
+  // names/logos by index (e.g. from an event's team plan). Returns the current
+  // teams either way.
+  ensureTeamsInitialized(plan = null) {
     const s = S();
     if (Array.isArray(s.auctionData.teams) && s.auctionData.teams.length > 0) {
       return s.auctionData.teams;
     }
     const teams = [];
     for (let i = 1; i <= s.settings.teamCount; i++) {
+      const p = Array.isArray(plan) ? plan[i - 1] : null;
       teams.push({
         id: i,
-        name: `Team ${i}`,
+        name: p && p.name ? p.name : `Team ${i}`,
         budget: s.settings.startingBudget,
         players: [],
         captain: null,
         captainAmount: 0,
-        logoUrl: null
+        logoUrl: p && p.logoUrl ? p.logoUrl : null
       });
     }
     s.auctionData.teams = teams;
