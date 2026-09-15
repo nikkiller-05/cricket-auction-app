@@ -65,6 +65,14 @@ const toLocalInput = (iso) => {
   const pad = (n) => String(n).padStart(2, '0');
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 };
+const isoToDate = (iso) => { const s = toLocalInput(iso); return s ? s.slice(0, 10) : ''; };
+const isoToTime = (iso) => { const s = toLocalInput(iso); return s ? s.slice(11, 16) : ''; };
+// Combine a local date (YYYY-MM-DD) + time (HH:mm) into an ISO timestamp.
+const combineDateTime = (date, time) => {
+  if (!date) return '';
+  const d = new Date(`${date}T${time || '00:00'}`);
+  return isNaN(d.getTime()) ? '' : d.toISOString();
+};
 
 // ---- Theme tokens (dark default, matching the project; light optional) ----
 const THEMES = {
@@ -623,7 +631,7 @@ const ChangePasswordModal = ({ onClose, showSuccess, showError, T }) => {
 };
 
 // ---------------- Events panel ----------------
-const emptyForm = { name: '', paymentRequired: true, regFee: '', upiId: '', organizerId: '', teamCount: '', auctionAt: '', registrationDeadline: '', eventStartDate: '', eventEndDate: '', showContact: false, contactPhone: '', contactEmail: '', contactNote: '' };
+const emptyForm = { name: '', paymentRequired: true, regFee: '', upiId: '', organizerId: '', teamCount: '', auctionDate: '', auctionTime: '', deadlineDate: '', deadlineTime: '', eventStartDate: '', eventEndDate: '', showContact: false, contactPhone: '', contactEmail: '', contactNote: '' };
 const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, selected, onSelect, reload, showSuccess, showError, showConfirm, T }) => {
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -642,7 +650,7 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
   const startCreate = () => { setCreating(true); setEditing(null); setForm(emptyForm); setTeamRows([]); setMentionTeams(false); setConfigureNames(false); setQr(null); setLogo(null); };
   const startEdit = (ev) => {
     setEditing(ev.id); setCreating(false); setQr(null); setLogo(null);
-    setForm({ name: ev.name, paymentRequired: ev.payment_required, regFee: ev.reg_fee || '', upiId: ev.upi_id || '', organizerId: ev.organizer_id || '', teamCount: ev.team_count || '', auctionAt: toLocalInput(ev.auction_at), registrationDeadline: toLocalInput(ev.registration_deadline), eventStartDate: ev.event_start_date ? String(ev.event_start_date).slice(0, 10) : '', eventEndDate: ev.event_end_date ? String(ev.event_end_date).slice(0, 10) : '', showContact: !!ev.show_contact, contactPhone: ev.contact_phone || '', contactEmail: ev.contact_email || '', contactNote: ev.contact_note || '' });
+    setForm({ name: ev.name, paymentRequired: ev.payment_required, regFee: ev.reg_fee || '', upiId: ev.upi_id || '', organizerId: ev.organizer_id || '', teamCount: ev.team_count || '', auctionDate: isoToDate(ev.auction_at), auctionTime: isoToTime(ev.auction_at), deadlineDate: isoToDate(ev.registration_deadline), deadlineTime: isoToTime(ev.registration_deadline), eventStartDate: ev.event_start_date ? String(ev.event_start_date).slice(0, 10) : '', eventEndDate: ev.event_end_date ? String(ev.event_end_date).slice(0, 10) : '', showContact: !!ev.show_contact, contactPhone: ev.contact_phone || '', contactEmail: ev.contact_email || '', contactNote: ev.contact_note || '' });
     const rows = Array.isArray(ev.teams) ? ev.teams.map((t) => ({ name: t?.name || '', logoUrl: t?.logoUrl || null })) : [];
     setTeamRows(rows);
     setMentionTeams(!!ev.team_count);
@@ -688,8 +696,8 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
         ? teamRows.map((r) => ({ name: (r.name || '').trim() || null, logoUrl: r.logoUrl || null }))
         : [];
       fd.append('teams', JSON.stringify(teamsPayload));
-      fd.append('auctionAt', form.auctionAt ? new Date(form.auctionAt).toISOString() : '');
-      fd.append('registrationDeadline', form.registrationDeadline ? new Date(form.registrationDeadline).toISOString() : '');
+      fd.append('auctionAt', combineDateTime(form.auctionDate, form.auctionTime));
+      fd.append('registrationDeadline', combineDateTime(form.deadlineDate, form.deadlineTime));
       fd.append('eventStartDate', form.eventStartDate || '');
       fd.append('eventEndDate', form.eventEndDate || '');
       if (editing) { await api.put(`/api/registrations/events/${editing}`, fd); showSuccess('Event updated'); }
@@ -846,12 +854,20 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
           </div>
           <div className={`rounded-lg border p-2.5 ${T.soft} space-y-2`}>
             <p className={`text-xs font-semibold ${T.label}`}>Schedule (optional)</p>
-            <label className={`block text-[11px] ${T.sub}`}>Auction date &amp; time
-              <input type="datetime-local" value={form.auctionAt} onChange={(e) => setForm({ ...form, auctionAt: e.target.value })} className={`mt-1 w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} />
-            </label>
-            <label className={`block text-[11px] ${T.sub}`}>Registration deadline
-              <input type="datetime-local" value={form.registrationDeadline} onChange={(e) => setForm({ ...form, registrationDeadline: e.target.value })} className={`mt-1 w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} />
-            </label>
+            <div>
+              <p className={`text-[11px] ${T.sub} mb-1`}>Auction date &amp; time</p>
+              <div className="grid grid-cols-2 gap-2">
+                <input type="date" value={form.auctionDate} onChange={(e) => setForm({ ...form, auctionDate: e.target.value })} className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} />
+                <input type="time" value={form.auctionTime} onChange={(e) => setForm({ ...form, auctionTime: e.target.value })} className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} />
+              </div>
+            </div>
+            <div>
+              <p className={`text-[11px] ${T.sub} mb-1`}>Registration deadline</p>
+              <div className="grid grid-cols-2 gap-2">
+                <input type="date" value={form.deadlineDate} onChange={(e) => setForm({ ...form, deadlineDate: e.target.value })} className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} />
+                <input type="time" value={form.deadlineTime} onChange={(e) => setForm({ ...form, deadlineTime: e.target.value })} className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} />
+              </div>
+            </div>
             <div className="grid grid-cols-2 gap-2">
               <label className={`block text-[11px] ${T.sub}`}>Tournament start
                 <input type="date" value={form.eventStartDate} onChange={(e) => setForm({ ...form, eventStartDate: e.target.value })} className={`mt-1 w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} />
