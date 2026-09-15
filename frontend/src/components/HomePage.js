@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Button from './Button';
@@ -110,6 +110,18 @@ const HomePage = () => {
     setSession(null);
   };
 
+  // Reveal landing sections as they scroll into view.
+  useEffect(() => {
+    const els = document.querySelectorAll('.gbx-reveal');
+    if (!els.length) return;
+    if (!('IntersectionObserver' in window)) { els.forEach((el) => el.classList.add('is-visible')); return; }
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((e) => { if (e.isIntersecting) { e.target.classList.add('is-visible'); io.unobserve(e.target); } });
+    }, { threshold: 0.12 });
+    els.forEach((el) => io.observe(el));
+    return () => io.disconnect();
+  }, []);
+
   return (
     <div className="min-h-screen relative overflow-hidden gbx-bg">
       {/* Background Pattern */}
@@ -119,6 +131,12 @@ const HomePage = () => {
           backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Ccircle cx='30' cy='30' r='1.5'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`,
         }}
       ></div>
+
+      {/* Floating gradient orbs */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden">
+        <div className="absolute -top-24 -left-16 h-72 w-72 rounded-full bg-amber-500/10 blur-3xl" style={{ animation: 'gbxFloat 9s ease-in-out infinite' }} />
+        <div className="absolute top-44 -right-24 h-80 w-80 rounded-full bg-indigo-500/10 blur-3xl" style={{ animation: 'gbxFloat 11s ease-in-out infinite reverse' }} />
+      </div>
 
       <div className="relative z-10 min-h-screen flex flex-col">
         {/* Top nav */}
@@ -172,11 +190,16 @@ const HomePage = () => {
               alt="GoldenBidX"
               className="w-64 sm:w-80 md:w-96 mb-3 drop-shadow-[0_8px_24px_rgba(232,184,75,0.22)]"
             />
-            <h1 className="text-2xl md:text-4xl font-extrabold text-white tracking-tight max-w-2xl">Run live player auctions like a pro</h1>
-            <p className="mt-3 text-base md:text-lg text-indigo-200/90 font-light max-w-xl">
+            <h1 className="text-2xl md:text-4xl font-extrabold text-white tracking-tight max-w-2xl gbx-fade-up">Run live player auctions like a pro</h1>
+            <p className="mt-3 text-base md:text-lg text-indigo-200/90 font-light max-w-xl gbx-fade-up" style={{ animationDelay: '80ms' }}>
               Real-time bidding, self-serve player registration, automatic team budgets and live stats — for cricket and every sport.
             </p>
-            <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
+            <div className="mt-4 flex flex-wrap items-center justify-center gap-2 gbx-fade-up" style={{ animationDelay: '140ms' }}>
+              {['⚡ Real-time bidding', '📝 Self-serve registration', '💰 Auto team budgets', '📥 Instant exports'].map((b) => (
+                <span key={b} className="rounded-full border border-white/15 bg-white/[0.06] px-3 py-1 text-xs font-medium text-indigo-100/80">{b}</span>
+              ))}
+            </div>
+            <div className="mt-6 flex flex-wrap items-center justify-center gap-3 gbx-fade-up" style={{ animationDelay: '200ms' }}>
               <button onClick={scrollToEnter} className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 font-bold px-6 py-3 hover:-translate-y-0.5 transition shadow-lg">Get started</button>
               <button onClick={() => navigate('/tournaments')} className="rounded-full border border-white/20 text-indigo-100/90 font-semibold px-6 py-3 hover:text-white hover:border-white/40 transition">Browse tournaments</button>
             </div>
@@ -230,7 +253,7 @@ const HomePage = () => {
         </main>
 
         {/* How it works */}
-        <section id="features" className="px-4 py-10 scroll-mt-16">
+        <section id="features" className="gbx-reveal px-4 py-10 scroll-mt-16">
           <div className="max-w-5xl mx-auto">
             <h2 className="text-center text-2xl md:text-3xl font-extrabold text-white mb-2">How it works</h2>
             <p className="text-center text-indigo-200/70 mb-8">From setup to sold in three simple steps.</p>
@@ -251,7 +274,7 @@ const HomePage = () => {
         </section>
 
         {/* Who it's for */}
-        <section className="px-4 py-6">
+        <section className="gbx-reveal px-4 py-6">
           <div className="max-w-4xl mx-auto text-center">
             <h2 className="text-2xl md:text-3xl font-extrabold text-white mb-4">Built for every auction</h2>
             <div className="flex flex-wrap justify-center gap-2.5">
@@ -263,7 +286,7 @@ const HomePage = () => {
         </section>
 
         {/* FAQ */}
-        <section className="px-4 py-10">
+        <section className="gbx-reveal px-4 py-10">
           <div className="max-w-3xl mx-auto">
             <h2 className="text-center text-2xl md:text-3xl font-extrabold text-white mb-8">Frequently asked</h2>
             <div className="space-y-3">
@@ -287,7 +310,7 @@ const HomePage = () => {
         </section>
 
         {/* Closing CTA */}
-        <section id="contact" className="px-4 py-12 scroll-mt-16">
+        <section id="contact" className="gbx-reveal px-4 py-12 scroll-mt-16">
           <div className="max-w-3xl mx-auto rounded-3xl border border-amber-300/20 bg-gradient-to-b from-amber-400/10 to-transparent p-8 text-center">
             <h2 className="text-2xl md:text-3xl font-extrabold text-white">Ready to run your next auction?</h2>
             <p className="mt-2 text-indigo-200/80">Set it up in minutes. Your players and teams will love it.</p>
@@ -302,7 +325,7 @@ const HomePage = () => {
         </section>
 
         {/* Footer links */}
-        <section className="px-4 pt-8 border-t border-white/10">
+        <section className="gbx-reveal px-4 pt-8 border-t border-white/10">
           <div className="max-w-5xl mx-auto grid gap-8 sm:grid-cols-3 text-sm">
             <div>
               <div className="flex items-center gap-2 mb-3">
