@@ -1030,19 +1030,19 @@ const OrganizersPanel = ({ events, organizers, reload, showSuccess, showError, s
             const evs = eventsFor(o.id);
             return (
               <div key={o.id} className={`rounded-xl border p-3 ${T.cardIdle}`}>
-                <div className="flex items-start justify-between gap-3">
+                <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
                       <span className={`font-semibold ${T.heading}`}>{o.name || o.username}</span>
                       <span className={`text-xs ${T.sub}`}>@{o.username}</span>
                       {o.reset_requested_at && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">🔒 Reset requested</span>}
                     </div>
-                    <div className={`text-xs mt-0.5 ${T.sub}`}>
+                    <div className={`text-xs mt-0.5 break-all ${T.sub}`}>
                       {o.email || 'no email'}{o.phone ? ` · 📱 ${o.phone}` : ''}
                     </div>
                     <div className={`text-[11px] mt-1 ${T.sub}`}>Events: {evs.length ? evs.join(', ') : '—'}</div>
                   </div>
-                  <div className="flex flex-col items-end gap-1.5 shrink-0">
+                  <div className="flex flex-row flex-wrap gap-1.5 sm:flex-col sm:items-end shrink-0">
                     <button onClick={() => setEditingOrg(o)} className={`rounded-full border px-3 py-1 text-xs font-semibold ${T.chip}`}>✏️ Edit</button>
                     <button onClick={() => resetPassword(o)} className={`rounded-full border px-3 py-1 text-xs font-semibold ${o.reset_requested_at ? 'bg-amber-400 text-slate-900 border-amber-400 hover:bg-amber-300' : T.chip}`}>Reset password</button>
                     <button onClick={() => removeOrganizer(o)} className="rounded-full border border-rose-300/40 bg-rose-500/10 text-rose-300 px-3 py-1 text-xs font-semibold hover:bg-rose-500/20">Delete</button>
