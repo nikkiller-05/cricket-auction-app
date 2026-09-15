@@ -204,15 +204,6 @@ const RegisterPage = () => {
             </Field>
           </div>
 
-          <Field label="Profile Photo" required hint="Max 3MB — auto-compressed to save space.">
-            <input type="file" accept="image/*" onChange={pickFile(setPhoto, setPhotoName)} className="block w-full text-xs text-white/70 file:mr-3 file:rounded-full file:border-0 file:bg-amber-400/90 file:px-4 file:py-2 file:text-slate-900 file:font-semibold" />
-            {photoName && <p className="mt-1 text-[11px] text-emerald-300">✓ {photoName}</p>}
-          </Field>
-
-          <Field label="Player Profile Link" hint="e.g. your CricHeroes profile — used to auto-fill stats.">
-            <input className={inputCls} value={form.profileLink} onChange={set('profileLink')} placeholder="https://cricheroes.com/player-profile/…" />
-          </Field>
-
           <div className="grid grid-cols-2 gap-3">
             <Field label="Batting hand">
               <select className={inputCls} value={form.battingHand} onChange={set('battingHand')}>
@@ -225,6 +216,15 @@ const RegisterPage = () => {
               </select>
             </Field>
           </div>
+
+          <Field label="Profile Photo" required hint="Max 3MB — auto-compressed to save space.">
+            <input type="file" accept="image/*" onChange={pickFile(setPhoto, setPhotoName)} className="block w-full text-xs text-white/70 file:mr-3 file:rounded-full file:border-0 file:bg-amber-400/90 file:px-4 file:py-2 file:text-slate-900 file:font-semibold" />
+            {photoName && <p className="mt-1 text-[11px] text-emerald-300">✓ {photoName}</p>}
+          </Field>
+
+          <Field label="Player Profile Link" hint="e.g. your CricHeroes profile — used to auto-fill stats.">
+            <input className={inputCls} value={form.profileLink} onChange={set('profileLink')} placeholder="https://cricheroes.com/player-profile/…" />
+          </Field>
 
           <div>
             <p className="text-xs font-semibold uppercase tracking-wide text-indigo-200/80 mb-2">Optional stats</p>
@@ -252,12 +252,12 @@ const RegisterPage = () => {
                   </button>
                 </div>
               )}
-              <Field label="Payment Reference / UTR" hint="Optional — add it if you have it.">
-                <input className={inputCls} value={form.paymentTxnId} onChange={set('paymentTxnId')} placeholder="12-digit UPI reference no." />
-              </Field>
               <Field label="Payment Screenshot" required hint="Upload proof of payment (auto-compressed).">
                 <input type="file" accept="image/*" onChange={pickFile(setScreenshot, setShotName)} className="block w-full text-xs text-white/70 file:mr-3 file:rounded-full file:border-0 file:bg-amber-400/90 file:px-4 file:py-2 file:text-slate-900 file:font-semibold" />
                 {shotName && <p className="mt-1 text-[11px] text-emerald-300">✓ {shotName}</p>}
+              </Field>
+              <Field label="Payment Reference / UTR" hint="Optional — add it if you have it.">
+                <input className={inputCls} value={form.paymentTxnId} onChange={set('paymentTxnId')} placeholder="12-digit UPI reference no." />
               </Field>
             </div>
           )}
