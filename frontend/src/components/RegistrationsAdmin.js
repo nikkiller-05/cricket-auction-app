@@ -74,6 +74,12 @@ const regClosedByDeadline = (ev) => !!ev.registration_deadline && new Date(ev.re
 const isRegOpen = (ev) => !!ev.registration_open && !regClosedByDeadline(ev);
 // Event open/close maps to lifecycle status: completed = closed.
 const isEventOpen = (ev) => (ev.status || 'upcoming') !== 'completed';
+const StatusPillMini = ({ status }) => {
+  const s = status || 'upcoming';
+  const cls = { upcoming: 'bg-amber-100 text-amber-800', live: 'bg-emerald-100 text-emerald-700', completed: 'bg-slate-200 text-slate-600' };
+  const label = { upcoming: 'Upcoming', live: 'Live', completed: 'Completed' };
+  return <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${cls[s] || cls.upcoming}`}>{label[s] || 'Upcoming'}</span>;
+};
 // Combine a local date (YYYY-MM-DD) + time (HH:mm) into an ISO timestamp.
 const combineDateTime = (date, time) => {
   if (!date) return '';
@@ -401,6 +407,12 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
     }
   };
 
+  // Reopen a completed event straight from the Auctions tab (back to live view).
+  const reopenEvent = async (ev) => {
+    try { await api.put(`/api/registrations/events/${ev.id}`, { status: 'live' }); showSuccess('Auction reopened'); loadEvents(); }
+    catch (err) { showError(err.response?.data?.error || 'Could not reopen the event'); }
+  };
+
   return (
     <div className={`gbx-console min-h-screen flex flex-col overflow-x-hidden ${T.pageCls}`} style={T.pageStyle}>
       <header className={`gbx-console-header sticky top-0 z-40 border-b px-3 sm:px-6 py-3 flex items-center justify-between gap-2 ${T.header}`}>
@@ -485,15 +497,28 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
                           ? <img src={ev.logo_url} alt="" className="w-11 h-11 rounded-xl object-cover flex-shrink-0" />
                           : <div className="w-11 h-11 rounded-xl bg-amber-400/20 grid place-items-center text-amber-300 font-bold flex-shrink-0">{initials(ev.name)}</div>}
                         <div className="min-w-0">
-                          <h3 className={`font-bold truncate ${T.heading}`}>{ev.name}</h3>
+                          <div className="flex items-center gap-2 min-w-0"><h3 className={`font-bold truncate ${T.heading}`}>{ev.name}</h3><StatusPillMini status={ev.status} /></div>
                           <p className={`text-xs ${T.sub} truncate`}>Public link: {window.location.origin}/a/{ev.slug}</p>
                         </div>
                       </div>
                       <div className="flex flex-wrap gap-2">
-                        {canImport && (
-                          <button onClick={() => openAuction(ev)} className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 px-4 py-2 text-sm font-semibold shadow hover:-translate-y-0.5 transition">
-                            🎯 Operate auction
-                          </button>
+                        {isEventOpen(ev) ? (
+                          canImport && (
+                            <button onClick={() => openAuction(ev)} className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 px-4 py-2 text-sm font-semibold shadow hover:-translate-y-0.5 transition">
+                              🎯 Operate auction
+                            </button>
+                          )
+                        ) : (
+                          <>
+                            {canImport && (
+                              <button onClick={() => reopenEvent(ev)} className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 px-4 py-2 text-sm font-semibold shadow hover:-translate-y-0.5 transition">
+                                ↻ Reopen auction
+                              </button>
+                            )}
+                            <button onClick={() => window.open(`/a/${ev.slug}`, '_blank')} className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${T.chip}`}>
+                              📄 View results
+                            </button>
+                          </>
                         )}
                         <button onClick={() => { navigator.clipboard?.writeText(`${window.location.origin}/a/${ev.slug}`); showSuccess('Public auction link copied'); }} className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${T.chip}`}>
                           🔗 Copy public link
@@ -510,14 +535,27 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
                         ? <img src={ev.logo_url} alt="" className="w-9 h-9 rounded-lg object-cover flex-shrink-0" />
                         : <div className="w-9 h-9 rounded-lg bg-amber-400/20 grid place-items-center text-amber-300 font-bold flex-shrink-0">{initials(ev.name)}</div>}
                       <div className="min-w-0 flex-1">
-                        <h3 className={`font-semibold truncate ${T.heading}`}>{ev.name}</h3>
+                        <div className="flex items-center gap-2 min-w-0"><h3 className={`font-semibold truncate ${T.heading}`}>{ev.name}</h3><StatusPillMini status={ev.status} /></div>
                         <p className={`text-xs ${T.sub} truncate`}>{window.location.origin}/a/{ev.slug}</p>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
-                        {canImport && (
-                          <button onClick={() => openAuction(ev)} className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 px-3.5 py-1.5 text-sm font-semibold shadow hover:-translate-y-0.5 transition">
-                            🎯 Operate
-                          </button>
+                        {isEventOpen(ev) ? (
+                          canImport && (
+                            <button onClick={() => openAuction(ev)} className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 px-3.5 py-1.5 text-sm font-semibold shadow hover:-translate-y-0.5 transition">
+                              🎯 Operate
+                            </button>
+                          )
+                        ) : (
+                          <>
+                            {canImport && (
+                              <button onClick={() => reopenEvent(ev)} className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 px-3.5 py-1.5 text-sm font-semibold shadow hover:-translate-y-0.5 transition">
+                                ↻ Reopen
+                              </button>
+                            )}
+                            <button onClick={() => window.open(`/a/${ev.slug}`, '_blank')} className={`rounded-full border px-3.5 py-1.5 text-sm font-semibold transition ${T.chip}`}>
+                              📄 Results
+                            </button>
+                          </>
                         )}
                         <IconBtn T={T} title="Copy public link" onClick={() => { navigator.clipboard?.writeText(`${window.location.origin}/a/${ev.slug}`); showSuccess('Public auction link copied'); }}><IcoCopy /></IconBtn>
                       </div>
