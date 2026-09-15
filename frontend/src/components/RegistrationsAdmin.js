@@ -67,6 +67,9 @@ const toLocalInput = (iso) => {
 };
 const isoToDate = (iso) => { const s = toLocalInput(iso); return s ? s.slice(0, 10) : ''; };
 const isoToTime = (iso) => { const s = toLocalInput(iso); return s ? s.slice(11, 16) : ''; };
+// Registration is effectively closed once its deadline passes, regardless of the flag.
+const regClosedByDeadline = (ev) => !!ev.registration_deadline && new Date(ev.registration_deadline).getTime() < Date.now();
+const isRegOpen = (ev) => !!ev.registration_open && !regClosedByDeadline(ev);
 // Combine a local date (YYYY-MM-DD) + time (HH:mm) into an ISO timestamp.
 const combineDateTime = (date, time) => {
   if (!date) return '';
@@ -710,7 +713,11 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
   };
 
   const toggleOpen = async (ev) => {
-    try { await api.put(`/api/registrations/events/${ev.id}`, { registrationOpen: !ev.registration_open }); reload(); }
+    const opening = !isRegOpen(ev);
+    const payload = { registrationOpen: opening };
+    // Reopening after a passed deadline would otherwise stay closed — clear it.
+    if (opening && regClosedByDeadline(ev)) payload.registrationDeadline = '';
+    try { await api.put(`/api/registrations/events/${ev.id}`, payload); reload(); }
     catch (err) { showError(err.response?.data?.error || 'Update failed'); }
   };
   const remove = (ev) => {
@@ -741,7 +748,7 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
   const logoThumb = (ev, size = 'w-10 h-10') => ev.logo_url
     ? <img src={ev.logo_url} alt="" className={`${size} rounded-lg object-cover shrink-0 bg-white/10`} />
     : <div className={`${size} rounded-lg bg-white/10 grid place-items-center text-base shrink-0`}>🏆</div>;
-  const statusBadge = (ev) => <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${ev.registration_open ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>{ev.registration_open ? 'OPEN' : 'CLOSED'}</span>;
+  const statusBadge = (ev) => { const open = isRegOpen(ev); return <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${open ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-200 text-slate-600'}`}>{open ? 'REG OPEN' : 'REG CLOSED'}</span>; };
   const metaText = (ev) => <>{ev.payment_required ? `Paid · ${money(ev.reg_fee)}` : 'Free entry'}{ev.organizer_name ? ` · 👤 ${ev.organizer_name}` : (canAssignOrganizer ? ' · 👤 unassigned' : '')}</>;
   const countChips = (ev) => (ev.counts && ev.counts.total > 0) ? (
     <div className="mt-1.5 flex flex-wrap gap-1.5">
@@ -754,7 +761,7 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
     <div className="flex items-center gap-0.5 flex-wrap">
       <IconBtn T={T} title="Copy players' registration link" onClick={(e) => { e.stopPropagation(); copyLink(ev); }}><IcoCopy /></IconBtn>
       <IconBtn T={T} title="Edit event" onClick={(e) => { e.stopPropagation(); startEdit(ev); }}><IcoPencil /></IconBtn>
-      <IconBtn T={T} title={ev.registration_open ? 'End event' : 'Reopen'} onClick={(e) => { e.stopPropagation(); toggleOpen(ev); }}>{ev.registration_open ? <IcoLock /> : <IcoUnlock />}</IconBtn>
+      <IconBtn T={T} title={isRegOpen(ev) ? 'Close registration' : 'Open registration'} onClick={(e) => { e.stopPropagation(); toggleOpen(ev); }}>{isRegOpen(ev) ? <IcoLock /> : <IcoUnlock />}</IconBtn>
       <IconBtn T={T} danger title="Delete event" onClick={(e) => { e.stopPropagation(); remove(ev); }}><IcoTrash /></IconBtn>
     </div>
   ) : (
