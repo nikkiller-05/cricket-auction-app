@@ -555,6 +555,20 @@
   53% { opacity: 0.85; transform: translate(-50%, -50%) scale(1); }
   78%, 100% { opacity: 0; transform: translate(-50%, -50%) scale(1.55); }
 }
+
+/* Section entrance + hero shine (results page) */
+@keyframes gbxFadeUp { from { opacity: 0; transform: translateY(14px); } to { opacity: 1; transform: translateY(0); } }
+.gbx-fade-up { animation: gbxFadeUp 0.5s cubic-bezier(0.2, 0.9, 0.2, 1) both; }
+@keyframes gbxShine { 0% { transform: translateX(-120%) skewX(-20deg); } 60%, 100% { transform: translateX(320%) skewX(-20deg); } }
+.gbx-shine::after {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; height: 100%; width: 40%;
+  background: linear-gradient(90deg, transparent, rgba(255,255,255,0.18), transparent);
+  animation: gbxShine 3.2s ease-in-out 0.4s infinite;
+  pointer-events: none;
+}
+
 .gbx-stamp-flash {
   position: absolute;
   top: 50%;

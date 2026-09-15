@@ -23,6 +23,35 @@ const TEAM_ACCENTS = [
 const roleLabel = (p) =>
   p.role || (p.category === 'wicket-keeper' ? 'Keeper' : p.category ? p.category.charAt(0).toUpperCase() + p.category.slice(1) : '');
 
+// Ease-out count-up for the headline numbers.
+function useCountUp(target, duration = 900) {
+  const [val, setVal] = useState(0);
+  useEffect(() => {
+    const to = Number(target) || 0;
+    let raf;
+    const start = performance.now();
+    const tick = (now) => {
+      const p = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - p, 3);
+      setVal(Math.round(to * eased));
+      if (p < 1) raf = requestAnimationFrame(tick);
+    };
+    raf = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(raf);
+  }, [target, duration]);
+  return val;
+}
+
+const StatCard = ({ label, value, icon, currency, delay = 0 }) => {
+  const n = useCountUp(value);
+  return (
+    <div className="gbx-fade-up rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.08] to-white/[0.02] px-4 py-3" style={{ animationDelay: `${delay}ms` }}>
+      <div className="text-xs text-amber-100/60 font-medium flex items-center gap-1.5"><span>{icon}</span>{label}</div>
+      <div className="text-xl sm:text-2xl font-extrabold text-white mt-0.5 truncate">{currency ? formatCurrency(n) : n}</div>
+    </div>
+  );
+};
+
 // One spotlight (top buy in a category).
 const SpotlightCard = ({ label, player, teamNameOf }) => (
   <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 flex items-center gap-3">
@@ -191,7 +220,7 @@ const PublicCompletedAuction = ({ event }) => {
 
       <main className="flex-1 w-full max-w-6xl mx-auto px-4 py-6 sm:py-8">
         {/* Event hero */}
-        <div className="relative overflow-hidden rounded-3xl border border-amber-300/20 bg-gradient-to-br from-amber-400/15 via-white/[0.04] to-transparent p-5 sm:p-7 mb-6">
+        <div className="gbx-shine relative overflow-hidden rounded-3xl border border-amber-300/20 bg-gradient-to-br from-amber-400/15 via-white/[0.04] to-transparent p-5 sm:p-7 mb-6">
           <div className="pointer-events-none absolute -right-12 -top-12 h-44 w-44 rounded-full bg-amber-400/10 blur-3xl" />
           <div className="relative flex items-center gap-4">
             {event.logo_url
@@ -220,17 +249,10 @@ const PublicCompletedAuction = ({ event }) => {
           <>
             {/* Summary stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-              {[
-                { label: 'Teams', value: summary.teams.length, icon: '🛡️' },
-                { label: 'Players sold', value: summary.soldCount, icon: '✅' },
-                { label: 'Unsold', value: summary.unsoldCount, icon: '⚪' },
-                { label: 'Total spend', value: formatCurrency(summary.totalSpend), icon: '💰' },
-              ].map((s) => (
-                <div key={s.label} className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.08] to-white/[0.02] px-4 py-3">
-                  <div className="text-xs text-amber-100/60 font-medium flex items-center gap-1.5"><span>{s.icon}</span>{s.label}</div>
-                  <div className="text-xl sm:text-2xl font-extrabold text-white mt-0.5 truncate">{s.value}</div>
-                </div>
-              ))}
+              <StatCard label="Teams" value={summary.teams.length} icon="🛡️" delay={0} />
+              <StatCard label="Players sold" value={summary.soldCount} icon="✅" delay={70} />
+              <StatCard label="Unsold" value={summary.unsoldCount} icon="⚪" delay={140} />
+              <StatCard label="Total spend" value={summary.totalSpend} icon="💰" currency delay={210} />
             </div>
 
             {downloadErr && (
@@ -255,7 +277,7 @@ const PublicCompletedAuction = ({ event }) => {
 
             {/* Auction spotlights */}
             {(summary.spotlights.top || summary.spotlights.categories.length > 0) && (
-              <section className="mb-7">
+              <section className="gbx-fade-up mb-7" style={{ animationDelay: '260ms' }}>
                 <h2 className="text-sm font-bold uppercase tracking-wider text-amber-200/70 mb-2">Auction spotlights</h2>
                 {summary.spotlights.top && (
                   <div className="rounded-3xl border border-amber-300/40 bg-gradient-to-r from-amber-400/20 to-amber-500/[0.05] p-4 sm:p-5 mb-3 flex items-center gap-4">
@@ -280,7 +302,7 @@ const PublicCompletedAuction = ({ event }) => {
 
             {/* Registered players — clickable, scrollable roster with outcomes */}
             {summary.roster.length > 0 && (
-              <section className="mb-8">
+              <section className="gbx-fade-up mb-8" style={{ animationDelay: '320ms' }}>
                 <button onClick={() => setShowPlayers((v) => !v)} className="w-full flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 hover:bg-white/[0.08] transition">
                   <span className="font-bold text-white">Players registered <span className="text-amber-100/50 font-semibold">({summary.roster.length})</span></span>
                   <span className="text-sm font-semibold text-amber-200">{showPlayers ? '▲ Hide' : '▼ Show'}</span>
@@ -319,7 +341,7 @@ const PublicCompletedAuction = ({ event }) => {
             {summary.squads.length === 0 ? (
               <p className="text-amber-100/70">No teams to show.</p>
             ) : (
-              <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+              <div className="gbx-fade-up grid gap-4 sm:grid-cols-2 xl:grid-cols-3" style={{ animationDelay: '380ms' }}>
                 {summary.squads.map(({ team, accent, players, captainId, count, spent, remaining, pct }) => (
                   <div key={team.id} className="rounded-2xl border border-white/10 bg-white/[0.04] overflow-hidden flex flex-col">
                     <div className={`bg-gradient-to-r ${accent} px-4 py-3 flex items-center gap-3`}>
