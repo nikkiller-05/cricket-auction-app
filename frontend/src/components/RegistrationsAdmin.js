@@ -369,6 +369,7 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
   const [modal, setModal] = useState(null); // 'password' | 'profile'
   const [loading, setLoading] = useState(true);
   const [auctionsLayout, setAuctionsLayout] = useState(() => localStorage.getItem('auctionsLayout') || 'cards');
+  const [auctionsFilter, setAuctionsFilter] = useState('all');
   const setAuctionsLayoutPersist = (v) => { setAuctionsLayout(v); localStorage.setItem('auctionsLayout', v); };
 
   const loadEvents = useCallback(async () => {
@@ -412,6 +413,7 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
     try { await api.put(`/api/registrations/events/${ev.id}`, { status: 'live' }); showSuccess('Auction reopened'); loadEvents(); }
     catch (err) { showError(err.response?.data?.error || 'Could not reopen the event'); }
   };
+  const shownAuctions = events.filter((ev) => auctionsFilter === 'all' || (auctionsFilter === 'open' ? isEventOpen(ev) : !isEventOpen(ev)));
 
   return (
     <div className={`gbx-console min-h-screen flex flex-col overflow-x-hidden ${T.pageCls}`} style={T.pageStyle}>
@@ -480,8 +482,12 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
             <div className={`${T.card} p-10 text-center ${T.sub}`}>{canManageEvents ? 'Create an event first (Events tab).' : 'No event assigned to you yet.'}</div>
           ) : (
             <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className={`text-xs ${T.sub}`}>{events.length} shown</span>
+              <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
+                <div className="flex flex-wrap gap-1.5">
+                  {[['all', 'All'], ['open', 'Open'], ['closed', 'Closed']].map(([k, label]) => (
+                    <button key={k} onClick={() => setAuctionsFilter(k)} className={`rounded-full px-3 py-1 text-xs font-semibold border ${auctionsFilter === k ? 'bg-indigo-600 text-white border-indigo-600' : T.chip}`}>{label}</button>
+                  ))}
+                </div>
                 <div className={`inline-flex rounded-lg border p-0.5 ${T.soft}`}>
                   <button onClick={() => setAuctionsLayoutPersist('cards')} title="Card view" className={`px-2.5 py-0.5 rounded-md text-sm ${auctionsLayout === 'cards' ? 'bg-amber-400 text-slate-900' : T.tabIdle}`}>▦</button>
                   <button onClick={() => setAuctionsLayoutPersist('list')} title="List view" className={`px-2.5 py-0.5 rounded-md text-sm ${auctionsLayout === 'list' ? 'bg-amber-400 text-slate-900' : T.tabIdle}`}>☰</button>
@@ -490,8 +496,8 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
 
               {auctionsLayout === 'cards' ? (
                 <div className="grid gap-3 sm:grid-cols-2">
-                  {events.map((ev) => (
-                    <div key={ev.id} className={`${T.card} p-4 flex flex-col gap-3`}>
+                  {shownAuctions.map((ev) => (
+                    <div key={ev.id} className={`${!isEventOpen(ev) ? 'rounded-2xl border border-rose-400/30 bg-rose-500/[0.06]' : T.card} p-4 flex flex-col gap-3`}>
                       <div className="flex items-center gap-3 min-w-0">
                         {ev.logo_url
                           ? <img src={ev.logo_url} alt="" className="w-11 h-11 rounded-xl object-cover flex-shrink-0" />
@@ -503,11 +509,16 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {isEventOpen(ev) ? (
-                          canImport && (
-                            <button onClick={() => openAuction(ev)} className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 px-4 py-2 text-sm font-semibold shadow hover:-translate-y-0.5 transition">
-                              🎯 Operate auction
+                          <>
+                            {canImport && (
+                              <button onClick={() => openAuction(ev)} className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 px-4 py-2 text-sm font-semibold shadow hover:-translate-y-0.5 transition">
+                                🎯 Operate auction
+                              </button>
+                            )}
+                            <button onClick={() => { navigator.clipboard?.writeText(`${window.location.origin}/a/${ev.slug}`); showSuccess('Public auction link copied'); }} className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${T.chip}`}>
+                              🔗 Copy public link
                             </button>
-                          )
+                          </>
                         ) : (
                           <>
                             {canImport && (
@@ -520,17 +531,14 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
                             </button>
                           </>
                         )}
-                        <button onClick={() => { navigator.clipboard?.writeText(`${window.location.origin}/a/${ev.slug}`); showSuccess('Public auction link copied'); }} className={`rounded-full border px-4 py-2 text-sm font-semibold transition ${T.chip}`}>
-                          🔗 Copy public link
-                        </button>
                       </div>
                     </div>
                   ))}
                 </div>
               ) : (
                 <div className={`rounded-xl border ${T.card}`}>
-                  {events.map((ev, i) => (
-                    <div key={ev.id} className={`flex items-center gap-3 p-2.5 ${i > 0 ? `border-t ${T.divide}` : ''}`}>
+                  {shownAuctions.map((ev, i) => (
+                    <div key={ev.id} className={`flex items-center gap-3 p-2.5 ${i > 0 ? `border-t ${T.divide}` : ''} ${!isEventOpen(ev) ? 'bg-rose-500/[0.06]' : ''}`}>
                       {ev.logo_url
                         ? <img src={ev.logo_url} alt="" className="w-9 h-9 rounded-lg object-cover flex-shrink-0" />
                         : <div className="w-9 h-9 rounded-lg bg-amber-400/20 grid place-items-center text-amber-300 font-bold flex-shrink-0">{initials(ev.name)}</div>}
@@ -540,11 +548,14 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
                         {isEventOpen(ev) ? (
-                          canImport && (
-                            <button onClick={() => openAuction(ev)} className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 px-3.5 py-1.5 text-sm font-semibold shadow hover:-translate-y-0.5 transition">
-                              🎯 Operate
-                            </button>
-                          )
+                          <>
+                            {canImport && (
+                              <button onClick={() => openAuction(ev)} className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 px-3.5 py-1.5 text-sm font-semibold shadow hover:-translate-y-0.5 transition">
+                                🎯 Operate
+                              </button>
+                            )}
+                            <IconBtn T={T} title="Copy public link" onClick={() => { navigator.clipboard?.writeText(`${window.location.origin}/a/${ev.slug}`); showSuccess('Public auction link copied'); }}><IcoCopy /></IconBtn>
+                          </>
                         ) : (
                           <>
                             {canImport && (
@@ -557,7 +568,6 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
                             </button>
                           </>
                         )}
-                        <IconBtn T={T} title="Copy public link" onClick={() => { navigator.clipboard?.writeText(`${window.location.origin}/a/${ev.slug}`); showSuccess('Public auction link copied'); }}><IcoCopy /></IconBtn>
                       </div>
                     </div>
                   ))}
@@ -689,6 +699,7 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
   const [busy, setBusy] = useState(false);
   const [q, setQ] = useState('');
   const [orgFilter, setOrgFilter] = useState('');
+  const [statusFilter, setStatusFilter] = useState('all');
   const [layout, setLayout] = useState(() => localStorage.getItem('evLayout') || 'cards');
   const setLayoutPersist = (v) => { setLayout(v); localStorage.setItem('evLayout', v); };
 
@@ -797,6 +808,8 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
   };
 
   const filtered = events.filter((e) => {
+    if (statusFilter === 'open' && !isEventOpen(e)) return false;
+    if (statusFilter === 'closed' && isEventOpen(e)) return false;
     if (orgFilter === '__none' && e.organizer_id) return false;
     if (orgFilter && orgFilter !== '__none' && String(e.organizer_id) !== orgFilter) return false;
     if (q) {
@@ -844,6 +857,12 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
           {onGoToAuctions && <button onClick={onGoToAuctions} className={`rounded-full border px-3 py-1 text-xs font-semibold ${T.chip}`}>🔨 Auctions →</button>}
           {canManageEvents && <button onClick={startCreate} className="gbx-btn-new-event rounded-full bg-amber-400 text-slate-900 px-3 py-1 text-xs font-bold hover:bg-amber-300">+ New event</button>}
         </div>
+      </div>
+
+      <div className="flex flex-wrap gap-1.5 mb-3">
+        {[['all', 'All'], ['open', 'Open'], ['closed', 'Closed']].map(([k, label]) => (
+          <button key={k} onClick={() => setStatusFilter(k)} className={`rounded-full px-3 py-1 text-xs font-semibold border ${statusFilter === k ? 'bg-indigo-600 text-white border-indigo-600' : T.chip}`}>{label}</button>
+        ))}
       </div>
 
       {(events.length > 4 || (canAssignOrganizer && organizers.length > 0)) && (
@@ -982,7 +1001,7 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
       ) : layout === 'cards' ? (
         <div className="grid gap-3 sm:grid-cols-2">
           {filtered.map((ev) => (
-            <div key={ev.id} className={`rounded-xl border p-3 transition ${selected?.id === ev.id ? T.cardSel : T.cardIdle}`}>
+            <div key={ev.id} className={`rounded-xl border p-3 transition ${!isEventOpen(ev) ? 'border-rose-400/30 bg-rose-500/[0.06]' : selected?.id === ev.id ? T.cardSel : T.cardIdle}`}>
               <div className="flex items-start gap-3 cursor-pointer" onClick={() => onSelect(ev)}>
                 {logoThumb(ev)}
                 <div className="flex-1 min-w-0">
@@ -998,7 +1017,7 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
       ) : (
         <div className={`rounded-xl border ${T.cardIdle}`}>
           {filtered.map((ev, i) => (
-            <div key={ev.id} className={`flex items-center gap-3 p-2.5 ${i > 0 ? `border-t ${T.divide}` : ''} ${selected?.id === ev.id ? T.cardSel : ''}`}>
+            <div key={ev.id} className={`flex items-center gap-3 p-2.5 ${i > 0 ? `border-t ${T.divide}` : ''} ${!isEventOpen(ev) ? 'bg-rose-500/[0.06]' : selected?.id === ev.id ? T.cardSel : ''}`}>
               <button onClick={() => onSelect(ev)} className="flex items-center gap-3 flex-1 min-w-0 text-left">
                 {logoThumb(ev, 'w-9 h-9')}
                 <div className="min-w-0">

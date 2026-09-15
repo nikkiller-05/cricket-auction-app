@@ -6,6 +6,7 @@ import { formatCurrency, cleanTeamName } from '../lib/format';
 import { getTeamIcon } from '../sports';
 import BrandFooter from './BrandFooter';
 import TeamSquadsModal from './TeamSquadsModal';
+import PlayerAvatar from './PlayerAvatar';
 
 // Distinct accent per team card (cycled) — mirrors the squad export palette.
 const TEAM_ACCENTS = [
@@ -22,14 +23,14 @@ const TEAM_ACCENTS = [
 const roleLabel = (p) =>
   p.role || (p.category === 'wicket-keeper' ? 'Keeper' : p.category ? p.category.charAt(0).toUpperCase() + p.category.slice(1) : '');
 
-// One spotlight (highest bid overall, or the top buy in a category).
-const SpotlightCard = ({ label, player, teamNameOf, highlight }) => (
-  <div className={`rounded-2xl border p-3 flex items-center gap-3 ${highlight ? 'border-amber-300/40 bg-amber-400/10' : 'border-white/10 bg-white/[0.04]'}`}>
-    <img src={player.imageUrl || '/logo192.png'} alt="" className="w-12 h-12 rounded-xl object-cover bg-white/10 shrink-0" />
+// One spotlight (top buy in a category).
+const SpotlightCard = ({ label, player, teamNameOf }) => (
+  <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 flex items-center gap-3">
+    <PlayerAvatar player={player} size="md" shape="rounded" />
     <div className="min-w-0 flex-1">
-      <div className={`text-[10px] uppercase tracking-wide font-bold ${highlight ? 'text-amber-300' : 'text-amber-100/50'}`}>{label}</div>
+      <div className="text-[10px] uppercase tracking-wide font-bold text-amber-100/50">{label}</div>
       <div className="font-semibold text-white truncate">{player.name}</div>
-      <div className="text-[11px] text-amber-100/50 truncate">{roleLabel(player)}{teamNameOf(player) ? ` · ${teamNameOf(player)}` : ''}</div>
+      <div className="text-[11px] text-amber-100/50 truncate">{teamNameOf(player) || roleLabel(player)}</div>
     </div>
     <div className="text-base font-extrabold text-amber-300 shrink-0">{formatCurrency(player.finalBid || 0)}</div>
   </div>
@@ -190,15 +191,18 @@ const PublicCompletedAuction = ({ event }) => {
 
       <main className="flex-1 w-full max-w-6xl mx-auto px-4 py-6 sm:py-8">
         {/* Event hero */}
-        <div className="flex items-center gap-4 mb-6">
-          {event.logo_url
-            ? <img src={event.logo_url} alt="" className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl object-cover bg-white/10 shrink-0" />
-            : <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-amber-400/20 grid place-items-center text-2xl shrink-0">🏆</div>}
-          <div className="min-w-0">
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 text-[11px] font-bold px-2.5 py-0.5 uppercase tracking-wide">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> Auction Completed
-            </span>
-            <h1 className="mt-1 text-2xl sm:text-3xl font-extrabold tracking-tight truncate">{event.name}</h1>
+        <div className="relative overflow-hidden rounded-3xl border border-amber-300/20 bg-gradient-to-br from-amber-400/15 via-white/[0.04] to-transparent p-5 sm:p-7 mb-6">
+          <div className="pointer-events-none absolute -right-12 -top-12 h-44 w-44 rounded-full bg-amber-400/10 blur-3xl" />
+          <div className="relative flex items-center gap-4">
+            {event.logo_url
+              ? <img src={event.logo_url} alt="" className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl object-cover bg-white/10 shrink-0 ring-2 ring-amber-300/30" />
+              : <div className="w-16 h-16 sm:w-20 sm:h-20 rounded-2xl bg-amber-400/20 grid place-items-center text-3xl shrink-0">🏆</div>}
+            <div className="min-w-0">
+              <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 text-[11px] font-bold px-3 py-1 uppercase tracking-wider">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Auction Completed
+              </span>
+              <h1 className="mt-2 text-2xl sm:text-4xl font-extrabold tracking-tight truncate">{event.name}</h1>
+            </div>
           </div>
         </div>
 
@@ -217,13 +221,13 @@ const PublicCompletedAuction = ({ event }) => {
             {/* Summary stats */}
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
               {[
-                { label: 'Teams', value: summary.teams.length },
-                { label: 'Players sold', value: summary.soldCount },
-                { label: 'Unsold', value: summary.unsoldCount },
-                { label: 'Total spend', value: formatCurrency(summary.totalSpend) },
+                { label: 'Teams', value: summary.teams.length, icon: '🛡️' },
+                { label: 'Players sold', value: summary.soldCount, icon: '✅' },
+                { label: 'Unsold', value: summary.unsoldCount, icon: '⚪' },
+                { label: 'Total spend', value: formatCurrency(summary.totalSpend), icon: '💰' },
               ].map((s) => (
-                <div key={s.label} className="rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3">
-                  <div className="text-xs text-amber-100/60 font-medium">{s.label}</div>
+                <div key={s.label} className="rounded-2xl border border-white/10 bg-gradient-to-br from-white/[0.08] to-white/[0.02] px-4 py-3">
+                  <div className="text-xs text-amber-100/60 font-medium flex items-center gap-1.5"><span>{s.icon}</span>{s.label}</div>
                   <div className="text-xl sm:text-2xl font-extrabold text-white mt-0.5 truncate">{s.value}</div>
                 </div>
               ))}
@@ -253,14 +257,60 @@ const PublicCompletedAuction = ({ event }) => {
             {(summary.spotlights.top || summary.spotlights.categories.length > 0) && (
               <section className="mb-7">
                 <h2 className="text-sm font-bold uppercase tracking-wider text-amber-200/70 mb-2">Auction spotlights</h2>
-                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
-                  {summary.spotlights.top && (
-                    <SpotlightCard label="⭐ Highest bid overall" player={summary.spotlights.top} teamNameOf={summary.teamNameOf} highlight />
-                  )}
-                  {summary.spotlights.categories.map((c) => (
-                    <SpotlightCard key={c.label} label={`Top ${c.label}`} player={c.player} teamNameOf={summary.teamNameOf} />
-                  ))}
-                </div>
+                {summary.spotlights.top && (
+                  <div className="rounded-3xl border border-amber-300/40 bg-gradient-to-r from-amber-400/20 to-amber-500/[0.05] p-4 sm:p-5 mb-3 flex items-center gap-4">
+                    <PlayerAvatar player={summary.spotlights.top} size="lg" shape="rounded" />
+                    <div className="min-w-0 flex-1">
+                      <div className="text-[11px] uppercase tracking-wider font-bold text-amber-300">⭐ Highest bid overall</div>
+                      <div className="text-xl sm:text-2xl font-extrabold text-white truncate">{summary.spotlights.top.name}</div>
+                      <div className="text-xs text-amber-100/60 truncate">{roleLabel(summary.spotlights.top)}{summary.teamNameOf(summary.spotlights.top) ? ` · ${summary.teamNameOf(summary.spotlights.top)}` : ''}</div>
+                    </div>
+                    <div className="text-2xl sm:text-3xl font-black text-amber-300 shrink-0">{formatCurrency(summary.spotlights.top.finalBid || 0)}</div>
+                  </div>
+                )}
+                {summary.spotlights.categories.length > 0 && (
+                  <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                    {summary.spotlights.categories.map((c) => (
+                      <SpotlightCard key={c.label} label={`Top ${c.label}`} player={c.player} teamNameOf={summary.teamNameOf} />
+                    ))}
+                  </div>
+                )}
+              </section>
+            )}
+
+            {/* Registered players — clickable, scrollable roster with outcomes */}
+            {summary.roster.length > 0 && (
+              <section className="mb-8">
+                <button onClick={() => setShowPlayers((v) => !v)} className="w-full flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 hover:bg-white/[0.08] transition">
+                  <span className="font-bold text-white">Players registered <span className="text-amber-100/50 font-semibold">({summary.roster.length})</span></span>
+                  <span className="text-sm font-semibold text-amber-200">{showPlayers ? '▲ Hide' : '▼ Show'}</span>
+                </button>
+                {showPlayers && (
+                  <div className="mt-2 max-h-[28rem] overflow-y-auto rounded-2xl border border-white/10 divide-y divide-white/5">
+                    {summary.roster.map((p) => {
+                      const sold = p.status === 'sold' || p.finalBid > 0;
+                      return (
+                        <div key={p.id} className={`flex items-center gap-3 px-4 py-2.5 ${sold ? 'bg-emerald-500/[0.06]' : 'bg-rose-500/[0.05]'}`}>
+                          <PlayerAvatar player={p} size="sm" shape="rounded" />
+                          <div className="min-w-0 flex-1">
+                            <div className="font-semibold text-white truncate">{p.name}</div>
+                            {roleLabel(p) && <div className="text-[11px] text-amber-100/50">{roleLabel(p)}</div>}
+                          </div>
+                          <div className="text-right shrink-0">
+                            {sold ? (
+                              <>
+                                <div className="text-sm font-bold text-emerald-300">{formatCurrency(p.finalBid || 0)}</div>
+                                <div className="text-[11px] text-emerald-200/70 truncate max-w-[10rem]">Sold to {summary.teamNameOf(p) || 'team'}</div>
+                              </>
+                            ) : (
+                              <span className="text-[11px] font-bold text-rose-300 bg-rose-500/10 border border-rose-400/25 rounded-full px-2.5 py-1">Unsold</span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
               </section>
             )}
 
@@ -313,42 +363,6 @@ const PublicCompletedAuction = ({ event }) => {
                   </div>
                 ))}
               </div>
-            )}
-
-            {/* Registered players — clickable, scrollable roster with outcomes */}
-            {summary.roster.length > 0 && (
-              <section className="mt-8">
-                <button onClick={() => setShowPlayers((v) => !v)} className="w-full flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 hover:bg-white/[0.08] transition">
-                  <span className="font-bold text-white">Players registered <span className="text-amber-100/50 font-semibold">({summary.roster.length})</span></span>
-                  <span className="text-sm font-semibold text-amber-200">{showPlayers ? '▲ Hide' : '▼ Show'}</span>
-                </button>
-                {showPlayers && (
-                  <div className="mt-2 max-h-[28rem] overflow-y-auto rounded-2xl border border-white/10 divide-y divide-white/5">
-                    {summary.roster.map((p) => {
-                      const sold = p.status === 'sold' || p.finalBid > 0;
-                      return (
-                        <div key={p.id} className={`flex items-center gap-3 px-4 py-2.5 ${sold ? 'bg-emerald-500/[0.06]' : 'bg-rose-500/[0.05]'}`}>
-                          <img src={p.imageUrl || '/logo192.png'} alt="" className="w-10 h-10 rounded-lg object-cover bg-white/10 shrink-0" />
-                          <div className="min-w-0 flex-1">
-                            <div className="font-semibold text-white truncate">{p.name}</div>
-                            {roleLabel(p) && <div className="text-[11px] text-amber-100/50">{roleLabel(p)}</div>}
-                          </div>
-                          <div className="text-right shrink-0">
-                            {sold ? (
-                              <>
-                                <div className="text-sm font-bold text-emerald-300">{formatCurrency(p.finalBid || 0)}</div>
-                                <div className="text-[11px] text-emerald-200/70 truncate max-w-[10rem]">Sold to {summary.teamNameOf(p) || 'team'}</div>
-                              </>
-                            ) : (
-                              <span className="text-[11px] font-bold text-rose-300 bg-rose-500/10 border border-rose-400/25 rounded-full px-2.5 py-1">Unsold</span>
-                            )}
-                          </div>
-                        </div>
-                      );
-                    })}
-                  </div>
-                )}
-              </section>
             )}
           </>
         )}
