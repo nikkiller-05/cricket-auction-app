@@ -274,7 +274,7 @@ const registrationController = {
       if (!event) return res.status(404).json({ error: 'Event not found' });
       if (!event.registration_open) return res.status(400).json({ error: 'Registration is closed for this event' });
 
-      const { name, mobile, role, profileLink, matches, runs, wickets, paymentTxnId, website } = req.body;
+      const { name, mobile, role, profileLink, matches, runs, wickets, battingHand, bowlingStyle, paymentTxnId, website } = req.body;
 
       // Honeypot: bots fill hidden "website" field.
       if (website) return res.status(400).json({ error: 'Spam detected' });
@@ -314,6 +314,14 @@ const registrationController = {
 
       try {
         const reg = await registrationService.createRegistration(row);
+        // Optional playing style, saved best-effort so a pre-migration DB never
+        // blocks registration.
+        if (battingHand || bowlingStyle) {
+          await registrationService.setRegistrationExtras(reg.id, {
+            batting_hand: battingHand || null,
+            bowling_style: bowlingStyle || null,
+          });
+        }
         res.json({ message: 'Registration submitted successfully', registrationId: reg.id });
       } catch (err) {
         if (err.code === '23505') {
@@ -465,6 +473,8 @@ const registrationController = {
             manualId: '',
             imageUrl: r.profile_pic_url || '',
             mobile: r.mobile || '',
+            battingHand: r.batting_hand || '',
+            bowlingStyle: r.bowling_style || '',
             matches: r.matches || '',
             runs: r.runs || '',
             battingAvg: '',

@@ -27,6 +27,7 @@ const STAT_FIELDS = [
 
 const BATTING_HANDS = ['', 'Right-hand bat', 'Left-hand bat'];
 const BOWLING_STYLES = ['', 'Right-arm pace', 'Right-arm medium', 'Right-arm spin', 'Left-arm pace', 'Left-arm medium', 'Left-arm spin'];
+const ROLES = ['Batter', 'Bowler', 'WK', 'Batting AR', 'Bowling AR'];
 
 // Reusable modal for adding a new player or editing an existing one.
 // When `onSubmitOverride` is provided, the form data is handed back to the
@@ -136,12 +137,15 @@ const PlayerFormModal = ({ isOpen, mode = 'add', player = null, onClose, onSubmi
             </div>
             <div className="md:col-span-1">
               <label className={labelCls}>Role / Category</label>
-              <input
+              <select
                 className={inputCls}
                 value={form.role}
                 onChange={(e) => setField('role', e.target.value)}
-                placeholder="e.g. Batsman, Bowler, Wicket Keeper"
-              />
+              >
+                <option value="">Select role…</option>
+                {ROLES.map((r) => <option key={r} value={r}>{r}</option>)}
+                {form.role && !ROLES.includes(form.role) && <option value={form.role}>{form.role}</option>}
+              </select>
             </div>
           </div>
 

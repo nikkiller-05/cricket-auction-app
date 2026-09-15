@@ -138,6 +138,23 @@ const registrationService = {
     return data;
   },
 
+  // Best-effort extra columns (e.g. batting_hand/bowling_style). Never throws,
+  // so registration keeps working even before the columns exist.
+  async setRegistrationExtras(id, extras) {
+    if (!supabase || !id || !extras) return null;
+    try {
+      const { data, error } = await supabase.from(REGS).update(extras).eq('id', id).select().single();
+      if (error) {
+        console.log(`   ⚠️  registration extras skipped (${id}): ${error.message}`);
+        return null;
+      }
+      return data;
+    } catch (e) {
+      console.log(`   ⚠️  registration extras exception (${id}): ${e.message}`);
+      return null;
+    }
+  },
+
   async getVerifiedRegistrations(eventId) {
     ensure();
     const { data, error } = await supabase
