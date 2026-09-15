@@ -775,7 +775,7 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
           <label className={`flex items-center gap-3 text-xs ${T.sub}`}>
             {logo ? <img src={URL.createObjectURL(logo)} alt="" className="w-9 h-9 rounded-lg object-cover" /> : <span className="w-9 h-9 rounded-lg bg-white/10 grid place-items-center">🏆</span>}
             <span>Event logo (optional){editing ? ' — upload to replace' : ''}
-              <input type="file" accept="image/*" onChange={async (e) => { const f = e.target.files?.[0]; if (f) setLogo(await compressLogo(f)); }} className="mt-1 block w-full text-xs" />
+              <input type="file" accept="image/*" onChange={async (e) => { const f = e.target.files?.[0]; if (f) setLogo(await compressLogo(f)); }} className="mt-1 block w-full text-xs file:mr-3 file:rounded-full file:border-0 file:bg-gradient-to-b file:from-amber-400 file:to-amber-500 file:px-4 file:py-1.5 file:text-slate-900 file:font-bold file:cursor-pointer hover:file:brightness-110" />
             </span>
           </label>
           <label className={`flex items-center gap-2 text-sm ${T.label}`}>
@@ -787,7 +787,7 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
               <input className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} placeholder="Registration fee (₹)" value={form.regFee} onChange={(e) => setForm({ ...form, regFee: e.target.value })} inputMode="numeric" />
               <input className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} placeholder="UPI ID" value={form.upiId} onChange={(e) => setForm({ ...form, upiId: e.target.value })} />
               <label className={`block text-xs ${T.sub}`}>Payment QR image{editing ? ' (upload to replace)' : ''}
-                <input type="file" accept="image/*" onChange={(e) => setQr(e.target.files?.[0] || null)} className="mt-1 block w-full text-xs" />
+                <input type="file" accept="image/*" onChange={(e) => setQr(e.target.files?.[0] || null)} className="mt-1 block w-full text-xs file:mr-3 file:rounded-full file:border-0 file:bg-gradient-to-b file:from-amber-400 file:to-amber-500 file:px-4 file:py-1.5 file:text-slate-900 file:font-bold file:cursor-pointer hover:file:brightness-110" />
               </label>
             </>
           )}

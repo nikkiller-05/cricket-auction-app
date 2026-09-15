@@ -27,7 +27,7 @@ const STAT_FIELDS = [
 
 const BATTING_HANDS = ['', 'Right-hand bat', 'Left-hand bat'];
 const BOWLING_STYLES = ['', 'Right-arm pace', 'Right-arm medium', 'Right-arm spin', 'Left-arm pace', 'Left-arm medium', 'Left-arm spin'];
-const ROLES = ['Batter', 'Bowler', 'WK', 'Batting AR', 'Bowling AR'];
+const ROLES = ['Batter', 'Bowler', 'WK/Batter', 'Batting AR', 'Bowling AR'];
 
 // Reusable modal for adding a new player or editing an existing one.
 // When `onSubmitOverride` is provided, the form data is handed back to the

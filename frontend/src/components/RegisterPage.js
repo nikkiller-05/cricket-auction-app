@@ -4,7 +4,7 @@ import axios from 'axios';
 import BrandFooter from './BrandFooter';
 
 import { API_BASE_URL } from '../config';
-const ROLES = ['Batter', 'Bowler', 'WK', 'Batting AR', 'Bowling AR'];
+const ROLES = ['Batter', 'Bowler', 'WK/Batter', 'Batting AR', 'Bowling AR'];
 const BATTING_HANDS = ['', 'Right-hand bat', 'Left-hand bat'];
 const BOWLING_STYLES = ['', 'Right-arm pace', 'Right-arm medium', 'Right-arm spin', 'Left-arm pace', 'Left-arm medium', 'Left-arm spin'];
 

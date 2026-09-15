@@ -9,11 +9,12 @@ const { calculateStats } = require('../utils/biddingRules');
 // In-memory multipart handling; files are streamed to Supabase Storage.
 const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 3 * 1024 * 1024 } });
 
-const ALLOWED_ROLES = ['Batter', 'Bowler', 'WK', 'Batting AR', 'Bowling AR'];
+const ALLOWED_ROLES = ['Batter', 'Bowler', 'WK/Batter', 'Batting AR', 'Bowling AR', 'WK'];
 const ROLE_TO_CATEGORY = {
   Batter: 'batter',
   Bowler: 'bowler',
   WK: 'wicket-keeper',
+  'WK/Batter': 'wicket-keeper',
   'Batting AR': 'allrounder',
   'Bowling AR': 'allrounder',
 };
