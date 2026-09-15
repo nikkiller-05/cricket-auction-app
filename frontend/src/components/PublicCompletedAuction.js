@@ -7,6 +7,7 @@ import { getTeamIcon } from '../sports';
 import BrandFooter from './BrandFooter';
 import TeamSquadsModal from './TeamSquadsModal';
 import PlayerAvatar from './PlayerAvatar';
+import html2canvas from 'html2canvas';
 
 // Distinct accent per team card (cycled) — mirrors the squad export palette.
 const TEAM_ACCENTS = [
@@ -52,6 +53,64 @@ const StatCard = ({ label, value, icon, currency, delay = 0 }) => {
   );
 };
 
+// Off-screen designed poster (captured to PNG for sharing). Inline styles keep
+// html2canvas capture reliable across themes.
+const PosterCard = React.forwardRef(({ event, summary: S }, ref) => {
+  const top = S.spotlights?.top;
+  return (
+    <div ref={ref} style={{ width: 760, background: 'linear-gradient(160deg,#0b0a06,#1c1608 55%,#2a1f08)', color: '#fff', fontFamily: 'Inter, system-ui, -apple-system, Segoe UI, sans-serif', padding: 36, boxSizing: 'border-box' }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 24 }}>
+        {event.logo_url
+          ? <img src={event.logo_url} crossOrigin="anonymous" alt="" width={72} height={72} style={{ width: 72, height: 72, borderRadius: 16, objectFit: 'cover', background: 'rgba(255,255,255,0.1)' }} />
+          : <div style={{ width: 72, height: 72, borderRadius: 16, background: 'rgba(232,184,75,0.2)', display: 'grid', placeItems: 'center', fontSize: 34 }}>🏆</div>}
+        <div style={{ minWidth: 0 }}>
+          <div style={{ display: 'inline-block', fontSize: 12, fontWeight: 800, letterSpacing: '0.12em', color: '#6ee7b7', background: 'rgba(16,185,129,0.15)', border: '1px solid rgba(52,211,153,0.35)', borderRadius: 999, padding: '4px 12px' }}>AUCTION COMPLETED</div>
+          <div style={{ fontSize: 30, fontWeight: 900, marginTop: 6, lineHeight: 1.1 }}>{event.name}</div>
+        </div>
+      </div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4,1fr)', gap: 12, marginBottom: 22 }}>
+        {[['Teams', S.teams.length], ['Sold', S.soldCount], ['Unsold', S.unsoldCount], ['Spend', formatCurrency(S.totalSpend)]].map(([l, v]) => (
+          <div key={l} style={{ background: 'rgba(255,255,255,0.05)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: 16, padding: '12px 14px' }}>
+            <div style={{ fontSize: 11, color: 'rgba(253,230,138,0.6)' }}>{l}</div>
+            <div style={{ fontSize: 22, fontWeight: 900 }}>{v}</div>
+          </div>
+        ))}
+      </div>
+      {top && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 16, background: 'linear-gradient(90deg, rgba(251,191,36,0.2), rgba(245,158,11,0.05))', border: '1px solid rgba(252,211,77,0.4)', borderRadius: 20, padding: 16, marginBottom: 22 }}>
+          {top.imageUrl
+            ? <img src={top.imageUrl} crossOrigin="anonymous" alt="" width={72} height={72} style={{ width: 72, height: 72, borderRadius: 16, objectFit: 'cover' }} />
+            : <div style={{ width: 72, height: 72, borderRadius: 16, background: 'rgba(255,255,255,0.1)', display: 'grid', placeItems: 'center', fontWeight: 800, fontSize: 26 }}>{(top.name || '?').slice(0, 1)}</div>}
+          <div style={{ flex: 1, minWidth: 0 }}>
+            <div style={{ fontSize: 11, fontWeight: 800, color: '#fcd34d', letterSpacing: '0.1em' }}>⭐ HIGHEST BID OVERALL</div>
+            <div style={{ fontSize: 24, fontWeight: 900 }}>{top.name}</div>
+            <div style={{ fontSize: 13, color: 'rgba(253,230,138,0.7)' }}>{roleLabel(top)}{S.teamNameOf(top) ? ` · ${S.teamNameOf(top)}` : ''}</div>
+          </div>
+          <div style={{ fontSize: 30, fontWeight: 900, color: '#fcd34d' }}>{formatCurrency(top.finalBid || 0)}</div>
+        </div>
+      )}
+      <div style={{ fontSize: 12, fontWeight: 800, letterSpacing: '0.12em', color: 'rgba(253,230,138,0.6)', marginBottom: 8 }}>TEAMS</div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10, marginBottom: 22 }}>
+        {S.squads.map(({ team, spent, count }) => (
+          <div key={team.id} style={{ display: 'flex', alignItems: 'center', gap: 10, background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)', borderRadius: 14, padding: '10px 12px' }}>
+            {team.logoUrl
+              ? <img src={team.logoUrl} crossOrigin="anonymous" alt="" width={34} height={34} style={{ width: 34, height: 34, borderRadius: 8, objectFit: 'contain', background: 'rgba(255,255,255,0.9)' }} />
+              : <div style={{ width: 34, height: 34, borderRadius: 8, background: 'rgba(255,255,255,0.1)', display: 'grid', placeItems: 'center' }}>🏏</div>}
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <div style={{ fontSize: 14, fontWeight: 800, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{cleanTeamName(team.name)}</div>
+              <div style={{ fontSize: 11, color: 'rgba(253,230,138,0.6)' }}>{count} players · {formatCurrency(spent)}</div>
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderTop: '1px solid rgba(255,255,255,0.1)', paddingTop: 14 }}>
+        <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.6)' }}>{window.location.host}/a/{event.slug}</div>
+        <div style={{ fontSize: 16, fontWeight: 900 }}><span style={{ color: '#fbbf24' }}>Golden</span>BidX</div>
+      </div>
+    </div>
+  );
+});
+
 // One spotlight (top buy in a category).
 const SpotlightCard = ({ label, player, teamNameOf }) => (
   <div className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 flex items-center gap-3">
@@ -78,7 +137,9 @@ const PublicCompletedAuction = ({ event }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showSquads, setShowSquads] = useState(false);
   const [showPlayers, setShowPlayers] = useState(false);
+  const [posterBusy, setPosterBusy] = useState(false);
   const menuRef = useRef(null);
+  const posterRef = useRef(null);
 
   useEffect(() => {
     const onDoc = (e) => { if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(false); };
@@ -168,6 +229,31 @@ const PublicCompletedAuction = ({ event }) => {
     }
   };
 
+  // Render the designed poster to PNG and share it (native share on mobile, else download).
+  const downloadPoster = async () => {
+    if (!posterRef.current) return;
+    setPosterBusy(true); setDownloadErr(''); setMenuOpen(false);
+    try {
+      const canvas = await html2canvas(posterRef.current, { useCORS: true, backgroundColor: null, scale: 2, logging: false });
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
+      if (!blob) throw new Error('render failed');
+      const file = new File([blob], `${event.slug || 'auction'}-results.png`, { type: 'image/png' });
+      if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        await navigator.share({ files: [file], title: event.name, text: `${event.name} — auction results` });
+      } else {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url; a.download = file.name;
+        document.body.appendChild(a); a.click(); a.remove();
+        URL.revokeObjectURL(url);
+      }
+    } catch {
+      setDownloadErr('Could not generate the poster. Please try again.');
+    } finally {
+      setPosterBusy(false);
+    }
+  };
+
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden bg-gradient-to-br from-[#0b0a06] via-[#1c1608] to-[#2a1f08] text-white">
       {/* Top bar */}
@@ -187,10 +273,17 @@ const PublicCompletedAuction = ({ event }) => {
               disabled={loading || !!err}
               className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 text-sm font-bold px-4 py-1.5 hover:-translate-y-0.5 transition disabled:opacity-50 disabled:translate-y-0"
             >
-              {downloadingKind ? 'Preparing…' : '⬇ Download ▾'}
+              {(downloadingKind || posterBusy) ? 'Preparing…' : '⬇ Download ▾'}
             </button>
             {menuOpen && (
               <div className="absolute right-0 mt-2 w-64 rounded-2xl border border-white/10 bg-[#14121c] shadow-2xl z-50 overflow-hidden">
+                <button onClick={downloadPoster} className="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-white/5">
+                  <span className="text-lg">📢</span>
+                  <span className="min-w-0">
+                    <span className="block text-sm font-semibold text-white">Share results poster</span>
+                    <span className="block text-xs text-amber-100/60">A designed PNG summary to share</span>
+                  </span>
+                </button>
                 <button onClick={() => { setShowSquads(true); setMenuOpen(false); }} className="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-white/5">
                   <span className="text-lg">🖼️</span>
                   <span className="min-w-0">
@@ -398,6 +491,12 @@ const PublicCompletedAuction = ({ event }) => {
         teams={data?.teams || []}
         players={data?.players || []}
       />
+
+      {data && (
+        <div style={{ position: 'fixed', left: '-99999px', top: 0, pointerEvents: 'none' }} aria-hidden="true">
+          <PosterCard ref={posterRef} event={event} summary={summary} />
+        </div>
+      )}
     </div>
   );
 };
