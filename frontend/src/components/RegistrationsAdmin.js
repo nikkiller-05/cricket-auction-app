@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import axios from 'axios';
 import { useNotification } from './NotificationSystem';
 import BrandFooter from './BrandFooter';
@@ -619,6 +620,8 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm);
   const [teamRows, setTeamRows] = useState([]);
+  const [mentionTeams, setMentionTeams] = useState(false);
+  const [configureNames, setConfigureNames] = useState(false);
   const [qr, setQr] = useState(null);
   const [logo, setLogo] = useState(null);
   const [busy, setBusy] = useState(false);
@@ -627,13 +630,16 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
   const [layout, setLayout] = useState(() => localStorage.getItem('evLayout') || 'cards');
   const setLayoutPersist = (v) => { setLayout(v); localStorage.setItem('evLayout', v); };
 
-  const startCreate = () => { setCreating(true); setEditing(null); setForm(emptyForm); setTeamRows([]); setQr(null); setLogo(null); };
+  const startCreate = () => { setCreating(true); setEditing(null); setForm(emptyForm); setTeamRows([]); setMentionTeams(false); setConfigureNames(false); setQr(null); setLogo(null); };
   const startEdit = (ev) => {
     setEditing(ev.id); setCreating(false); setQr(null); setLogo(null);
     setForm({ name: ev.name, paymentRequired: ev.payment_required, regFee: ev.reg_fee || '', upiId: ev.upi_id || '', organizerId: ev.organizer_id || '', teamCount: ev.team_count || '', showContact: !!ev.show_contact, contactPhone: ev.contact_phone || '', contactEmail: ev.contact_email || '', contactNote: ev.contact_note || '' });
-    setTeamRows(Array.isArray(ev.teams) ? ev.teams.map((t) => ({ name: t?.name || '', logoUrl: t?.logoUrl || null })) : []);
+    const rows = Array.isArray(ev.teams) ? ev.teams.map((t) => ({ name: t?.name || '', logoUrl: t?.logoUrl || null })) : [];
+    setTeamRows(rows);
+    setMentionTeams(!!ev.team_count);
+    setConfigureNames(rows.some((r) => r.name || r.logoUrl));
   };
-  const closeForm = () => { setCreating(false); setEditing(null); setForm(emptyForm); setTeamRows([]); setQr(null); setLogo(null); };
+  const closeForm = () => { setCreating(false); setEditing(null); setForm(emptyForm); setTeamRows([]); setMentionTeams(false); setConfigureNames(false); setQr(null); setLogo(null); };
 
   // Keep the per-team rows in sync with the requested team count.
   const setTeamCount = (raw) => {
@@ -652,6 +658,7 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
   const submit = async (e) => {
     e.preventDefault();
     if (!form.name.trim()) return showError('Event name is required');
+    if (!(form.contactPhone || '').trim()) return showError('Organizer mobile number is required');
     setBusy(true);
     try {
       const fd = new FormData();
@@ -660,16 +667,18 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
       fd.append('regFee', form.regFee || 0);
       fd.append('upiId', form.upiId);
       if (canAssignOrganizer && form.organizerId) fd.append('organizerId', form.organizerId);
-      fd.append('showContact', form.showContact);
-      if (form.showContact) {
-        fd.append('contactPhone', form.contactPhone);
-        fd.append('contactEmail', form.contactEmail);
-        fd.append('contactNote', form.contactNote);
-      }
+      fd.append('showContact', 'true');
+      fd.append('contactPhone', form.contactPhone);
+      fd.append('contactEmail', form.contactEmail);
+      fd.append('contactNote', form.contactNote);
       if (qr) fd.append('qr', qr);
       if (logo) fd.append('logo', logo);
-      fd.append('teamCount', form.teamCount || 0);
-      fd.append('teams', JSON.stringify(teamRows.map((r) => ({ name: (r.name || '').trim() || null, logoUrl: r.logoUrl || null }))));
+      const useTeams = mentionTeams && Number(form.teamCount) > 0;
+      fd.append('teamCount', useTeams ? form.teamCount : 0);
+      const teamsPayload = (useTeams && configureNames)
+        ? teamRows.map((r) => ({ name: (r.name || '').trim() || null, logoUrl: r.logoUrl || null }))
+        : [];
+      fd.append('teams', JSON.stringify(teamsPayload));
       if (editing) { await api.put(`/api/registrations/events/${editing}`, fd); showSuccess('Event updated'); }
       else { await api.post('/api/registrations/events', fd); showSuccess('Event created'); }
       closeForm();
@@ -753,10 +762,10 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
         </div>
       )}
 
-      {canManageEvents && (creating || editing) && (
-        <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60 backdrop-blur-sm" onClick={closeForm} />
-          <div className={`relative w-full max-w-lg ${T.card} p-5 max-h-[90vh] overflow-y-auto`}>
+      {canManageEvents && (creating || editing) && createPortal((
+        <div className="fixed inset-0 z-[3000] flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={closeForm} />
+          <div className={`relative w-full max-w-lg rounded-2xl ${T.menu} p-5 max-h-[90vh] overflow-y-auto`}>
             <div className="flex items-center justify-between mb-3">
               <h3 className={`text-lg font-bold ${T.heading}`}>{editing ? 'Edit event' : 'New event'}</h3>
               <button type="button" onClick={closeForm} aria-label="Close" className={`text-2xl leading-none ${T.sub} hover:opacity-80`}>×</button>
@@ -788,39 +797,45 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
               {organizers.map((o) => <option key={o.id} value={o.id}>{o.name || o.username}</option>)}
             </select>
           )}
-          <div className={`rounded-lg border p-2.5 ${T.soft}`}>
-            <label className={`block text-xs font-semibold ${T.label} mb-1`}>Number of teams (optional)</label>
-            <input inputMode="numeric" value={form.teamCount} onChange={(e) => setTeamCount(e.target.value)} placeholder="e.g. 8 — seeds the auction & shows on the public page" className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} />
-            {teamRows.length > 0 && (
-              <div className="mt-2 space-y-1.5">
-                <p className={`text-[11px] ${T.sub}`}>Team names & logos are optional — leave blank to just advertise the count.</p>
-                {teamRows.map((row, i) => (
-                  <div key={i} className="flex items-center gap-2">
-                    {row.logoUrl
-                      ? <img src={row.logoUrl} alt="" className="w-8 h-8 rounded-lg object-cover shrink-0" />
-                      : <span className="w-8 h-8 rounded-lg bg-white/10 grid place-items-center text-xs shrink-0">{i + 1}</span>}
-                    <input value={row.name} onChange={(e) => setTeamField(i, { name: e.target.value })} placeholder={`Team ${i + 1} name (optional)`} className={`flex-1 min-w-0 rounded-lg border px-3 py-1.5 text-sm ${T.input}`} />
-                    <label className={`shrink-0 cursor-pointer rounded-lg border px-2.5 py-1.5 text-xs font-semibold ${T.chip}`}>
-                      {row.logoUrl ? 'Change' : 'Logo'}
-                      <input type="file" accept="image/*" className="hidden" onChange={async (e) => { const f = e.target.files?.[0]; if (f) setTeamField(i, { logoUrl: await compressLogoDataUrl(f) }); }} />
-                    </label>
-                    {row.logoUrl && <button type="button" onClick={() => setTeamField(i, { logoUrl: null })} className={`shrink-0 text-xs ${T.sub} hover:opacity-80`} title="Remove logo">✕</button>}
+          <div className={`rounded-lg border p-2.5 ${T.soft} space-y-2`}>
+            <label className={`flex items-center gap-2 text-sm ${T.label}`}>
+              <input type="checkbox" checked={mentionTeams} onChange={(e) => { const on = e.target.checked; setMentionTeams(on); if (!on) { setTeamCount(''); setConfigureNames(false); } }} />
+              Mention number of teams participating
+            </label>
+            {mentionTeams && (
+              <>
+                <input inputMode="numeric" value={form.teamCount} onChange={(e) => setTeamCount(e.target.value)} placeholder="Number of teams (e.g. 8)" className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} />
+                {Number(form.teamCount) > 0 && (
+                  <label className={`flex items-center gap-2 text-sm ${T.label}`}>
+                    <input type="checkbox" checked={configureNames} onChange={(e) => setConfigureNames(e.target.checked)} />
+                    Configure team names & logos
+                  </label>
+                )}
+                {configureNames && teamRows.length > 0 && (
+                  <div className="space-y-1.5">
+                    {teamRows.map((row, i) => (
+                      <div key={i} className="flex items-center gap-2">
+                        {row.logoUrl
+                          ? <img src={row.logoUrl} alt="" className="w-8 h-8 rounded-lg object-cover shrink-0" />
+                          : <span className="w-8 h-8 rounded-lg bg-white/10 grid place-items-center text-xs shrink-0">{i + 1}</span>}
+                        <input value={row.name} onChange={(e) => setTeamField(i, { name: e.target.value })} placeholder={`Team ${i + 1} name`} className={`flex-1 min-w-0 rounded-lg border px-3 py-1.5 text-sm ${T.input}`} />
+                        <label className={`shrink-0 cursor-pointer rounded-lg border px-2.5 py-1.5 text-xs font-semibold ${T.chip}`}>
+                          {row.logoUrl ? 'Change' : 'Logo'}
+                          <input type="file" accept="image/*" className="hidden" onChange={async (e) => { const f = e.target.files?.[0]; if (f) setTeamField(i, { logoUrl: await compressLogoDataUrl(f) }); }} />
+                        </label>
+                        {row.logoUrl && <button type="button" onClick={() => setTeamField(i, { logoUrl: null })} className={`shrink-0 text-xs ${T.sub} hover:opacity-80`} title="Remove logo">✕</button>}
+                      </div>
+                    ))}
                   </div>
-                ))}
-              </div>
+                )}
+              </>
             )}
           </div>
-          <label className={`flex items-center gap-2 text-sm ${T.label}`}>
-            <input type="checkbox" checked={form.showContact} onChange={(e) => setForm({ ...form, showContact: e.target.checked })} />
-            Let players contact the organizer
-          </label>
-          {form.showContact && (
-            <>
-              <input className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} placeholder="Contact phone / WhatsApp" value={form.contactPhone} onChange={(e) => setForm({ ...form, contactPhone: e.target.value })} />
-              <input className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} placeholder="Contact email" value={form.contactEmail} onChange={(e) => setForm({ ...form, contactEmail: e.target.value })} />
-              <input className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} placeholder="Other note (e.g. name, timings)" value={form.contactNote} onChange={(e) => setForm({ ...form, contactNote: e.target.value })} />
-            </>
-          )}
+          <div className="space-y-2">
+            <input required inputMode="numeric" className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} placeholder="Organizer mobile / WhatsApp" value={form.contactPhone} onChange={(e) => setForm({ ...form, contactPhone: e.target.value })} />
+            <input className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} placeholder="Contact email" value={form.contactEmail} onChange={(e) => setForm({ ...form, contactEmail: e.target.value })} />
+            <input className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} placeholder="Other note (e.g. timings, venue)" value={form.contactNote} onChange={(e) => setForm({ ...form, contactNote: e.target.value })} />
+          </div>
           <div className="flex gap-2">
             <button disabled={busy} className="gbx-btn-save-event flex-1 rounded-full bg-indigo-600 text-white px-4 py-2 text-sm font-semibold hover:bg-indigo-500 disabled:opacity-50">{busy ? 'Saving…' : editing ? 'Update event' : 'Create event'}</button>
             <button type="button" onClick={closeForm} className={`rounded-full border px-4 py-2 text-sm font-semibold ${T.chip}`}>Cancel</button>
@@ -828,7 +843,7 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
             </form>
           </div>
         </div>
-      )}
+      ), document.body)}
 
       <div className="flex items-center justify-between mb-2">
         <span className={`text-xs ${T.sub}`}>{filtered.length} shown</span>
