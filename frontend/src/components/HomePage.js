@@ -262,6 +262,30 @@ const HomePage = () => {
           </div>
         </section>
 
+        {/* FAQ */}
+        <section className="px-4 py-10">
+          <div className="max-w-3xl mx-auto">
+            <h2 className="text-center text-2xl md:text-3xl font-extrabold text-white mb-8">Frequently asked</h2>
+            <div className="space-y-3">
+              {[
+                ['Is it only for cricket?', 'No — it works for any sport. You choose the team count, budgets, base price and bidding steps.'],
+                ['How do players register?', 'Share your event’s registration link. Players self-register with a photo, role and stats — no manual data entry for you.'],
+                ['Can spectators watch live?', 'Yes. Share the public link and anyone can follow every bid live, then browse the final results afterwards.'],
+                ['Do I need to install anything?', 'No. Everything runs in the browser on a phone or laptop.'],
+                ['What happens after the auction?', 'The public link becomes a results page with final squads, spotlights and one-tap exports (Excel, squad images, a shareable poster).'],
+              ].map(([q, a]) => (
+                <details key={q} className="group rounded-2xl border border-white/10 bg-white/[0.04] px-5 py-4">
+                  <summary className="flex cursor-pointer items-center justify-between gap-3 text-white font-semibold list-none">
+                    {q}
+                    <span className="text-amber-300 text-xl leading-none transition-transform group-open:rotate-45">+</span>
+                  </summary>
+                  <p className="mt-2 text-sm text-indigo-200/80 leading-relaxed">{a}</p>
+                </details>
+              ))}
+            </div>
+          </div>
+        </section>
+
         {/* Closing CTA */}
         <section id="contact" className="px-4 py-12 scroll-mt-16">
           <div className="max-w-3xl mx-auto rounded-3xl border border-amber-300/20 bg-gradient-to-b from-amber-400/10 to-transparent p-8 text-center">
@@ -274,6 +298,35 @@ const HomePage = () => {
             <p className="mt-4 text-sm text-indigo-200/70">
               Call or WhatsApp <a href="tel:+918867976531" className="font-semibold text-amber-300 hover:text-amber-200">+91 88679 76531</a> · <a href="mailto:contactus@goldenbidx.com" className="font-semibold text-amber-300 hover:text-amber-200">contactus@goldenbidx.com</a>
             </p>
+          </div>
+        </section>
+
+        {/* Footer links */}
+        <section className="px-4 pt-8 border-t border-white/10">
+          <div className="max-w-5xl mx-auto grid gap-8 sm:grid-cols-3 text-sm">
+            <div>
+              <div className="flex items-center gap-2 mb-3">
+                <img src="/auction-logo.png" alt="" className="h-8 w-auto" />
+                <span className="font-extrabold text-white"><span className="text-amber-300">Golden</span>BidX</span>
+              </div>
+              <p className="text-indigo-200/60">Live player auctions, made effortless. Bid · Build · Win.</p>
+            </div>
+            <div>
+              <div className="text-white font-semibold mb-2">Product</div>
+              <ul className="space-y-1.5 text-indigo-200/70">
+                <li><button onClick={() => scrollToId('features')} className="hover:text-white transition">Features</button></li>
+                <li><button onClick={() => navigate('/tournaments')} className="hover:text-white transition">Tournaments</button></li>
+                <li><button onClick={scrollToEnter} className="hover:text-white transition">Get started</button></li>
+              </ul>
+            </div>
+            <div>
+              <div className="text-white font-semibold mb-2">Contact</div>
+              <ul className="space-y-1.5 text-indigo-200/70">
+                <li><a href="https://wa.me/918867976531" target="_blank" rel="noreferrer" className="hover:text-white transition">WhatsApp</a></li>
+                <li><a href="mailto:contactus@goldenbidx.com" className="hover:text-white transition">contactus@goldenbidx.com</a></li>
+                <li><a href="tel:+918867976531" className="hover:text-white transition">+91 88679 76531</a></li>
+              </ul>
+            </div>
           </div>
         </section>
 
