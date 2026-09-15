@@ -15,6 +15,7 @@ async function getEventInfo(auctionId) {
   const info = {
     organizerId: event ? String(event.organizer_id) : null,
     name: event ? event.name : null,
+    slug: event ? event.slug : null,
     ts: Date.now(),
   };
   eventInfoCache.set(auctionId, info);

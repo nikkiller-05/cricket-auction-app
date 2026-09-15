@@ -25,13 +25,16 @@ const slugify = (name) =>
     .replace(/^-+|-+$/g, '')
     .slice(0, 48) || 'event';
 
+// True once a registration deadline (if any) has passed.
+const deadlinePassed = (e) => !!e.registration_deadline && Date.now() > new Date(e.registration_deadline).getTime();
+
 // Only the fields a public visitor is allowed to see.
 const publicEvent = (e) => ({
   id: e.id,
   slug: e.slug,
   name: e.name,
   status: e.status || 'upcoming',
-  registration_open: e.registration_open,
+  registration_open: !!e.registration_open && !deadlinePassed(e),
   payment_required: e.payment_required,
   reg_fee: e.reg_fee,
   upi_id: e.payment_required ? e.upi_id : null,
@@ -39,6 +42,10 @@ const publicEvent = (e) => ({
   logo_url: e.logo_url || null,
   team_count: e.team_count ?? null,
   teams: Array.isArray(e.teams) ? e.teams : null,
+  auction_at: e.auction_at || null,
+  registration_deadline: e.registration_deadline || null,
+  event_start_date: e.event_start_date || null,
+  event_end_date: e.event_end_date || null,
   show_contact: !!e.show_contact,
   contact_phone: e.show_contact ? e.contact_phone : null,
   contact_email: e.show_contact ? e.contact_email : null,
@@ -66,6 +73,18 @@ const parseTeamPlan = (body = {}) => {
     } catch { teams = null; }
     out.teams = teams;
   }
+  return out;
+};
+
+// Normalise the optional schedule. Datetime fields arrive as ISO strings (the
+// client converts from local time); date fields as YYYY-MM-DD. Each is nullable.
+const parseSchedule = (body = {}) => {
+  const out = {};
+  const iso = (v) => { if (!v) return null; const d = new Date(v); return isNaN(d.getTime()) ? null : d.toISOString(); };
+  if (body.auctionAt !== undefined) out.auction_at = iso(body.auctionAt);
+  if (body.registrationDeadline !== undefined) out.registration_deadline = iso(body.registrationDeadline);
+  if (body.eventStartDate !== undefined) out.event_start_date = body.eventStartDate || null;
+  if (body.eventEndDate !== undefined) out.event_end_date = body.eventEndDate || null;
   return out;
 };
 
@@ -150,6 +169,11 @@ const registrationController = {
         const withTeams = await registrationService.setEventTeams(event.id, teamCount, teams);
         if (withTeams) saved = withTeams;
       }
+      const schedule = parseSchedule(req.body);
+      if (Object.keys(schedule).length > 0) {
+        const withSchedule = await registrationService.setEventSchedule(event.id, schedule);
+        if (withSchedule) saved = withSchedule;
+      }
       res.json({ event: saved });
     } catch (e) {
       res.status(500).json({ error: e.message });
@@ -195,6 +219,11 @@ const registrationController = {
         const withTeams = await registrationService.setEventTeams(id, teamCount, teams);
         if (withTeams) event = withTeams;
       }
+      const schedule = parseSchedule(body);
+      if (Object.keys(schedule).length > 0) {
+        const withSchedule = await registrationService.setEventSchedule(id, schedule);
+        if (withSchedule) event = withSchedule;
+      }
 
       res.json({ event });
     } catch (e) {
@@ -239,7 +268,8 @@ const registrationController = {
         name: e.name,
         status: e.status || 'upcoming',
         logo_url: e.logo_url || null,
-        registration_open: !!e.registration_open,
+        auction_at: e.auction_at || null,
+        registration_open: !!e.registration_open && !deadlinePassed(e),
       }));
       res.json({ events: cards });
     } catch (e) {
@@ -274,6 +304,7 @@ const registrationController = {
       const event = await registrationService.getEventBySlug(req.params.slug);
       if (!event) return res.status(404).json({ error: 'Event not found' });
       if (!event.registration_open) return res.status(400).json({ error: 'Registration is closed for this event' });
+      if (deadlinePassed(event)) return res.status(400).json({ error: 'Registration has closed (deadline passed)' });
 
       const { name, mobile, role, profileLink, matches, runs, wickets, battingHand, bowlingStyle, paymentTxnId, website } = req.body;
 

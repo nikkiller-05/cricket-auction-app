@@ -14,6 +14,7 @@ export default function useAuth(location, auctionIdOverride = null, forceSpectat
   const [userRole, setUserRole] = useState('spectator');
   const [username, setUsername] = useState('');
   const [eventName, setEventName] = useState('');
+  const [eventSlug, setEventSlug] = useState('');
   const [canConfigure, setCanConfigure] = useState(false);
   const [canUndo, setCanUndo] = useState(false);
 
@@ -39,6 +40,7 @@ export default function useAuth(location, auctionIdOverride = null, forceSpectat
       .then(({ data }) => {
         if (!active) return;
         setEventName(data.eventName || '');
+        setEventSlug(data.eventSlug || '');
         if (spectator) {
           setIsAdmin(false);
           setUserRole('spectator');
@@ -90,5 +92,5 @@ export default function useAuth(location, auctionIdOverride = null, forceSpectat
     navigate('/');
   };
 
-  return { isAdmin, userRole, username, eventName, canConfigure, canUndo, logout };
+  return { isAdmin, userRole, username, eventName, eventSlug, canConfigure, canUndo, logout };
 }

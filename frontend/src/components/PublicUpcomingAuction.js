@@ -7,6 +7,9 @@ import BrandFooter from './BrandFooter';
 const roleLabel = (r) =>
   r === 'wicket-keeper' ? 'Keeper' : r ? r.charAt(0).toUpperCase() + r.slice(1) : 'Player';
 
+const fmtDateTime = (iso) => { if (!iso) return null; const d = new Date(iso); return isNaN(d.getTime()) ? null : d.toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }); };
+const fmtDate = (s) => { if (!s) return null; const d = new Date(`${String(s).slice(0, 10)}T00:00:00`); return isNaN(d.getTime()) ? null : d.toLocaleDateString('en-IN', { dateStyle: 'medium' }); };
+
 // Read-only preview for an auction that hasn't started yet (event.status ===
 // 'upcoming'): who has registered so far + how to join (via the organizer).
 // Registration itself is not offered here — the organizer shares that link
@@ -60,6 +63,30 @@ const PublicUpcomingAuction = ({ event }) => {
             <h1 className="mt-1 text-2xl sm:text-3xl font-extrabold tracking-tight truncate">{event.name}</h1>
           </div>
         </div>
+
+        {/* Schedule */}
+        {(event.auction_at || event.registration_deadline || event.event_start_date || event.event_end_date) && (
+          <div className="grid gap-3 sm:grid-cols-3 mb-6">
+            {event.auction_at && (
+              <div className="rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3">
+                <div className="text-[11px] uppercase tracking-wide text-amber-100/50">Auction</div>
+                <div className="text-sm font-semibold text-white mt-0.5">{fmtDateTime(event.auction_at)}</div>
+              </div>
+            )}
+            {event.registration_deadline && (
+              <div className="rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3">
+                <div className="text-[11px] uppercase tracking-wide text-amber-100/50">Registration {event.registration_open ? 'closes' : 'closed'}</div>
+                <div className="text-sm font-semibold text-white mt-0.5">{fmtDateTime(event.registration_deadline)}</div>
+              </div>
+            )}
+            {(event.event_start_date || event.event_end_date) && (
+              <div className="rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3">
+                <div className="text-[11px] uppercase tracking-wide text-amber-100/50">Tournament</div>
+                <div className="text-sm font-semibold text-white mt-0.5">{[fmtDate(event.event_start_date), fmtDate(event.event_end_date)].filter(Boolean).join(' – ')}</div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* How to join */}
         <div className="rounded-2xl border border-white/10 bg-white/[0.05] p-4 sm:p-5 mb-6">

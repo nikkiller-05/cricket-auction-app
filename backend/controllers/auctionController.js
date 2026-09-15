@@ -28,8 +28,11 @@ const auctionController = {
       const access = await computeAuctionAccess(user, auctionId);
       // Event auctions carry the event's name for the dashboard header.
       let eventName = null;
+      let eventSlug = null;
       if (auctionId && auctionId !== DEFAULT_AUCTION_ID) {
-        eventName = (await getEventInfo(auctionId)).name;
+        const info = await getEventInfo(auctionId);
+        eventName = info.name;
+        eventSlug = info.slug;
       }
       res.json({
         canOperate: access.canConfigure || access.canBid,
@@ -39,6 +42,7 @@ const auctionController = {
         role: user?.role || 'spectator',
         username: user?.username || null,
         eventName,
+        eventSlug,
       });
     } catch (e) {
       res.status(500).json({ error: e.message });

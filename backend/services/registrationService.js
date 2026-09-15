@@ -100,6 +100,23 @@ const registrationService = {
     }
   },
 
+  // Best-effort schedule (auction_at / registration_deadline / event dates).
+  // Never throws, so event create/update keep working before the columns exist.
+  async setEventSchedule(id, fields) {
+    if (!supabase || !id || !fields || Object.keys(fields).length === 0) return null;
+    try {
+      const { data, error } = await supabase.from(EVENTS).update(fields).eq('id', id).select().single();
+      if (error) {
+        console.log(`   ⚠️  event schedule update skipped (${id}): ${error.message}`);
+        return null;
+      }
+      return data;
+    } catch (e) {
+      console.log(`   ⚠️  event schedule update exception (${id}): ${e.message}`);
+      return null;
+    }
+  },
+
   async deleteEvent(id) {
     ensure();
     const { error } = await supabase.from(EVENTS).delete().eq('id', id);

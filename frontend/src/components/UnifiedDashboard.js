@@ -46,7 +46,7 @@ const UnifiedDashboard = ({ publicAuctionId = null }) => {
   // Full-screen SOLD/UNSOLD celebration overlay
   const [celebration, setCelebration] = useState(null);
 
-  const { isAdmin, userRole, username, eventName, canConfigure, canUndo, logout } = useAuth(location, publicAuctionId, !!publicAuctionId);
+  const { isAdmin, userRole, username, eventName, eventSlug, canConfigure, canUndo, logout } = useAuth(location, publicAuctionId, !!publicAuctionId);
   const [activeTab, setActiveTab] = useState('live');
   // Multi-tenant: an event-scoped auction is addressed by ?auctionId=<event.id>,
   // or by publicAuctionId when reached via the clean /a/{slug} spectator link.
@@ -1025,7 +1025,7 @@ const UnifiedDashboard = ({ publicAuctionId = null }) => {
       <ShareAuctionModal
         isOpen={showShareModal}
         onClose={() => setShowShareModal(false)}
-        url={window.location.origin}
+        url={eventSlug ? `${window.location.origin}/a/${eventSlug}` : window.location.origin}
       />
 
       {/* Edit Settings Modal */}

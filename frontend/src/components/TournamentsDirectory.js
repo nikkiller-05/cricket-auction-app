@@ -16,6 +16,8 @@ const SECTIONS = [
 const initials = (name) =>
   (name || '?').split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase();
 
+const fmtAuctionAt = (iso) => { if (!iso) return null; const d = new Date(iso); return isNaN(d.getTime()) ? null : d.toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' }); };
+
 const StatusPill = ({ status }) => {
   if (status === 'live') {
     return (
@@ -71,6 +73,9 @@ const TournamentsDirectory = () => {
           <h3 className="font-bold text-white truncate min-w-0">{ev.name}</h3>
           <StatusPill status={ev.status} />
         </div>
+        {fmtAuctionAt(ev.auction_at) && (
+          <div className="mt-0.5 text-xs text-amber-100/50">📅 {fmtAuctionAt(ev.auction_at)}</div>
+        )}
         <span className="mt-1 inline-block text-sm font-semibold text-amber-300 group-hover:text-amber-200">{ctaLabel(ev)} →</span>
       </div>
     </button>
