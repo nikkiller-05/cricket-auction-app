@@ -731,13 +731,13 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
   ) : null;
   const actions = (ev) => canManageEvents ? (
     <div className="flex items-center gap-0.5 flex-wrap">
-      <IconBtn T={T} title="Copy link" onClick={(e) => { e.stopPropagation(); copyLink(ev); }}><IcoCopy /></IconBtn>
+      <IconBtn T={T} title="Copy players' registration link" onClick={(e) => { e.stopPropagation(); copyLink(ev); }}><IcoCopy /></IconBtn>
       <IconBtn T={T} title="Edit event" onClick={(e) => { e.stopPropagation(); startEdit(ev); }}><IcoPencil /></IconBtn>
       <IconBtn T={T} title={ev.registration_open ? 'End event' : 'Reopen'} onClick={(e) => { e.stopPropagation(); toggleOpen(ev); }}>{ev.registration_open ? <IcoLock /> : <IcoUnlock />}</IconBtn>
       <IconBtn T={T} danger title="Delete event" onClick={(e) => { e.stopPropagation(); remove(ev); }}><IcoTrash /></IconBtn>
     </div>
   ) : (
-    <IconBtn T={T} title="Copy link" onClick={(e) => { e.stopPropagation(); copyLink(ev); }}><IcoCopy /></IconBtn>
+    <IconBtn T={T} title="Copy players' registration link" onClick={(e) => { e.stopPropagation(); copyLink(ev); }}><IcoCopy /></IconBtn>
   );
 
   return (
@@ -1133,8 +1133,8 @@ const RegistrationsPanel = ({ event, canImport, reloadEvents, showSuccess, showE
         <div className="min-w-0">
           <h2 className={`font-bold ${T.heading}`}>{event.name} — Registrations</h2>
           <div className="flex items-center gap-1.5">
-            <p className={`text-xs ${T.sub} break-all`}>Link: {window.location.origin}/register/{event.slug}</p>
-            <IconBtn T={T} title="Copy link" onClick={copyLink} size="h-7 w-7"><IcoCopy /></IconBtn>
+            <p className={`text-xs ${T.sub} break-all`}>Registration link: {window.location.origin}/register/{event.slug}</p>
+            <IconBtn T={T} title="Copy players' registration link" onClick={copyLink} size="h-7 w-7"><IcoCopy /></IconBtn>
           </div>
         </div>
         <div className="flex gap-2">
