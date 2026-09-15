@@ -100,7 +100,6 @@ const RegisterPage = () => {
     if (!form.role) return setError('Please select a role');
     if (!photo) return setError('Profile photo is required');
     if (event.payment_required) {
-      if (!form.paymentTxnId.trim()) return setError('Enter the payment reference (UTR)');
       if (!screenshot) return setError('Please upload the payment screenshot');
     }
 
@@ -253,7 +252,7 @@ const RegisterPage = () => {
                   </button>
                 </div>
               )}
-              <Field label="Payment Reference / UTR" required>
+              <Field label="Payment Reference / UTR" hint="Optional — add it if you have it.">
                 <input className={inputCls} value={form.paymentTxnId} onChange={set('paymentTxnId')} placeholder="12-digit UPI reference no." />
               </Field>
               <Field label="Payment Screenshot" required hint="Upload proof of payment (auto-compressed).">

@@ -289,7 +289,6 @@ const registrationController = {
 
       if (!photoFile) return res.status(400).json({ error: 'Profile photo is required' });
       if (event.payment_required) {
-        if (!paymentTxnId || !paymentTxnId.trim()) return res.status(400).json({ error: 'Payment reference (UTR) is required' });
         if (!screenshotFile) return res.status(400).json({ error: 'Payment screenshot is required' });
       }
 
