@@ -22,6 +22,19 @@ const TEAM_ACCENTS = [
 const roleLabel = (p) =>
   p.role || (p.category === 'wicket-keeper' ? 'Keeper' : p.category ? p.category.charAt(0).toUpperCase() + p.category.slice(1) : '');
 
+// One spotlight (highest bid overall, or the top buy in a category).
+const SpotlightCard = ({ label, player, teamNameOf, highlight }) => (
+  <div className={`rounded-2xl border p-3 flex items-center gap-3 ${highlight ? 'border-amber-300/40 bg-amber-400/10' : 'border-white/10 bg-white/[0.04]'}`}>
+    <img src={player.imageUrl || '/logo192.png'} alt="" className="w-12 h-12 rounded-xl object-cover bg-white/10 shrink-0" />
+    <div className="min-w-0 flex-1">
+      <div className={`text-[10px] uppercase tracking-wide font-bold ${highlight ? 'text-amber-300' : 'text-amber-100/50'}`}>{label}</div>
+      <div className="font-semibold text-white truncate">{player.name}</div>
+      <div className="text-[11px] text-amber-100/50 truncate">{roleLabel(player)}{teamNameOf(player) ? ` · ${teamNameOf(player)}` : ''}</div>
+    </div>
+    <div className="text-base font-extrabold text-amber-300 shrink-0">{formatCurrency(player.finalBid || 0)}</div>
+  </div>
+);
+
 // Read-only public results for a finished auction (event.status === 'completed').
 // Fetches the header-scoped, public auction snapshot and presents final squads,
 // spend and a one-tap squad export. No operator controls are ever rendered here.
@@ -34,6 +47,7 @@ const PublicCompletedAuction = ({ event }) => {
   const [downloadErr, setDownloadErr] = useState('');
   const [menuOpen, setMenuOpen] = useState(false);
   const [showSquads, setShowSquads] = useState(false);
+  const [showPlayers, setShowPlayers] = useState(false);
   const menuRef = useRef(null);
 
   useEffect(() => {
@@ -73,11 +87,30 @@ const PublicCompletedAuction = ({ event }) => {
         pct: total > 0 ? Math.round((spent / total) * 100) : 0,
       };
     });
-    const topBuys = [...soldPlayers].sort((a, b) => (b.finalBid || 0) - (a.finalBid || 0)).slice(0, 5);
+    const soldSorted = [...soldPlayers].sort((a, b) => (b.finalBid || 0) - (a.finalBid || 0));
+    const topBuys = soldSorted.slice(0, 5);
+    const teamById = Object.fromEntries(teams.map((t) => [t.id, t]));
+    const teamNameOf = (p) => { const t = teamById[p.team]; return t ? cleanTeamName(t.name) : ''; };
+    // Spotlights: highest bid overall + top buy per category.
+    const CATS = [['batter', 'Batter'], ['bowler', 'Bowler'], ['wicket-keeper', 'Keeper'], ['allrounder', 'All-rounder']];
+    const catTop = {};
+    soldPlayers.forEach((p) => { const c = p.category; if (c && (!catTop[c] || (p.finalBid || 0) > (catTop[c].finalBid || 0))) catTop[c] = p; });
+    const spotlights = {
+      top: soldSorted[0] || null,
+      categories: CATS.map(([k, label]) => ({ label, player: catTop[k] })).filter((c) => c.player),
+    };
+    // Full roster with outcome, sold (by price) first then unsold.
+    const roster = [...players].sort((a, b) => {
+      const as = a.status === 'sold' || a.finalBid > 0 ? 1 : 0;
+      const bs = b.status === 'sold' || b.finalBid > 0 ? 1 : 0;
+      if (as !== bs) return bs - as;
+      return (b.finalBid || 0) - (a.finalBid || 0);
+    });
     return {
       teams, players, soldCount: soldPlayers.length,
       unsoldCount: players.length - soldPlayers.length,
       totalPlayers: players.length, totalSpend, squads, topBuys,
+      teamNameOf, spotlights, roster,
     };
   }, [data]);
 
@@ -216,6 +249,21 @@ const PublicCompletedAuction = ({ event }) => {
               </section>
             )}
 
+            {/* Auction spotlights */}
+            {(summary.spotlights.top || summary.spotlights.categories.length > 0) && (
+              <section className="mb-7">
+                <h2 className="text-sm font-bold uppercase tracking-wider text-amber-200/70 mb-2">Auction spotlights</h2>
+                <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
+                  {summary.spotlights.top && (
+                    <SpotlightCard label="⭐ Highest bid overall" player={summary.spotlights.top} teamNameOf={summary.teamNameOf} highlight />
+                  )}
+                  {summary.spotlights.categories.map((c) => (
+                    <SpotlightCard key={c.label} label={`Top ${c.label}`} player={c.player} teamNameOf={summary.teamNameOf} />
+                  ))}
+                </div>
+              </section>
+            )}
+
             {/* Squads */}
             <h2 className="text-sm font-bold uppercase tracking-wider text-amber-200/70 mb-3">Final squads</h2>
             {summary.squads.length === 0 ? (
@@ -265,6 +313,42 @@ const PublicCompletedAuction = ({ event }) => {
                   </div>
                 ))}
               </div>
+            )}
+
+            {/* Registered players — clickable, scrollable roster with outcomes */}
+            {summary.roster.length > 0 && (
+              <section className="mt-8">
+                <button onClick={() => setShowPlayers((v) => !v)} className="w-full flex items-center justify-between rounded-2xl border border-white/10 bg-white/[0.05] px-4 py-3 hover:bg-white/[0.08] transition">
+                  <span className="font-bold text-white">Players registered <span className="text-amber-100/50 font-semibold">({summary.roster.length})</span></span>
+                  <span className="text-sm font-semibold text-amber-200">{showPlayers ? '▲ Hide' : '▼ Show'}</span>
+                </button>
+                {showPlayers && (
+                  <div className="mt-2 max-h-[28rem] overflow-y-auto rounded-2xl border border-white/10 divide-y divide-white/5">
+                    {summary.roster.map((p) => {
+                      const sold = p.status === 'sold' || p.finalBid > 0;
+                      return (
+                        <div key={p.id} className={`flex items-center gap-3 px-4 py-2.5 ${sold ? 'bg-emerald-500/[0.06]' : 'bg-rose-500/[0.05]'}`}>
+                          <img src={p.imageUrl || '/logo192.png'} alt="" className="w-10 h-10 rounded-lg object-cover bg-white/10 shrink-0" />
+                          <div className="min-w-0 flex-1">
+                            <div className="font-semibold text-white truncate">{p.name}</div>
+                            {roleLabel(p) && <div className="text-[11px] text-amber-100/50">{roleLabel(p)}</div>}
+                          </div>
+                          <div className="text-right shrink-0">
+                            {sold ? (
+                              <>
+                                <div className="text-sm font-bold text-emerald-300">{formatCurrency(p.finalBid || 0)}</div>
+                                <div className="text-[11px] text-emerald-200/70 truncate max-w-[10rem]">Sold to {summary.teamNameOf(p) || 'team'}</div>
+                              </>
+                            ) : (
+                              <span className="text-[11px] font-bold text-rose-300 bg-rose-500/10 border border-rose-400/25 rounded-full px-2.5 py-1">Unsold</span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </section>
             )}
           </>
         )}

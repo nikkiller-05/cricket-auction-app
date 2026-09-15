@@ -451,7 +451,7 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
 
       <div className="gbx-console-content max-w-6xl mx-auto px-3 py-4 sm:p-6">
         {view === 'events' && (
-          <EventsPanel canManageEvents={canManageEvents} canAssignOrganizer={canAssignOrganizer} events={events} organizers={organizers} selected={selected} onSelect={(ev) => { setSelected(ev); setView('registrations'); }} reload={loadEvents} showSuccess={showSuccess} showError={showError} showConfirm={showConfirm} T={T} />
+          <EventsPanel canManageEvents={canManageEvents} canAssignOrganizer={canAssignOrganizer} events={events} organizers={organizers} selected={selected} onSelect={(ev) => { setSelected(ev); setView('registrations'); }} onGoToAuctions={() => setView('auctions')} reload={loadEvents} showSuccess={showSuccess} showError={showError} showConfirm={showConfirm} T={T} />
         )}
 
         {view === 'registrations' && (
@@ -677,7 +677,7 @@ const ChangePasswordModal = ({ onClose, showSuccess, showError, T }) => {
 
 // ---------------- Events panel ----------------
 const emptyForm = { name: '', paymentRequired: true, regFee: '', upiId: '', organizerId: '', teamCount: '', auctionDate: '', auctionTime: '', deadlineDate: '', deadlineTime: '', eventStartDate: '', eventEndDate: '', showContact: false, contactPhone: '', contactEmail: '', contactNote: '' };
-const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, selected, onSelect, reload, showSuccess, showError, showConfirm, T }) => {
+const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, selected, onSelect, onGoToAuctions, reload, showSuccess, showError, showConfirm, T }) => {
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(emptyForm);
@@ -838,9 +838,12 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
 
   return (
     <div className={`gbx-events-panel ${T.card} p-4 sm:p-5`}>
-      <div className="flex items-center justify-between mb-3">
+      <div className="flex items-center justify-between gap-2 mb-3">
         <h2 className={`font-bold ${T.heading}`}>Events <span className={`text-xs font-normal ${T.sub}`}>({events.length})</span></h2>
-        {canManageEvents && <button onClick={startCreate} className="gbx-btn-new-event rounded-full bg-amber-400 text-slate-900 px-3 py-1 text-xs font-bold hover:bg-amber-300">+ New event</button>}
+        <div className="flex items-center gap-2">
+          {onGoToAuctions && <button onClick={onGoToAuctions} className={`rounded-full border px-3 py-1 text-xs font-semibold ${T.chip}`}>🔨 Auctions →</button>}
+          {canManageEvents && <button onClick={startCreate} className="gbx-btn-new-event rounded-full bg-amber-400 text-slate-900 px-3 py-1 text-xs font-bold hover:bg-amber-300">+ New event</button>}
+        </div>
       </div>
 
       {(events.length > 4 || (canAssignOrganizer && organizers.length > 0)) && (
