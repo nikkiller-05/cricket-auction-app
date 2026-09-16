@@ -1331,6 +1331,24 @@ const RegistrationsPanel = ({ event, canImport, reloadEvents, showSuccess, showE
         </div>
       </div>
 
+      {event.max_players > 0 && (() => {
+        const cap = event.max_players;
+        const used = all.length;
+        const pct = Math.min(100, Math.round((used / cap) * 100));
+        const bar = pct >= 100 ? 'bg-rose-500' : pct >= 80 ? 'bg-amber-500' : 'bg-emerald-500';
+        return (
+          <div className="mb-4">
+            <div className="flex items-center justify-between text-xs mb-1">
+              <span className={T.sub}>Registration capacity</span>
+              <span className={`font-semibold ${T.heading}`}>{used} / {cap}{used >= cap ? ' · Full' : ''}</span>
+            </div>
+            <div className="h-2 overflow-hidden rounded-full bg-slate-200/50">
+              <div className={`h-full ${bar} transition-[width] duration-300`} style={{ width: `${pct}%` }} />
+            </div>
+          </div>
+        );
+      })()}
+
       <div className="flex flex-wrap gap-2 mb-4">
         {[['', 'All', all.length], ['pending', 'Pending', counts.pending || 0], ['verified', 'Approved', counts.verified || 0], ['rejected', 'Rejected', counts.rejected || 0]].map(([s, label, n]) => (
           <button key={s || 'all'} onClick={() => setFilter(s)} className={`rounded-full px-3 py-1 text-xs font-semibold border ${filter === s ? 'bg-indigo-600 text-white border-indigo-600' : T.chip}`}>
