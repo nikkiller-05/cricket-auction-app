@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo, useRef } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import PlayerUploadModal from './PlayerUploadModal';
@@ -103,6 +103,8 @@ const UnifiedDashboard = ({ publicAuctionId = null }) => {
   // Spectator filter state for All Players tab
   const [spectatorPlayerFilter, setSpectatorPlayerFilter] = useState('all');
   const [showShareModal, setShowShareModal] = useState(false);
+  // Stable ref so LiveStatusPanel's memo isn't broken by a new inline handler.
+  const openShareModal = useCallback(() => setShowShareModal(true), []);
   // Custom / big-bid controls
   const [customBidTeamId, setCustomBidTeamId] = useState('');
   const [customBidAmount, setCustomBidAmount] = useState('');
@@ -657,7 +659,7 @@ const UnifiedDashboard = ({ publicAuctionId = null }) => {
               setCurrentPage={setCurrentPage}
               soldPlayers={soldPlayers}
               unsoldPlayers={unsoldPlayers}
-              onShare={() => setShowShareModal(true)}
+              onShare={openShareModal}
             />
           )}
 

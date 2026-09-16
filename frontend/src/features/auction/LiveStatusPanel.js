@@ -338,4 +338,19 @@ const LiveStatusPanel = ({
   );
 };
 
-export default LiveStatusPanel;
+// Skip the many currentBid updates during bidding: this panel only cares about
+// whether a bid EXISTS (idle state), plus players/teams/status/history — all of
+// which are stable while an amount ticks up.
+export default React.memo(LiveStatusPanel, (a, b) =>
+  a.auctionData?.players === b.auctionData?.players &&
+  a.auctionData?.teams === b.auctionData?.teams &&
+  a.auctionData?.auctionStatus === b.auctionData?.auctionStatus &&
+  !!a.auctionData?.currentBid === !!b.auctionData?.currentBid &&
+  a.transactionHistory === b.transactionHistory &&
+  a.soldPlayers === b.soldPlayers &&
+  a.unsoldPlayers === b.unsoldPlayers &&
+  a.currentPage === b.currentPage &&
+  a.transactionsPerPage === b.transactionsPerPage &&
+  a.setCurrentPage === b.setCurrentPage &&
+  a.onShare === b.onShare
+);
