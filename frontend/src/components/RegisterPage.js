@@ -130,7 +130,11 @@ const RegisterPage = () => {
       <div className="text-white">
         <div className="text-5xl mb-4">🏏</div>
         <h1 className="text-xl font-bold mb-1">Registration link not found</h1>
-        <p className="text-indigo-200/70 text-sm">Please check the link with your organizer.</p>
+        <p className="text-indigo-200/70 text-sm mb-6">Please check the link with your organizer.</p>
+        <div className="flex items-center justify-center gap-3">
+          <button onClick={() => navigate('/')} className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 font-bold px-5 py-2.5">Go home</button>
+          <button onClick={() => navigate('/tournaments')} className="rounded-full border border-white/20 text-indigo-100/80 font-semibold px-5 py-2.5 hover:text-white hover:border-white/40 transition">Browse tournaments</button>
+        </div>
       </div>
     </div>;
   }
@@ -144,6 +148,10 @@ const RegisterPage = () => {
           Thanks for registering for <span className="font-semibold text-amber-200">{event.name}</span>.
           {event.payment_required ? ' The organizer will verify your payment and confirm your entry.' : ' The organizer will review and confirm your entry.'}
         </p>
+        <div className="mt-6 flex items-center justify-center gap-3">
+          <button onClick={() => navigate('/')} className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 font-bold px-5 py-2.5">Go home</button>
+          <button onClick={() => navigate('/tournaments')} className="rounded-full border border-white/20 text-indigo-100/80 font-semibold px-5 py-2.5 hover:text-white hover:border-white/40 transition">Browse tournaments</button>
+        </div>
       </div>
     </div>;
   }
@@ -153,7 +161,11 @@ const RegisterPage = () => {
       <div className="text-white">
         <div className="text-5xl mb-4">🔒</div>
         <h1 className="text-xl font-bold mb-1">Registration is closed</h1>
-        <p className="text-indigo-200/70 text-sm">for {event.name}</p>
+        <p className="text-indigo-200/70 text-sm mb-6">for {event.name}</p>
+        <div className="flex items-center justify-center gap-3">
+          <button onClick={() => navigate('/')} className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 font-bold px-5 py-2.5">Go home</button>
+          <button onClick={() => navigate('/tournaments')} className="rounded-full border border-white/20 text-indigo-100/80 font-semibold px-5 py-2.5 hover:text-white hover:border-white/40 transition">Browse tournaments</button>
+        </div>
       </div>
     </div>;
   }
