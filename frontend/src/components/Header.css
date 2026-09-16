@@ -1278,20 +1278,21 @@
 .gbx-hd-btn:hover { background: rgba(99,102,241,0.34); border-color: rgba(129,140,248,0.6); transform: translateY(-1px); }
 .gbx-hd-btn-ico { font-size: 0.95rem; line-height: 1; }
 .gbx-hd-btn-svg { width: 1rem; height: 1rem; flex-shrink: 0; }
-.dash-root[data-theme="light"] .gbx-hd-btn { color: #3730a3; background: rgba(99,102,241,0.16); border-color: rgba(79,70,229,0.42); }
-.dash-root[data-theme="light"] .gbx-hd-btn:hover { background: rgba(99,102,241,0.26); border-color: rgba(79,70,229,0.55); }
+/* Light header is golden-cream — warm the header buttons to match it, not indigo. */
+.dash-root[data-theme="light"] .gbx-hd-btn { color: #4a350a; background: rgba(110,75,12,0.12); border-color: rgba(110,75,12,0.4); }
+.dash-root[data-theme="light"] .gbx-hd-btn:hover { background: rgba(110,75,12,0.2); border-color: rgba(110,75,12,0.55); }
 
-/* Controls = slate/grey pill (both themes) */
+/* Controls = slate/grey pill in dark; warm neutral to sit on the cream header in light. */
 .gbx-hd-grey { color: #e5e7eb; background: rgba(148,163,184,0.2); border-color: rgba(148,163,184,0.42); }
 .gbx-hd-grey:hover { background: rgba(148,163,184,0.32); border-color: rgba(148,163,184,0.6); }
-.dash-root[data-theme="light"] .gbx-hd-grey { color: #334155; background: rgba(100,116,139,0.18); border-color: rgba(71,85,105,0.42); }
-.dash-root[data-theme="light"] .gbx-hd-grey:hover { background: rgba(100,116,139,0.28); border-color: rgba(71,85,105,0.55); }
+.dash-root[data-theme="light"] .gbx-hd-grey { color: #3a2c08; background: rgba(110,75,12,0.14); border-color: rgba(110,75,12,0.42); }
+.dash-root[data-theme="light"] .gbx-hd-grey:hover { background: rgba(110,75,12,0.24); border-color: rgba(110,75,12,0.58); }
 
-/* Export = deep sky-blue pill (both themes) */
+/* Export = sky-blue in dark; a deeper amber (the primary action) on the cream header. */
 .gbx-hd-sky { color: #bae6fd; background: rgba(2,132,199,0.3); border-color: rgba(56,189,248,0.45); }
 .gbx-hd-sky:hover { background: rgba(2,132,199,0.44); border-color: rgba(56,189,248,0.62); }
-.dash-root[data-theme="light"] .gbx-hd-sky { color: #075985; background: rgba(2,132,199,0.16); border-color: rgba(3,105,161,0.45); }
-.dash-root[data-theme="light"] .gbx-hd-sky:hover { background: rgba(2,132,199,0.26); border-color: rgba(3,105,161,0.6); }
+.dash-root[data-theme="light"] .gbx-hd-sky { color: #7c3a08; background: rgba(184,124,26,0.22); border-color: rgba(146,64,14,0.5); }
+.dash-root[data-theme="light"] .gbx-hd-sky:hover { background: rgba(184,124,26,0.32); border-color: rgba(146,64,14,0.64); }
 
 /* Status pill — light theme (cream header needs darker ink + stronger fills) */
 .dash-root[data-theme="light"] .gbx-status-live {
