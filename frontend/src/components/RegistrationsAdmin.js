@@ -1358,12 +1358,12 @@ const RegistrationsPanel = ({ event, canImport, reloadEvents, showSuccess, showE
           </div>
         </div>
         <div className="flex gap-2">
-          <button onClick={exportExcel} disabled={exporting} className="rounded-full bg-gradient-to-b from-sky-500 to-blue-600 text-white px-4 py-2 text-sm font-semibold shadow hover:-translate-y-0.5 transition disabled:opacity-50">
-            {exporting ? 'Exporting…' : '⬇ Export Excel'}
+          <button onClick={exportExcel} disabled={exporting} className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-b from-sky-500 to-blue-600 text-white px-4 py-2 text-sm font-semibold shadow hover:-translate-y-0.5 transition disabled:opacity-50">
+            {exporting ? (<><span className="h-4 w-4 shrink-0 rounded-full border-2 border-white/40 border-t-white animate-spin" aria-hidden="true" /> Exporting…</>) : '⬇ Export Excel'}
           </button>
           {canImport && (
-            <button onClick={importToAuction} disabled={importing} className="rounded-full bg-gradient-to-b from-emerald-500 to-teal-600 text-white px-4 py-2 text-sm font-semibold shadow hover:-translate-y-0.5 transition disabled:opacity-50">
-              {importing ? 'Importing…' : '⬇ Import to auction'}
+            <button onClick={importToAuction} disabled={importing} className="inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-b from-emerald-500 to-teal-600 text-white px-4 py-2 text-sm font-semibold shadow hover:-translate-y-0.5 transition disabled:opacity-50">
+              {importing ? (<><span className="h-4 w-4 shrink-0 rounded-full border-2 border-white/40 border-t-white animate-spin" aria-hidden="true" /> Importing…</>) : '⬇ Import to auction'}
             </button>
           )}
         </div>

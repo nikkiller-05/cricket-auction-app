@@ -311,7 +311,8 @@ const RegisterPage = () => {
           {error && <div className="rounded-lg bg-rose-500/20 border border-rose-400/30 text-rose-100 text-sm px-3 py-2">{error}</div>}
 
           <button type="submit" disabled={submitting}
-            className="w-full rounded-full bg-gradient-to-b from-amber-400 to-amber-500 px-6 py-3 text-sm font-bold text-slate-900 shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition disabled:opacity-50">
+            className="w-full inline-flex items-center justify-center gap-2 rounded-full bg-gradient-to-b from-amber-400 to-amber-500 px-6 py-3 text-sm font-bold text-slate-900 shadow-lg hover:-translate-y-0.5 active:translate-y-0 transition disabled:opacity-50">
+            {submitting && <span className="h-4 w-4 shrink-0 rounded-full border-2 border-slate-900/30 border-t-slate-900 animate-spin" aria-hidden="true" />}
             {submitting ? 'Submitting…' : 'Submit Registration'}
           </button>
           <p className="text-center text-[11px] text-indigo-200/50">Have a great auction!</p>

@@ -858,13 +858,15 @@ button:not(:disabled):active {
 .btn {
   @apply inline-flex items-center justify-center gap-2 font-semibold rounded-xl
          transition-[background-color,box-shadow,border-color,color,transform] duration-150
-         disabled:opacity-50 disabled:pointer-events-none whitespace-nowrap select-none;
+         disabled:opacity-50 disabled:pointer-events-none whitespace-nowrap select-none
+         focus:outline-none focus-visible:ring-2 focus-visible:ring-amber-400/70;
   min-height: 2.5rem; /* 40px — touch-friendly */
   padding: 0.5rem 1rem;
   font-size: 0.875rem;
   line-height: 1.25rem;
   letter-spacing: 0.01em;
 }
+.btn:not(:disabled):active { transform: scale(0.98); }
 
 .btn-sm {
   min-height: 2rem;
