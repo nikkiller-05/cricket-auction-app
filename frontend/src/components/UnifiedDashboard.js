@@ -24,6 +24,7 @@ import useAuctionSettings from '../features/auction/hooks/useAuctionSettings';
 import useDownloads from '../features/auction/hooks/useDownloads';
 import useKeyboardShortcuts from '../features/auction/hooks/useKeyboardShortcuts';
 import StatCards from '../features/auction/StatCards';
+import TeamStandingsStrip from '../features/auction/TeamStandingsStrip';
 import TabNav from '../features/auction/TabNav';
 import LiveStatusPanel from '../features/auction/LiveStatusPanel';
 import SmartRandomStage from '../features/auction/SmartRandomStage';
@@ -596,6 +597,15 @@ const UnifiedDashboard = ({ publicAuctionId = null }) => {
           enableCaptains={enableCaptains}
           enableRetention={enableRetention}
         />
+
+        {/* Broadcast-style team standings (purse + squad) — everyone sees it. */}
+        {auctionData.fileUploaded && auctionData.teams?.length > 0 && (
+          <TeamStandingsStrip
+            teams={auctionData.teams}
+            startingBudget={auctionData.settings?.startingBudget || 0}
+            maxPlayers={auctionData.settings?.maxPlayersPerTeam || 0}
+          />
+        )}
 
         {/* Warning for spectators when no auction data */}
         {!auctionData.fileUploaded && !isAdmin && (
