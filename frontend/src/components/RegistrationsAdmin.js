@@ -875,13 +875,23 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
     return <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${cls[s] || cls.upcoming}`}>{label[s] || 'UPCOMING'}</span>;
   };
   const metaText = (ev) => <>{ev.payment_required ? `Paid · ${money(ev.reg_fee)}` : 'Free entry'}{ev.organizer_name ? ` · 👤 ${ev.organizer_name}` : (canAssignOrganizer ? ' · 👤 unassigned' : '')}</>;
-  const countChips = (ev) => (ev.counts && ev.counts.total > 0) ? (
-    <div className="mt-1.5 flex flex-wrap gap-1.5">
-      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-500/15 text-slate-300">{ev.counts.total} total</span>
-      {ev.counts.pending > 0 && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">{ev.counts.pending} pending</span>}
-      {ev.counts.verified > 0 && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">{ev.counts.verified} approved</span>}
-    </div>
-  ) : null;
+  const countChips = (ev) => {
+    const total = ev.counts?.total || 0;
+    const hasCap = ev.max_players > 0;
+    if (total === 0 && !hasCap) return null;
+    const full = hasCap && total >= ev.max_players;
+    return (
+      <div className="mt-1.5 flex flex-wrap gap-1.5">
+        {hasCap ? (
+          <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${full ? 'bg-rose-100 text-rose-700' : 'bg-sky-100 text-sky-800'}`}>{total}/{ev.max_players} registered{full ? ' · Full' : ''}</span>
+        ) : (
+          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-500/15 text-slate-300">{total} total</span>
+        )}
+        {ev.counts?.pending > 0 && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">{ev.counts.pending} pending</span>}
+        {ev.counts?.verified > 0 && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-800">{ev.counts.verified} approved</span>}
+      </div>
+    );
+  };
   const actions = (ev) => canManageEvents ? (
     <div className="flex items-center gap-0.5 flex-wrap">
       <IconBtn T={T} title="Copy players' registration link" onClick={(e) => { e.stopPropagation(); copyLink(ev); }}><IcoCopy /></IconBtn>
