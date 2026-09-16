@@ -61,4 +61,4 @@ const PlayerFilterChips = ({
   );
 };
 
-export default PlayerFilterChips;
+export default React.memo(PlayerFilterChips);

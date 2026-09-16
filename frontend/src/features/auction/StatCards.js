@@ -2,6 +2,8 @@ import React from 'react';
 
 // Dashboard quick-stat cards. Retained/Captains cards appear only when their
 // feature is enabled; the grid column count adapts to the number of cards.
+// Memoized: props are plain counts/flags, so it skips the many currentBid
+// updates during live bidding (the counts don't change on a bid).
 const StatCards = ({
   totalPlayers = 0,
   sold = 0,
@@ -52,4 +54,4 @@ const StatCards = ({
   );
 };
 
-export default StatCards;
+export default React.memo(StatCards);

@@ -373,4 +373,4 @@ const SpectatorPlayerGroups = ({
   );
 };
 
-export default SpectatorPlayerGroups;
+export default React.memo(SpectatorPlayerGroups);
