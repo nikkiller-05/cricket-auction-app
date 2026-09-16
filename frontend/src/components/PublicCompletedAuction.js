@@ -7,7 +7,6 @@ import { getTeamIcon } from '../sports';
 import BrandFooter from './BrandFooter';
 import TeamSquadsModal from './TeamSquadsModal';
 import PlayerAvatar from './PlayerAvatar';
-import html2canvas from 'html2canvas';
 
 // Distinct accent per team card (cycled) — mirrors the squad export palette.
 const TEAM_ACCENTS = [
@@ -234,6 +233,7 @@ const PublicCompletedAuction = ({ event }) => {
     if (!posterRef.current) return;
     setPosterBusy(true); setDownloadErr(''); setMenuOpen(false);
     try {
+      const { default: html2canvas } = await import('html2canvas');
       const canvas = await html2canvas(posterRef.current, { useCORS: true, backgroundColor: null, scale: 2, logging: false });
       const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/png'));
       if (!blob) throw new Error('render failed');

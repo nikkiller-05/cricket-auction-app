@@ -39,6 +39,9 @@ app.use('/api/downloads', downloadRoutes.router);
 app.use('/api', downloadRoutes.legacy);
 app.use('/api/registrations', registrationRoutes);
 
+// Lightweight health check for uptime pingers (keeps the free-tier instance warm).
+app.get(['/health', '/'], (req, res) => res.json({ ok: true, ts: Date.now() }));
+
 // ENHANCED ERROR HANDLING MIDDLEWARE (Must be AFTER routes)
 // Report errors to Sentry before our own handler formats the response.
 const Sentry = require('@sentry/node');

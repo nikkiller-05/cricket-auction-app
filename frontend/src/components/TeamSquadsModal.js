@@ -1,6 +1,4 @@
 import React, { useRef } from 'react';
-import jsPDF from 'jspdf';
-import html2canvas from 'html2canvas';
 import { formatCurrency } from '../lib/format';
 import { getTeamIcon } from '../sports';
 import { useNotification } from './NotificationSystem';
@@ -197,7 +195,11 @@ const TeamSquadsModal = ({ isOpen, onClose, teams = [], players = [] }) => {
 
   if (!isOpen) return null;
 
-  const captureCanvas = (el) => html2canvas(el, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+  // html2canvas/jsPDF are heavy; load them only when an export is requested.
+  const captureCanvas = async (el) => {
+    const { default: html2canvas } = await import('html2canvas');
+    return html2canvas(el, { scale: 2, backgroundColor: '#ffffff', useCORS: true });
+  };
 
   const downloadPng = async (team) => {
     try {
@@ -216,6 +218,7 @@ const TeamSquadsModal = ({ isOpen, onClose, teams = [], players = [] }) => {
 
   const downloadAllPdf = async () => {
     try {
+      const { default: jsPDF } = await import('jspdf');
       const pdf = new jsPDF({ orientation: 'portrait', unit: 'pt', format: 'a4' });
       const pageW = pdf.internal.pageSize.getWidth();
       const pageH = pdf.internal.pageSize.getHeight();
