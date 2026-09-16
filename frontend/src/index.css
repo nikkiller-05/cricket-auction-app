@@ -407,6 +407,18 @@
 .gbx-modal-out { animation: gbxModalOut 0.18s ease-in forwards; }
 .gbx-modal-backdrop { animation: gbxBackdropIn 0.2s ease-out; }
 
+/* Live bid "bump": a one-shot pop when a new higher bid lands. */
+@keyframes gbxBidBump {
+  0% { transform: scale(1); }
+  28% { transform: scale(1.09); }
+  60% { transform: scale(0.98); }
+  100% { transform: scale(1); }
+}
+.gbx-bid-bump { animation: gbxBidBump 0.45s cubic-bezier(0.2, 0.8, 0.2, 1); }
+@media (prefers-reduced-motion: reduce) {
+  .gbx-bid-bump { animation: none; }
+}
+
 /* ===== SOLD / UNSOLD celebration ===== */
 /* Sold photo: spin in and expand with an overshoot bounce. */
 @keyframes gbxSoldPhoto {

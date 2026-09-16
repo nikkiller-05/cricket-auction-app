@@ -1,7 +1,33 @@
-import React, { useMemo, useState, useEffect } from 'react';
+import React, { useMemo, useState, useEffect, useRef } from 'react';
 import PlayerAvatar from './PlayerAvatar';
 
 import { formatCurrency } from '../lib/format';
+
+// Smoothly roll a number toward `target` (ease-out cubic). Presentational only —
+// the authoritative value is always `target`; this just animates the display.
+const useCountUp = (target, duration = 450) => {
+  const to = Number(target) || 0;
+  const [val, setVal] = useState(to);
+  const fromRef = useRef(to);
+  const rafRef = useRef(0);
+  useEffect(() => {
+    const from = fromRef.current;
+    if (from === to) { setVal(to); return undefined; }
+    if (typeof window === 'undefined' || !window.requestAnimationFrame) { fromRef.current = to; setVal(to); return undefined; }
+    const start = performance.now();
+    const step = (now) => {
+      const t = Math.min(1, (now - start) / duration);
+      const eased = 1 - Math.pow(1 - t, 3);
+      setVal(Math.round(from + (to - from) * eased));
+      if (t < 1) rafRef.current = window.requestAnimationFrame(step);
+      else fromRef.current = to;
+    };
+    cancelAnimationFrame(rafRef.current);
+    rafRef.current = window.requestAnimationFrame(step);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [to, duration]);
+  return val;
+};
 
 /**
  * LiveBiddingCard
@@ -104,6 +130,17 @@ const LiveBiddingCardInner = ({
     [player.battingHand, player.bowlingStyle]
   );
 
+  // Animated bid display: roll to the new amount and give a one-shot "bump"
+  // whenever a higher bid lands, so a new bid is felt, not just read.
+  const animatedBid = useCountUp(currentAmount ?? 0);
+  const [bump, setBump] = useState(0);
+  const prevAmountRef = useRef(currentAmount ?? 0);
+  useEffect(() => {
+    const cur = Number(currentAmount) || 0;
+    if (cur > prevAmountRef.current) setBump((n) => n + 1);
+    prevAmountRef.current = cur;
+  }, [currentAmount]);
+
   return (
     <div className="gbx-live-card relative overflow-hidden rounded-3xl shadow-2xl border border-white/15 mb-8 bg-gradient-to-br from-[#0b0a06] via-[#1c1608] to-[#2a1f08] text-white">
       {/* Top shine accent */}
@@ -197,12 +234,14 @@ const LiveBiddingCardInner = ({
                   Current Bid
                 </p>
               </div>
-              <p
-                className="text-3xl sm:text-4xl md:text-5xl font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)]"
-                style={{ animation: 'bidAmountPulse 1.5s ease-in-out infinite' }}
-              >
-                {formatCurrency(currentAmount ?? 0)}
-              </p>
+              <div key={bump} className="gbx-bid-bump inline-block">
+                <p
+                  className="text-3xl sm:text-4xl md:text-5xl font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)] tabular-nums"
+                  style={{ animation: 'bidAmountPulse 1.5s ease-in-out infinite' }}
+                >
+                  {formatCurrency(animatedBid)}
+                </p>
+              </div>
             </div>
           </div>
 
