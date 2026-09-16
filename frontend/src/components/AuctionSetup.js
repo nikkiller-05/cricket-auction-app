@@ -31,6 +31,7 @@ const AuctionSetup = () => {
     teamCount: 4,
     startingBudget: 1000,
     maxPlayersPerTeam: 15,
+    minPlayersPerTeam: 0,
     basePrice: 10,
     currency: 'INR',
     enableCaptains: true,
@@ -207,6 +208,7 @@ const AuctionSetup = () => {
         teamCount: typeof config.teamCount === 'number' ? config.teamCount : 4,
         startingBudget: typeof config.startingBudget === 'number' ? config.startingBudget : 1000,
         maxPlayersPerTeam: typeof config.maxPlayersPerTeam === 'number' ? config.maxPlayersPerTeam : 15,
+        minPlayersPerTeam: typeof config.minPlayersPerTeam === 'number' ? config.minPlayersPerTeam : 0,
         basePrice: typeof config.basePrice === 'number' ? config.basePrice : 10,
         currency: config.currency || 'INR',
         enableCaptains: config.enableCaptains !== false,
@@ -391,6 +393,27 @@ const AuctionSetup = () => {
                         }}
                         className="w-full px-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
                       />
+                    </div>
+
+                    <div>
+                      <label className="block text-base font-semibold text-blue-200 mb-2">
+                        Min Players per Team
+                      </label>
+                      <input
+                        type="number"
+                        step="1"
+                        value={config.minPlayersPerTeam ?? 0}
+                        onChange={(e) => {
+                          const value = e.target.value;
+                          handleConfigChange('minPlayersPerTeam', value === '' ? '' : parseInt(value));
+                        }}
+                        onBlur={(e) => {
+                          const value = e.target.value;
+                          handleConfigChange('minPlayersPerTeam', value === '' ? 0 : (parseInt(value) || 0));
+                        }}
+                        className="w-full px-4 py-3 bg-white bg-opacity-20 border border-white border-opacity-30 rounded-lg text-white placeholder-blue-200 focus:outline-none focus:ring-2 focus:ring-blue-400"
+                      />
+                      <p className="mt-1 text-xs text-blue-200/70">0 = no minimum. Warns before a bid that would leave a team unable to complete this squad size at base price.</p>
                     </div>
 
                     <div>

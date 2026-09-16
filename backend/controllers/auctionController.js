@@ -58,6 +58,7 @@ const auctionController = {
         teamCount, 
         startingBudget, 
         maxPlayersPerTeam, 
+        minPlayersPerTeam = 0,
         basePrice, 
         biddingIncrements, 
         currency = 'INR', 
@@ -81,6 +82,12 @@ const auctionController = {
       
       if (!basePrice || basePrice < 5) {
         return res.status(400).json({ error: 'Base price must be at least ₹5' });
+      }
+
+      // Optional minimum squad size (0 = no minimum). Can't exceed the max.
+      const minPlayers = parseInt(minPlayersPerTeam) || 0;
+      if (minPlayers < 0 || minPlayers > parseInt(maxPlayersPerTeam)) {
+        return res.status(400).json({ error: 'Min players per team must be between 0 and the max players per team' });
       }
       
       if (!biddingIncrements || !Array.isArray(biddingIncrements) || biddingIncrements.length === 0) {
@@ -108,6 +115,7 @@ const auctionController = {
         teamCount: parseInt(teamCount),
         startingBudget: parseInt(startingBudget),
         maxPlayersPerTeam: parseInt(maxPlayersPerTeam),
+        minPlayersPerTeam: minPlayers,
         basePrice: parseInt(basePrice),
         biddingIncrements: biddingIncrements, // Use as-is without sorting
         currency: typeof currency === 'string' ? currency : 'INR',
@@ -1262,6 +1270,7 @@ const auctionController = {
         teamCount, 
         startingBudget, 
         maxPlayersPerTeam, 
+        minPlayersPerTeam,
         basePrice, 
         biddingIncrements, 
         currency 
@@ -1307,6 +1316,10 @@ const auctionController = {
         biddingIncrements,
       };
       if (typeof currency === 'string') newConfig.currency = currency;
+      if (minPlayersPerTeam !== undefined) {
+        const minP = parseInt(minPlayersPerTeam) || 0;
+        newConfig.minPlayersPerTeam = Math.max(0, Math.min(minP, parseInt(maxPlayersPerTeam)));
+      }
 
       dataService.updateConfig(newConfig);
 

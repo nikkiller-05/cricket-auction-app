@@ -124,6 +124,21 @@ const EditSettingsModal = ({
 
               <div>
                 <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
+                  Min Players Per Team
+                </label>
+                <input
+                  type="number"
+                  value={config.minPlayersPerTeam ?? 0}
+                  onChange={(e) => onChange('minPlayersPerTeam', e.target.value === '' ? '' : parseInt(e.target.value))}
+                  onBlur={(e) => onChange('minPlayersPerTeam', e.target.value === '' ? 0 : parseInt(e.target.value) || 0)}
+                  step="any"
+                  className="w-full px-3 sm:px-4 py-2 text-sm sm:text-base border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                />
+                <p className="mt-1 text-[11px] text-gray-500">0 = no minimum. Warns a team before a bid that would leave it unable to fill this squad size at base price.</p>
+              </div>
+
+              <div>
+                <label className="block text-xs sm:text-sm font-medium text-gray-700 mb-2">
                   Base Price
                 </label>
                 <input

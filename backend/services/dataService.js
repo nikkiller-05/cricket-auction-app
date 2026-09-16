@@ -32,6 +32,7 @@ function defaultSettings() {
     teamCount: 4,
     startingBudget: 1000,
     maxPlayersPerTeam: 15,
+    minPlayersPerTeam: 0,
     basePrice: 10,
     currency: 'INR',
     enableCaptains: true,
@@ -138,6 +139,7 @@ const dataService = {
       teamCount: settings.teamCount,
       startingBudget: settings.startingBudget,
       maxPlayersPerTeam: settings.maxPlayersPerTeam,
+      minPlayersPerTeam: settings.minPlayersPerTeam || 0,
       basePrice: settings.basePrice,
       currency: settings.currency,
       biddingIncrements: settings.biddingIncrements

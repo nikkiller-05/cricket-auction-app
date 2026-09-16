@@ -15,6 +15,7 @@ export default function useAuctionSettings({
     teamCount: 4,
     startingBudget: 1000,
     maxPlayersPerTeam: 15,
+    minPlayersPerTeam: 0,
     basePrice: 10,
     biddingIncrements: [
       { threshold: 50, increment: 5 },

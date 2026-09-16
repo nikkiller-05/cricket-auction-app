@@ -29,6 +29,24 @@ const LiveBiddingPanel = ({
 }) => {
   if (!auctionData?.currentBid || !currentPlayer) return null;
 
+  // Soft "minimum squad" guard: if a bid would leave a team unable to still buy
+  // its remaining minimum players at base price, warn before proceeding. 0/unset
+  // minPlayersPerTeam disables it. Returns true when the bid may proceed.
+  const guardMinSquad = async (team, bidAmount) => {
+    const minPlayers = auctionData.settings?.minPlayersPerTeam || 0;
+    const basePrice = auctionData.settings?.basePrice || 0;
+    if (!team || minPlayers <= 0) return true;
+    const ownedAfter = (team.players?.length || 0) + 1; // this player counts
+    const stillNeeded = Math.max(0, minPlayers - ownedAfter);
+    const reserve = stillNeeded * basePrice;
+    const budgetAfter = (team.budget || 0) - bidAmount;
+    if (budgetAfter >= reserve) return true;
+    return confirm(
+      `${cleanTeamName(team.name)} would have ${formatCurrency(Math.max(0, budgetAfter))} left after this bid, but needs ${formatCurrency(reserve)} to complete its minimum squad (${stillNeeded} more player${stillNeeded === 1 ? '' : 's'} at base ${formatCurrency(basePrice)}).\n\nPlace this bid anyway?`,
+      'Minimum squad at risk'
+    );
+  };
+
   return (
     <LiveBiddingCard
       player={currentPlayer}
@@ -64,6 +82,8 @@ const LiveBiddingPanel = ({
                   <button
                     key={team.id}
                     onClick={async () => {
+                      const proceed = await guardMinSquad(team, nextBidAmount);
+                      if (!proceed) return;
                       // Optimistic: show the bid instantly; socket reconciles.
                       setAuctionData((prev) =>
                         prev
@@ -161,16 +181,18 @@ const LiveBiddingPanel = ({
                       return;
                     }
                     const cur = auctionData.currentBid?.currentAmount || 0;
+                    const team = auctionData.teams?.find((t) => t.id === parseInt(customBidTeamId));
                     // Guard against fat-finger jumps: confirm big leaps.
                     const bigJump = amt >= cur * 2 || amt - cur >= 100000;
                     if (bigJump) {
-                      const team = auctionData.teams?.find((t) => t.id === parseInt(customBidTeamId));
                       const ok = await confirm(
                         `Place a bid of ${formatCurrency(amt)} for ${cleanTeamName(team?.name)}?\n\nThis is a big jump from the current ${formatCurrency(cur)}.`,
                         'Confirm Big Bid'
                       );
                       if (!ok) return;
                     }
+                    const proceed = await guardMinSquad(team, amt);
+                    if (!proceed) return;
                     try {
                       await axios.post(`${API_BASE_URL}/api/auction/bidding/place`, {
                         teamId: parseInt(customBidTeamId),
