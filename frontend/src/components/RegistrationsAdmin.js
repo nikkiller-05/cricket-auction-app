@@ -428,6 +428,12 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
           </div>
         </a>
         <div className="flex items-center gap-2 shrink-0">
+          <a href="/" title="Home" aria-label="Home" className={`grid h-9 w-9 place-items-center rounded-full border shadow-sm ${T.toggleBtn}`}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-[18px] h-[18px]" aria-hidden="true">
+              <path d="M3 11.5 12 4l9 7.5" />
+              <path d="M5 10v10h5v-6h4v6h5V10" />
+            </svg>
+          </a>
           <button onClick={toggleTheme} title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} className={`grid h-9 w-9 place-items-center rounded-full border text-base shadow-sm ${T.toggleBtn}`}>
             {theme === 'dark' ? '☀️' : '🌙'}
           </button>

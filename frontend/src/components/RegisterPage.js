@@ -183,7 +183,12 @@ const RegisterPage = () => {
           </button>
           <div className="flex items-center gap-2 shrink-0">
             <span className="hidden sm:inline-flex whitespace-nowrap text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300/90 rounded-full border border-amber-300/25 bg-amber-400/10 px-3 py-1">Player Registration</span>
-            <button onClick={() => navigate('/')} className="rounded-full border border-white/20 text-indigo-100/80 text-sm font-semibold px-4 py-1.5 hover:text-white hover:border-white/40 transition" title="Home">Home</button>
+            <button onClick={() => navigate('/')} title="Home" aria-label="Home" className="grid h-9 w-9 place-items-center rounded-full border border-white/20 text-indigo-100/80 hover:text-white hover:border-white/40 transition">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-[18px] h-[18px]" aria-hidden="true">
+                <path d="M3 11.5 12 4l9 7.5" />
+                <path d="M5 10v10h5v-6h4v6h5V10" />
+              </svg>
+            </button>
           </div>
         </div>
       </header>
