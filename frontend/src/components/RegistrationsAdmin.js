@@ -692,7 +692,28 @@ const ChangePasswordModal = ({ onClose, showSuccess, showError, T }) => {
 };
 
 // ---------------- Events panel ----------------
-const emptyForm = { name: '', paymentRequired: true, regFee: '', upiId: '', organizerId: '', teamCount: '', auctionDate: '', auctionTime: '', deadlineDate: '', deadlineTime: '', eventStartDate: '', eventEndDate: '', showContact: false, contactPhone: '', contactEmail: '', contactNote: '' };
+const emptyForm = { name: '', paymentRequired: true, regFee: '', upiId: '', organizerId: '', teamCount: '', maxPlayers: '', auctionDate: '', auctionTime: '', deadlineDate: '', deadlineTime: '', eventStartDate: '', eventEndDate: '', showContact: false, contactPhone: '', contactEmail: '', contactNote: '' };
+
+// Number input with −/+ steppers (click to change by 1). Value is a string so
+// the field can be cleared; onChange receives the new string.
+const Stepper = ({ value, onChange, min = 0, max = 9999, placeholder, T }) => {
+  const clamp = (n) => Math.max(min, Math.min(max, n));
+  const cur = value === '' || value == null ? null : (parseInt(value, 10) || 0);
+  const step = (delta) => onChange(String(clamp((cur == null ? (delta > 0 ? min : min) : cur) + delta)));
+  return (
+    <div className="flex items-stretch gap-2">
+      <button type="button" onClick={() => step(-1)} className={`shrink-0 w-9 rounded-lg border text-lg font-bold leading-none ${T.chip}`} aria-label="Decrease">−</button>
+      <input
+        inputMode="numeric"
+        value={value}
+        onChange={(e) => onChange(e.target.value)}
+        placeholder={placeholder}
+        className={`flex-1 min-w-0 rounded-lg border px-3 py-2 text-sm text-center ${T.input}`}
+      />
+      <button type="button" onClick={() => step(1)} className={`shrink-0 w-9 rounded-lg border text-lg font-bold leading-none ${T.chip}`} aria-label="Increase">+</button>
+    </div>
+  );
+};
 const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, selected, onSelect, onGoToAuctions, reload, showSuccess, showError, showConfirm, T }) => {
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -712,13 +733,20 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
   const startCreate = () => { setCreating(true); setEditing(null); setForm(emptyForm); setTeamRows([]); setMentionTeams(false); setConfigureNames(false); setQr(null); setLogo(null); };
   const startEdit = (ev) => {
     setEditing(ev.id); setCreating(false); setQr(null); setLogo(null);
-    setForm({ name: ev.name, paymentRequired: ev.payment_required, regFee: ev.reg_fee || '', upiId: ev.upi_id || '', organizerId: ev.organizer_id || '', teamCount: ev.team_count || '', auctionDate: isoToDate(ev.auction_at), auctionTime: isoToTime(ev.auction_at), deadlineDate: isoToDate(ev.registration_deadline), deadlineTime: isoToTime(ev.registration_deadline), eventStartDate: ev.event_start_date ? String(ev.event_start_date).slice(0, 10) : '', eventEndDate: ev.event_end_date ? String(ev.event_end_date).slice(0, 10) : '', showContact: !!ev.show_contact, contactPhone: ev.contact_phone || '', contactEmail: ev.contact_email || '', contactNote: ev.contact_note || '' });
+    setForm({ name: ev.name, paymentRequired: ev.payment_required, regFee: ev.reg_fee || '', upiId: ev.upi_id || '', organizerId: ev.organizer_id || '', teamCount: ev.team_count || '', maxPlayers: ev.max_players || '', auctionDate: isoToDate(ev.auction_at), auctionTime: isoToTime(ev.auction_at), deadlineDate: isoToDate(ev.registration_deadline), deadlineTime: isoToTime(ev.registration_deadline), eventStartDate: ev.event_start_date ? String(ev.event_start_date).slice(0, 10) : '', eventEndDate: ev.event_end_date ? String(ev.event_end_date).slice(0, 10) : '', showContact: !!ev.show_contact, contactPhone: ev.contact_phone || '', contactEmail: ev.contact_email || '', contactNote: ev.contact_note || '' });
     const rows = Array.isArray(ev.teams) ? ev.teams.map((t) => ({ name: t?.name || '', logoUrl: t?.logoUrl || null })) : [];
     setTeamRows(rows);
     setMentionTeams(!!ev.team_count);
     setConfigureNames(rows.some((r) => r.name || r.logoUrl));
   };
   const closeForm = () => { setCreating(false); setEditing(null); setForm(emptyForm); setTeamRows([]); setMentionTeams(false); setConfigureNames(false); setQr(null); setLogo(null); };
+
+  // Max players that can register for the event (optional cap; digits only).
+  const setMaxPlayers = (raw) => {
+    const digits = String(raw).replace(/\D/g, '');
+    const n = digits === '' ? '' : Math.min(parseInt(digits, 10) || 0, 2000);
+    setForm((f) => ({ ...f, maxPlayers: n }));
+  };
 
   // Keep the per-team rows in sync with the requested team count.
   const setTeamCount = (raw) => {
@@ -754,6 +782,7 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
       if (logo) fd.append('logo', logo);
       const useTeams = mentionTeams && Number(form.teamCount) > 0;
       fd.append('teamCount', useTeams ? form.teamCount : 0);
+      fd.append('maxPlayers', form.maxPlayers === '' ? 0 : form.maxPlayers);
       const teamsPayload = (useTeams && configureNames)
         ? teamRows.map((r) => ({ name: (r.name || '').trim() || null, logoUrl: r.logoUrl || null }))
         : [];
@@ -921,6 +950,10 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
               {organizers.map((o) => <option key={o.id} value={o.id}>{o.name || o.username}</option>)}
             </select>
           )}
+          <div>
+            <label className={`block text-sm mb-1 ${T.label}`}>Max players to register <span className={T.sub}>(optional — used for pricing later)</span></label>
+            <Stepper value={form.maxPlayers} onChange={setMaxPlayers} min={0} max={2000} placeholder="e.g. 120" T={T} />
+          </div>
           <div className={`rounded-lg border p-2.5 ${T.soft} space-y-2`}>
             <label className={`flex items-center gap-2 text-sm ${T.label}`}>
               <input type="checkbox" checked={mentionTeams} onChange={(e) => { const on = e.target.checked; setMentionTeams(on); if (!on) { setTeamCount(''); setConfigureNames(false); } }} />
@@ -928,7 +961,7 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
             </label>
             {mentionTeams && (
               <>
-                <input inputMode="numeric" value={form.teamCount} onChange={(e) => setTeamCount(e.target.value)} placeholder="Number of teams (e.g. 8)" className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} />
+                <Stepper value={form.teamCount} onChange={setTeamCount} min={1} max={24} placeholder="Number of teams (e.g. 8)" T={T} />
                 {Number(form.teamCount) > 0 && (
                   <label className={`flex items-center gap-2 text-sm ${T.label}`}>
                     <input type="checkbox" checked={configureNames} onChange={(e) => setConfigureNames(e.target.checked)} />

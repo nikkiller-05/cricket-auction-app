@@ -41,6 +41,7 @@ const publicEvent = (e) => ({
   upi_qr_url: e.payment_required ? e.upi_qr_url : null,
   logo_url: e.logo_url || null,
   team_count: e.team_count ?? null,
+  max_players: e.max_players ?? null,
   teams: Array.isArray(e.teams) ? e.teams : null,
   auction_at: e.auction_at || null,
   registration_deadline: e.registration_deadline || null,
@@ -59,6 +60,10 @@ const parseTeamPlan = (body = {}) => {
   if (body.teamCount !== undefined) {
     const n = parseInt(body.teamCount, 10);
     out.teamCount = Number.isFinite(n) && n > 0 ? Math.min(n, 24) : null;
+  }
+  if (body.maxPlayers !== undefined) {
+    const n = parseInt(body.maxPlayers, 10);
+    out.maxPlayers = Number.isFinite(n) && n > 0 ? Math.min(n, 2000) : null;
   }
   if (body.teams !== undefined) {
     let teams = null;
@@ -163,10 +168,10 @@ const registrationController = {
 
       // Optional team plan (count + optional names/logos) — best-effort so a
       // pre-migration DB never blocks event creation.
-      const { teamCount, teams } = parseTeamPlan(req.body);
+      const { teamCount, teams, maxPlayers } = parseTeamPlan(req.body);
       let saved = event;
-      if (teamCount !== undefined || teams !== undefined) {
-        const withTeams = await registrationService.setEventTeams(event.id, teamCount, teams);
+      if (teamCount !== undefined || teams !== undefined || maxPlayers !== undefined) {
+        const withTeams = await registrationService.setEventTeams(event.id, teamCount, teams, maxPlayers);
         if (withTeams) saved = withTeams;
       }
       const schedule = parseSchedule(req.body);
@@ -214,9 +219,9 @@ const registrationController = {
         : await registrationService.getEventById(id);
 
       // Optional team plan (best-effort).
-      const { teamCount, teams } = parseTeamPlan(body);
-      if (teamCount !== undefined || teams !== undefined) {
-        const withTeams = await registrationService.setEventTeams(id, teamCount, teams);
+      const { teamCount, teams, maxPlayers } = parseTeamPlan(body);
+      if (teamCount !== undefined || teams !== undefined || maxPlayers !== undefined) {
+        const withTeams = await registrationService.setEventTeams(id, teamCount, teams, maxPlayers);
         if (withTeams) event = withTeams;
       }
       const schedule = parseSchedule(body);
