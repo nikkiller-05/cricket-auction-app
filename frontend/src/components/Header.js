@@ -191,6 +191,15 @@ const Header = memo(({
 
         {/* Actions cluster: Controls + Export + Profile (right-anchored) */}
         <div className="gbx-hd-actions">
+          {/* Home — always available so anyone (incl. spectators) can get back. */}
+          <a href="/" className="gbx-hd-btn gbx-hd-grey" title="Home" aria-label="Home">
+            <svg className="gbx-hd-btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+              <path d="M3 11.5 12 4l9 7.5" />
+              <path d="M5 10v10h5v-6h4v6h5V10" />
+            </svg>
+            <span className="gbx-hd-btn-txt">Home</span>
+          </a>
+
           {/* Tools: Auction Controls + Export */}
           <div className="gbx-hd-tools">
 
