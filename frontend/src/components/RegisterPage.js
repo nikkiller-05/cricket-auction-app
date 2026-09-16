@@ -67,6 +67,8 @@ const RegisterPage = () => {
   const [screenshot, setScreenshot] = useState(null);
   const [photoName, setPhotoName] = useState('');
   const [shotName, setShotName] = useState('');
+  const [photoPreview, setPhotoPreview] = useState('');
+  const [shotPreview, setShotPreview] = useState('');
 
   useEffect(() => {
     let active = true;
@@ -79,7 +81,7 @@ const RegisterPage = () => {
 
   const set = (k) => (e) => setForm((f) => ({ ...f, [k]: e.target.value }));
 
-  const pickFile = useCallback((setter, setName) => async (e) => {
+  const pickFile = useCallback((setter, setName, setPreview) => async (e) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!/^image\//.test(file.type)) { setError('Please choose an image file'); return; }
@@ -88,6 +90,10 @@ const RegisterPage = () => {
       const compressed = await compressImage(file);
       setter(compressed);
       setName(file.name);
+      if (setPreview) {
+        const url = URL.createObjectURL(compressed);
+        setPreview((prev) => { if (prev) URL.revokeObjectURL(prev); return url; });
+      }
     } catch {
       setError('Could not process that image, try another');
     }
@@ -239,8 +245,17 @@ const RegisterPage = () => {
           </div>
 
           <Field label="Profile Photo" required hint="Max 3MB — auto-compressed to save space.">
-            <input type="file" accept="image/*" onChange={pickFile(setPhoto, setPhotoName)} className="block w-full text-xs text-white/70 file:mr-3 file:rounded-full file:border-0 file:bg-amber-400/90 file:px-4 file:py-2 file:text-slate-900 file:font-semibold" />
-            {photoName && <p className="mt-1 text-[11px] text-emerald-300">✓ {photoName}</p>}
+            <div className="flex items-center gap-3">
+              {photoPreview ? (
+                <img src={photoPreview} alt="Your profile preview" className="h-16 w-16 shrink-0 rounded-full object-cover ring-2 ring-amber-300/50" />
+              ) : (
+                <div className="grid h-16 w-16 shrink-0 place-items-center rounded-full bg-white/10 text-xl text-white/40">📷</div>
+              )}
+              <div className="min-w-0 flex-1">
+                <input type="file" accept="image/*" onChange={pickFile(setPhoto, setPhotoName, setPhotoPreview)} className="block w-full text-xs text-white/70 file:mr-3 file:rounded-full file:border-0 file:bg-amber-400/90 file:px-4 file:py-2 file:text-slate-900 file:font-semibold" />
+                {photoName && <p className="mt-1 truncate text-[11px] text-emerald-300">✓ {photoName}</p>}
+              </div>
+            </div>
           </Field>
 
           <Field label="Player Profile Link" hint="e.g. your CricHeroes profile — used to auto-fill stats.">
@@ -274,8 +289,9 @@ const RegisterPage = () => {
                 </div>
               )}
               <Field label="Payment Screenshot" required hint="Upload proof of payment (auto-compressed).">
-                <input type="file" accept="image/*" onChange={pickFile(setScreenshot, setShotName)} className="block w-full text-xs text-white/70 file:mr-3 file:rounded-full file:border-0 file:bg-amber-400/90 file:px-4 file:py-2 file:text-slate-900 file:font-semibold" />
-                {shotName && <p className="mt-1 text-[11px] text-emerald-300">✓ {shotName}</p>}
+                <input type="file" accept="image/*" onChange={pickFile(setScreenshot, setShotName, setShotPreview)} className="block w-full text-xs text-white/70 file:mr-3 file:rounded-full file:border-0 file:bg-amber-400/90 file:px-4 file:py-2 file:text-slate-900 file:font-semibold" />
+                {shotPreview && <img src={shotPreview} alt="Payment screenshot preview" className="mt-2 h-24 w-24 rounded-lg object-cover ring-1 ring-white/20" />}
+                {shotName && <p className="mt-1 truncate text-[11px] text-emerald-300">✓ {shotName}</p>}
               </Field>
               <Field label="Payment Reference / UTR" hint="Optional — add it if you have it.">
                 <input className={inputCls} value={form.paymentTxnId} onChange={set('paymentTxnId')} placeholder="12-digit UPI reference no." />
