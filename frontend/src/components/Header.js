@@ -371,6 +371,15 @@ const Header = memo(({
 
         </div>
 
+        {/* Theme toggle — one canonical control for everyone (operators + spectators). */}
+        <button type="button" onClick={() => toggleTheme()} className="gbx-hd-btn gbx-hd-grey" title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} aria-label="Toggle theme">
+          {theme === 'dark' ? (
+            <svg className="gbx-hd-btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
+          ) : (
+            <svg className="gbx-hd-btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z" /></svg>
+          )}
+        </button>
+
         {/* User menu */}
         <div className="gbx-hd-user">
           {/* User Menu Dropdown */}
@@ -468,18 +477,6 @@ const Header = memo(({
                   </button>
                 )}
 
-                {/* Appearance toggle (moved out of the header bar) */}
-                <button
-                  onClick={() => toggleTheme()}
-                  className="menu-option"
-                  role="menuitem"
-                >
-                  <svg className="menu-option-icon" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                  </svg>
-                  {theme === 'dark' ? 'Light theme' : 'Dark theme'}
-                </button>
-
                 {/* Return to the organizer console (multi-tenant nav) */}
                 {onConsole && (
                   <button
@@ -512,23 +509,14 @@ const Header = memo(({
 
         </div>
 
-          {/* Spectators: theme toggle + home (operators have both in their menu). */}
+          {/* Home — spectators only (operators use the Console item in the menu). */}
           {isSpectator && (
-            <>
-              <button type="button" onClick={() => toggleTheme()} className="gbx-hd-btn gbx-hd-grey" title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} aria-label="Toggle theme">
-                {theme === 'dark' ? (
-                  <svg className="gbx-hd-btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
-                ) : (
-                  <svg className="gbx-hd-btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z" /></svg>
-                )}
-              </button>
-              <a href="/" className="gbx-hd-btn gbx-hd-grey gbx-hd-home" title="Home" aria-label="Go to home">
-                <svg className="gbx-hd-btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-                  <path d="M3 11.5 12 4l9 7.5" />
-                  <path d="M5 10v10h5v-6h4v6h5V10" />
-                </svg>
-              </a>
-            </>
+            <a href="/" className="gbx-hd-btn gbx-hd-grey gbx-hd-home" title="Home" aria-label="Go to home">
+              <svg className="gbx-hd-btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M3 11.5 12 4l9 7.5" />
+                <path d="M5 10v10h5v-6h4v6h5V10" />
+              </svg>
+            </a>
           )}
         </div>
       </div>
