@@ -157,6 +157,14 @@ const LiveBiddingCardInner = ({
     prevAmountRef.current = cur;
   }, [currentAmount]);
 
+  // One-shot bloom when the lead changes hands, so viewers notice the flip.
+  const [leadFlash, setLeadFlash] = useState(0);
+  const prevLeadRef = useRef(leadingTeamName);
+  useEffect(() => {
+    if (leadingTeamName && leadingTeamName !== prevLeadRef.current) setLeadFlash((n) => n + 1);
+    prevLeadRef.current = leadingTeamName;
+  }, [leadingTeamName]);
+
   return (
     <div className="gbx-live-card relative overflow-hidden rounded-3xl shadow-2xl border border-white/15 mb-8 bg-gradient-to-br from-[#0b0a06] via-[#1c1608] to-[#2a1f08] text-white">
       {/* Top shine accent */}
@@ -263,6 +271,9 @@ const LiveBiddingCardInner = ({
 
           {/* Leading Team - amber/orange contrast */}
           <div className="gbx-live-leadingteam relative overflow-hidden rounded-2xl shadow-2xl border border-amber-300/60 bg-gradient-to-br from-amber-400 via-orange-500 to-rose-500 flex-1 flex flex-col">
+            {leadFlash > 0 && (
+              <span key={leadFlash} className="gbx-lead-ring pointer-events-none absolute inset-0 z-10" aria-hidden="true" />
+            )}
             <div className="absolute -top-6 -left-6 w-28 h-28 bg-yellow-200/30 rounded-full blur-2xl" />
             <div className="absolute -bottom-6 -right-6 w-28 h-28 bg-rose-300/30 rounded-full blur-2xl" />
             <div className="relative flex-1 flex flex-col items-center justify-center p-4 sm:p-5 text-center">

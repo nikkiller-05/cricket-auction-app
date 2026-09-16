@@ -419,6 +419,19 @@
   .gbx-bid-bump { animation: none; }
 }
 
+/* Leading-team bloom: a soft white flash over the card when the lead flips. */
+@keyframes gbxLeadRing {
+  0% { opacity: 0.6; }
+  100% { opacity: 0; }
+}
+.gbx-lead-ring {
+  background: radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0) 68%);
+  animation: gbxLeadRing 0.7s ease-out forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .gbx-lead-ring { animation: none; opacity: 0; }
+}
+
 /* ===== SOLD / UNSOLD celebration ===== */
 /* Sold photo: spin in and expand with an overshoot bounce. */
 @keyframes gbxSoldPhoto {
