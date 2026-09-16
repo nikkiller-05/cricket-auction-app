@@ -264,7 +264,7 @@ const ForgotPasswordModal = ({ onClose, showSuccess, showError, T }) => {
         <input placeholder="Username or registered email" value={identifier} onChange={(e) => setIdentifier(e.target.value)} className={`w-full rounded-lg border px-3 py-2.5 mb-4 ${T.input}`} />
         <div className="flex justify-end gap-2">
           <button type="button" onClick={onClose} className={`rounded-full border px-4 py-2 text-sm font-semibold ${T.chip}`}>Cancel</button>
-          <button disabled={busy} className="rounded-full bg-amber-500 text-slate-900 px-5 py-2 text-sm font-bold hover:bg-amber-400 disabled:opacity-50">{busy ? 'Sending…' : 'Send reset link'}</button>
+          <button disabled={busy} className="inline-flex items-center justify-center gap-2 rounded-full bg-amber-500 text-slate-900 px-5 py-2 text-sm font-bold hover:bg-amber-400 disabled:opacity-50">{busy && <Spinner />}{busy ? 'Sending…' : 'Send reset link'}</button>
         </div>
       </form>
     </ModalShell>
@@ -304,7 +304,7 @@ const TestEmailModal = ({ defaultTo, onClose, showSuccess, showError, T }) => {
         <input type="email" value={to} onChange={(e) => setTo(e.target.value)} placeholder="you@example.com" className={`w-full rounded-lg border px-3 py-2.5 mb-4 ${T.input}`} />
         <div className="flex justify-end gap-2">
           <button type="button" onClick={onClose} className={`rounded-full border px-4 py-2 text-sm font-semibold ${T.chip}`}>Cancel</button>
-          <button disabled={busy} className="rounded-full bg-indigo-600 text-white px-5 py-2 text-sm font-semibold hover:bg-indigo-500 disabled:opacity-50">{busy ? 'Sending…' : 'Send test'}</button>
+          <button disabled={busy} className="inline-flex items-center justify-center gap-2 rounded-full bg-indigo-600 text-white px-5 py-2 text-sm font-semibold hover:bg-indigo-500 disabled:opacity-50">{busy && <Spinner />}{busy ? 'Sending…' : 'Send test'}</button>
         </div>
       </form>
     </ModalShell>
@@ -728,6 +728,11 @@ const EmptyState = ({ icon = '📭', title, hint, action, T }) => (
     {action && <div className="mt-4 flex justify-center">{action}</div>}
   </div>
 );
+
+// Inline button spinner — inherits the button's text color (border-current).
+const Spinner = () => (
+  <span className="inline-block h-4 w-4 shrink-0 animate-spin rounded-full border-2 border-current border-t-transparent opacity-80" aria-hidden="true" />
+);
 const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, selected, onSelect, onGoToAuctions, reload, showSuccess, showError, showConfirm, T }) => {
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -1057,7 +1062,7 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
             <input className={`w-full rounded-lg border px-3 py-2 text-sm ${T.input}`} placeholder="Other note (e.g. timings, venue)" value={form.contactNote} onChange={(e) => setForm({ ...form, contactNote: e.target.value })} />
           </div>
           <div className="flex gap-2">
-            <button disabled={busy} className="gbx-btn-save-event flex-1 rounded-full bg-indigo-600 text-white px-4 py-2 text-sm font-semibold hover:bg-indigo-500 disabled:opacity-50">{busy ? 'Saving…' : editing ? 'Update event' : 'Create event'}</button>
+            <button disabled={busy} className="gbx-btn-save-event flex-1 inline-flex items-center justify-center gap-2 rounded-full bg-indigo-600 text-white px-4 py-2 text-sm font-semibold hover:bg-indigo-500 disabled:opacity-50">{busy && <Spinner />}{busy ? 'Saving…' : editing ? 'Update event' : 'Create event'}</button>
             <button type="button" onClick={closeForm} className={`rounded-full border px-4 py-2 text-sm font-semibold ${T.chip}`}>Cancel</button>
           </div>
             </form>
@@ -1141,7 +1146,7 @@ const ResetPasswordModal = ({ user, onClose, showSuccess, showError, reload, T }
         </div>
         <div className="flex justify-end gap-2">
           <button type="button" onClick={onClose} className={`rounded-full border px-4 py-2 text-sm font-semibold ${T.chip}`}>Cancel</button>
-          <button disabled={busy} className="rounded-full bg-indigo-600 text-white px-5 py-2 text-sm font-semibold hover:bg-indigo-500 disabled:opacity-50">{busy ? 'Saving…' : 'Reset password'}</button>
+          <button disabled={busy} className="inline-flex items-center justify-center gap-2 rounded-full bg-indigo-600 text-white px-5 py-2 text-sm font-semibold hover:bg-indigo-500 disabled:opacity-50">{busy && <Spinner />}{busy ? 'Saving…' : 'Reset password'}</button>
         </div>
       </form>
     </ModalShell>
@@ -1234,7 +1239,7 @@ const OrganizersPanel = ({ events, organizers, reload, showSuccess, showError, s
             <option value="">Assign to event (optional)…</option>
             {events.map((ev) => <option key={ev.id} value={ev.id}>{ev.name}</option>)}
           </select>
-          <button disabled={busy} className="w-full rounded-full bg-amber-400 text-slate-900 px-4 py-2 text-sm font-bold hover:bg-amber-300 disabled:opacity-50">{busy ? 'Creating…' : 'Create organizer'}</button>
+          <button disabled={busy} className="inline-flex w-full items-center justify-center gap-2 rounded-full bg-amber-400 text-slate-900 px-4 py-2 text-sm font-bold hover:bg-amber-300 disabled:opacity-50">{busy && <Spinner />}{busy ? 'Creating…' : 'Create organizer'}</button>
         </form>
         <p className={`mt-3 text-[11px] ${T.sub}`}>Email/phone help avoid duplicates. When an email is given, the organizer gets a welcome email with a link to set their own password.</p>
       </div>
