@@ -5,26 +5,42 @@ import { formatCurrency } from '../lib/format';
 
 // Smoothly roll a number toward `target` (ease-out cubic). Presentational only —
 // the authoritative value is always `target`; this just animates the display.
+// Upward moves animate immediately; DOWNWARD moves are deferred briefly so the
+// transient dips from rapid bidding (optimistic clicks outrun the in-order
+// broadcasts that arrive a few ms behind) never show — while a genuine decrease
+// (e.g. Undo Bid) still applies after the short delay.
 const useCountUp = (target, duration = 450) => {
   const to = Number(target) || 0;
   const [val, setVal] = useState(to);
   const fromRef = useRef(to);
   const rafRef = useRef(0);
+  const downTimerRef = useRef(0);
   useEffect(() => {
-    const from = fromRef.current;
-    if (from === to) { setVal(to); return undefined; }
-    if (typeof window === 'undefined' || !window.requestAnimationFrame) { fromRef.current = to; setVal(to); return undefined; }
-    const start = performance.now();
-    const step = (now) => {
-      const t = Math.min(1, (now - start) / duration);
-      const eased = 1 - Math.pow(1 - t, 3);
-      setVal(Math.round(from + (to - from) * eased));
-      if (t < 1) rafRef.current = window.requestAnimationFrame(step);
-      else fromRef.current = to;
+    const canAnimate = typeof window !== 'undefined' && !!window.requestAnimationFrame;
+    const animateTo = (dest) => {
+      const from = fromRef.current;
+      if (from === dest) { setVal(dest); return; }
+      if (!canAnimate) { fromRef.current = dest; setVal(dest); return; }
+      const start = performance.now();
+      const step = (now) => {
+        const t = Math.min(1, (now - start) / duration);
+        const eased = 1 - Math.pow(1 - t, 3);
+        setVal(Math.round(from + (dest - from) * eased));
+        if (t < 1) rafRef.current = window.requestAnimationFrame(step);
+        else fromRef.current = dest;
+      };
+      cancelAnimationFrame(rafRef.current);
+      rafRef.current = window.requestAnimationFrame(step);
     };
-    cancelAnimationFrame(rafRef.current);
-    rafRef.current = window.requestAnimationFrame(step);
-    return () => cancelAnimationFrame(rafRef.current);
+    clearTimeout(downTimerRef.current);
+    if (to >= fromRef.current) {
+      animateTo(to);
+    } else {
+      // Hold the higher value briefly; if a higher target arrives (rapid bids
+      // catching up) this effect re-runs and cancels the pending drop.
+      downTimerRef.current = setTimeout(() => animateTo(to), 220);
+    }
+    return () => { cancelAnimationFrame(rafRef.current); clearTimeout(downTimerRef.current); };
   }, [to, duration]);
   return val;
 };
