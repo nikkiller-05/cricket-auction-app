@@ -267,7 +267,9 @@ const PublicCompletedAuction = ({ event }) => {
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-400">X</span>
             </span>
           </button>
-          <div className="relative shrink-0" ref={menuRef}>
+          <div className="flex items-center gap-2 shrink-0">
+            <button onClick={() => navigate('/tournaments')} className="hidden sm:inline-flex rounded-full border border-white/20 text-indigo-100/80 text-sm font-semibold px-4 py-1.5 hover:text-white hover:border-white/40 transition" title="All tournaments">All tournaments</button>
+            <div className="relative" ref={menuRef}>
             <button
               onClick={() => setMenuOpen((v) => !v)}
               disabled={loading || !!err}
@@ -307,6 +309,7 @@ const PublicCompletedAuction = ({ event }) => {
                 </button>
               </div>
             )}
+            </div>
           </div>
         </div>
       </header>

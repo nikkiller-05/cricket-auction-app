@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import BrandFooter from './BrandFooter';
 
@@ -50,6 +50,7 @@ const inputCls =
 
 const RegisterPage = () => {
   const { slug } = useParams();
+  const navigate = useNavigate();
   const [event, setEvent] = useState(null);
   const [loading, setLoading] = useState(true);
   const [notFound, setNotFound] = useState(false);
@@ -162,13 +163,16 @@ const RegisterPage = () => {
       {/* Branding header (static, full-width like the console) */}
       <header className="border-b border-amber-300/20 bg-white/[0.05] backdrop-blur-xl shadow-[0_16px_34px_-18px_rgba(0,0,0,0.95)]">
         <div className="px-4 sm:px-6 h-14 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2 shrink-0">
+          <button onClick={() => navigate('/')} className="flex items-center gap-2 shrink-0 group" title="Go to GoldenBidX home">
             <img src="/auction-logo.png" alt="" className="h-8 w-auto drop-shadow-[0_1px_3px_rgba(0,0,0,0.5)]" />
             <span className="font-extrabold tracking-tight text-lg">
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-400">Golden</span><span className="text-white">Bid</span><span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-400">X</span>
             </span>
+          </button>
+          <div className="flex items-center gap-2 shrink-0">
+            <span className="hidden sm:inline-flex whitespace-nowrap text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300/90 rounded-full border border-amber-300/25 bg-amber-400/10 px-3 py-1">Player Registration</span>
+            <button onClick={() => navigate('/')} className="rounded-full border border-white/20 text-indigo-100/80 text-sm font-semibold px-4 py-1.5 hover:text-white hover:border-white/40 transition" title="Home">Home</button>
           </div>
-          <span className="hidden sm:inline-flex shrink-0 whitespace-nowrap text-[10px] font-bold uppercase tracking-[0.2em] text-amber-300/90 rounded-full border border-amber-300/25 bg-amber-400/10 px-3 py-1">Player Registration</span>
         </div>
       </header>
 
