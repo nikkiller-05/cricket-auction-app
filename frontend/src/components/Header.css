@@ -1271,26 +1271,26 @@
 .gbx-hd-btn {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem;
   height: 2.25rem; padding: 0 0.95rem; border-radius: 9999px; cursor: pointer;
-  font-size: 0.82rem; font-weight: 600; color: #c7d2fe;
-  background: rgba(99,102,241,0.22); border: 1px solid rgba(129,140,248,0.42);
+  font-size: 0.82rem; font-weight: 600; color: #e8d6a8;
+  background: rgba(234,179,8,0.14); border: 1px solid rgba(234,179,8,0.34);
   transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
 }
-.gbx-hd-btn:hover { background: rgba(99,102,241,0.34); border-color: rgba(129,140,248,0.6); transform: translateY(-1px); }
+.gbx-hd-btn:hover { background: rgba(234,179,8,0.24); border-color: rgba(234,179,8,0.52); transform: translateY(-1px); }
 .gbx-hd-btn-ico { font-size: 0.95rem; line-height: 1; }
 .gbx-hd-btn-svg { width: 1rem; height: 1rem; flex-shrink: 0; }
 /* Light header is golden-cream — warm the header buttons to match it, not indigo. */
 .dash-root[data-theme="light"] .gbx-hd-btn { color: #4a350a; background: rgba(110,75,12,0.12); border-color: rgba(110,75,12,0.4); }
 .dash-root[data-theme="light"] .gbx-hd-btn:hover { background: rgba(110,75,12,0.2); border-color: rgba(110,75,12,0.55); }
 
-/* Controls = slate/grey pill in dark; warm neutral to sit on the cream header in light. */
-.gbx-hd-grey { color: #e5e7eb; background: rgba(148,163,184,0.2); border-color: rgba(148,163,184,0.42); }
-.gbx-hd-grey:hover { background: rgba(148,163,184,0.32); border-color: rgba(148,163,184,0.6); }
+/* Controls = warm taupe pill so it belongs to the golden header (both themes). */
+.gbx-hd-grey { color: #e6dabc; background: rgba(190,160,100,0.16); border-color: rgba(190,160,100,0.4); }
+.gbx-hd-grey:hover { background: rgba(190,160,100,0.26); border-color: rgba(190,160,100,0.56); }
 .dash-root[data-theme="light"] .gbx-hd-grey { color: #3a2c08; background: rgba(110,75,12,0.14); border-color: rgba(110,75,12,0.42); }
 .dash-root[data-theme="light"] .gbx-hd-grey:hover { background: rgba(110,75,12,0.24); border-color: rgba(110,75,12,0.58); }
 
-/* Export = sky-blue in dark; a deeper amber (the primary action) on the cream header. */
-.gbx-hd-sky { color: #bae6fd; background: rgba(2,132,199,0.3); border-color: rgba(56,189,248,0.45); }
-.gbx-hd-sky:hover { background: rgba(2,132,199,0.44); border-color: rgba(56,189,248,0.62); }
+/* Export = amber primary pill — on-brand gold in both themes, not blue. */
+.gbx-hd-sky { color: #fde68a; background: rgba(217,119,6,0.26); border-color: rgba(245,158,11,0.5); }
+.gbx-hd-sky:hover { background: rgba(217,119,6,0.4); border-color: rgba(245,158,11,0.66); }
 .dash-root[data-theme="light"] .gbx-hd-sky { color: #7c3a08; background: rgba(184,124,26,0.22); border-color: rgba(146,64,14,0.5); }
 .dash-root[data-theme="light"] .gbx-hd-sky:hover { background: rgba(184,124,26,0.32); border-color: rgba(146,64,14,0.64); }
 
