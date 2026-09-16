@@ -60,26 +60,37 @@ const TournamentsDirectory = () => {
 
   const total = events?.length || 0;
 
-  const Card = ({ ev }) => (
-    <button
-      onClick={() => navigate(`/a/${ev.slug}`)}
-      className="group text-left rounded-2xl border border-white/10 bg-white/[0.04] p-4 flex items-center gap-4 hover:border-amber-300/40 hover:bg-white/[0.07] transition"
-    >
-      {ev.logo_url
-        ? <img src={ev.logo_url} alt="" className="w-14 h-14 rounded-xl object-cover bg-white/10 shrink-0" />
-        : <div className="w-14 h-14 rounded-xl bg-amber-400/20 grid place-items-center text-amber-200 font-black shrink-0">{initials(ev.name)}</div>}
-      <div className="min-w-0 flex-1">
-        <div className="flex items-center gap-2 min-w-0">
-          <h3 className="font-bold text-white truncate min-w-0">{ev.name}</h3>
-          <StatusPill status={ev.status} />
+  const Card = ({ ev }) => {
+    const live = ev.status === 'live';
+    const ring = live
+      ? 'border-emerald-400/40 hover:border-emerald-300/60 shadow-[0_0_0_1px_rgba(16,185,129,0.12),0_12px_34px_-14px_rgba(16,185,129,0.4)]'
+      : ev.status === 'completed'
+        ? 'border-white/10 hover:border-white/25'
+        : 'border-amber-300/25 hover:border-amber-300/45';
+    return (
+      <button
+        onClick={() => navigate(`/a/${ev.slug}`)}
+        className={`group text-left rounded-2xl border ${ring} bg-white/[0.04] p-4 flex items-center gap-4 hover:bg-white/[0.07] hover:-translate-y-0.5 transition-[transform,background-color,border-color,box-shadow] duration-200`}
+      >
+        {ev.logo_url
+          ? <img src={ev.logo_url} alt="" className="w-14 h-14 rounded-xl object-cover bg-white/10 shrink-0 ring-1 ring-white/10" />
+          : <div className="w-14 h-14 rounded-xl bg-amber-400/20 grid place-items-center text-amber-200 font-black shrink-0">{initials(ev.name)}</div>}
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center gap-2 min-w-0">
+            <h3 className="font-bold text-white truncate min-w-0">{ev.name}</h3>
+            <StatusPill status={ev.status} />
+          </div>
+          {fmtAuctionAt(ev.auction_at) && (
+            <div className="mt-0.5 text-xs text-amber-100/50">📅 {fmtAuctionAt(ev.auction_at)}</div>
+          )}
+          <span className="mt-1 inline-block text-sm font-semibold text-amber-300 group-hover:text-amber-200">{ctaLabel(ev)} →</span>
         </div>
-        {fmtAuctionAt(ev.auction_at) && (
-          <div className="mt-0.5 text-xs text-amber-100/50">📅 {fmtAuctionAt(ev.auction_at)}</div>
-        )}
-        <span className="mt-1 inline-block text-sm font-semibold text-amber-300 group-hover:text-amber-200">{ctaLabel(ev)} →</span>
-      </div>
-    </button>
-  );
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.5} strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5 shrink-0 text-amber-200/40 group-hover:text-amber-200 translate-x-0 group-hover:translate-x-1 transition" aria-hidden="true">
+          <path d="M9 6l6 6-6 6" />
+        </svg>
+      </button>
+    );
+  };
 
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden bg-gradient-to-br from-[#0b0a06] via-[#1c1608] to-[#2a1f08] text-white">
