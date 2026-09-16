@@ -146,12 +146,21 @@ const RegisterPage = () => {
   }
 
   if (done) {
+    const firstName = form.name.trim().split(/\s+/)[0] || 'Player';
     return <div className="min-h-screen flex items-center justify-center text-center px-4 gbx-bg">
-      <div className="max-w-md w-full rounded-2xl border border-white/15 bg-white/[0.06] backdrop-blur-2xl p-8 text-white">
-        <div className="text-5xl mb-4">✅</div>
-        <h1 className="text-2xl font-bold mb-2">Registration submitted!</h1>
-        <p className="text-indigo-200/80 text-sm">
-          Thanks for registering for <span className="font-semibold text-amber-200">{event.name}</span>.
+      <div className="gbx-fade-up max-w-md w-full rounded-2xl border border-white/15 bg-white/[0.06] backdrop-blur-2xl p-8 text-white shadow-2xl">
+        <div className="relative mx-auto mb-5 w-24 h-24">
+          {event.logo_url ? (
+            <img src={event.logo_url} alt="" className="w-24 h-24 rounded-2xl object-cover ring-2 ring-amber-300/40" />
+          ) : (
+            <div className="w-24 h-24 rounded-2xl bg-white/10 grid place-items-center text-4xl">🏆</div>
+          )}
+          <span className="absolute -bottom-2 -right-2 grid h-9 w-9 place-items-center rounded-full bg-emerald-500 text-white text-lg shadow-lg ring-4 ring-[#141021]">✓</span>
+        </div>
+        <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-200 text-[11px] font-bold px-3 py-1 uppercase tracking-wider">Registered</span>
+        <h1 className="mt-3 text-2xl font-extrabold">You're in, {firstName}! 🎉</h1>
+        <p className="mt-2 text-indigo-200/80 text-sm">
+          You're registered for <span className="font-semibold text-amber-200">{event.name}</span>.
           {event.payment_required ? ' The organizer will verify your payment and confirm your entry.' : ' The organizer will review and confirm your entry.'}
         </p>
         <div className="mt-6 flex items-center justify-center gap-3">
