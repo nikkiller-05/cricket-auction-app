@@ -25,6 +25,7 @@ import useDownloads from '../features/auction/hooks/useDownloads';
 import useKeyboardShortcuts from '../features/auction/hooks/useKeyboardShortcuts';
 import StatCards from '../features/auction/StatCards';
 import TeamStandingsStrip from '../features/auction/TeamStandingsStrip';
+import RecentSalesTicker from '../features/auction/RecentSalesTicker';
 import TabNav from '../features/auction/TabNav';
 import LiveStatusPanel from '../features/auction/LiveStatusPanel';
 import SmartRandomStage from '../features/auction/SmartRandomStage';
@@ -606,6 +607,9 @@ const UnifiedDashboard = ({ publicAuctionId = null }) => {
             maxPlayers={auctionData.settings?.maxPlayersPerTeam || 0}
           />
         )}
+
+        {/* Latest sales ticker — keeps viewers up to speed on recent buys. */}
+        {auctionData.fileUploaded && <RecentSalesTicker transactions={transactionHistory} />}
 
         {/* Warning for spectators when no auction data */}
         {!auctionData.fileUploaded && !isAdmin && (
