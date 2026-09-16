@@ -53,6 +53,12 @@ const LiveBiddingPanel = ({
                   team.players?.length >= (auctionData.settings?.maxPlayersPerTeam || 15);
                 const hasSufficientBudget = team.budget >= nextBidAmount;
                 const canBid = hasSufficientBudget && !hasMaxPlayers;
+                const startingBudget = auctionData.settings?.startingBudget || 0;
+                const budgetPct = startingBudget > 0
+                  ? Math.max(0, Math.min(100, (team.budget / startingBudget) * 100))
+                  : 0;
+                const budgetBarColor =
+                  budgetPct > 50 ? 'bg-emerald-400' : budgetPct > 20 ? 'bg-amber-400' : 'bg-rose-400';
 
                 return (
                   <button
@@ -105,6 +111,14 @@ const LiveBiddingPanel = ({
                         {formatCurrency(team.budget)}
                       </span>
                     </div>
+                    {startingBudget > 0 && (
+                      <span className="pointer-events-none absolute inset-x-0 bottom-0 h-1 bg-black/25">
+                        <span
+                          className={`block h-full ${budgetBarColor} ${canBid ? '' : 'opacity-40'} transition-[width] duration-300`}
+                          style={{ width: `${budgetPct}%` }}
+                        />
+                      </span>
+                    )}
                   </button>
                 );
               })}
