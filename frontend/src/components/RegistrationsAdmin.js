@@ -950,8 +950,8 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
               {organizers.map((o) => <option key={o.id} value={o.id}>{o.name || o.username}</option>)}
             </select>
           )}
-          <div>
-            <label className={`block text-sm mb-1 ${T.label}`}>Max players to register <span className={T.sub}>(optional — used for pricing later)</span></label>
+          <div className={`rounded-lg border p-2.5 ${T.soft} space-y-2`}>
+            <label className={`block text-sm ${T.label}`}>Max players to register <span className={T.sub}>(optional — used for pricing later)</span></label>
             <Stepper value={form.maxPlayers} onChange={setMaxPlayers} min={0} max={2000} placeholder="e.g. 120" T={T} />
           </div>
           <div className={`rounded-lg border p-2.5 ${T.soft} space-y-2`}>
@@ -964,7 +964,21 @@ const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, 
                 <Stepper value={form.teamCount} onChange={setTeamCount} min={1} max={24} placeholder="Number of teams (e.g. 8)" T={T} />
                 {Number(form.teamCount) > 0 && (
                   <label className={`flex items-center gap-2 text-sm ${T.label}`}>
-                    <input type="checkbox" checked={configureNames} onChange={(e) => setConfigureNames(e.target.checked)} />
+                    <input type="checkbox" checked={configureNames} onChange={(e) => {
+                      const on = e.target.checked;
+                      setConfigureNames(on);
+                      // Ensure one editable row per team when turning config on —
+                      // otherwise editing an event with a count but no saved team
+                      // names would show an empty section.
+                      if (on) {
+                        const count = Number(form.teamCount) || 0;
+                        setTeamRows((prev) => {
+                          const next = prev.slice(0, count);
+                          while (next.length < count) next.push({ name: '', logoUrl: null });
+                          return next;
+                        });
+                      }
+                    }} />
                     Configure team names & logos
                   </label>
                 )}
