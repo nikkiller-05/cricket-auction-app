@@ -464,7 +464,7 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
 
         {view === 'registrations' && (
           events.length === 0 ? (
-            <div className={`${T.card} p-10 text-center ${T.sub}`}>{canManageEvents ? 'Create an event first (Events tab).' : 'No event assigned to you yet.'}</div>
+            <EmptyState T={T} icon="🗓️" title={canManageEvents ? 'No events yet' : 'No event assigned to you yet'} hint={canManageEvents ? 'Create your first event to start collecting player registrations.' : 'Ask a super-admin to assign you an event.'} action={canManageEvents ? <button onClick={() => setView('events')} className="rounded-full bg-amber-400 text-slate-900 font-bold px-5 py-2 text-sm hover:brightness-105">Go to Events →</button> : null} />
           ) : (
             <div>
               <div className="mb-4 flex flex-wrap items-center gap-2">
@@ -477,7 +477,7 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
               {selected ? (
                 <RegistrationsPanel event={selected} canImport={canImport} reloadEvents={loadEvents} showSuccess={showSuccess} showError={showError} showConfirm={showConfirm} T={T} />
               ) : (
-                <div className={`${T.card} p-10 text-center ${T.sub}`}>Pick an event to review its registrations.</div>
+                <EmptyState T={T} icon="👆" title="Select an event" hint="Pick an event above to review its registrations." />
               )}
             </div>
           )
@@ -485,7 +485,7 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
 
         {view === 'auctions' && (
           events.length === 0 ? (
-            <div className={`${T.card} p-10 text-center ${T.sub}`}>{canManageEvents ? 'Create an event first (Events tab).' : 'No event assigned to you yet.'}</div>
+            <EmptyState T={T} icon="🔨" title={canManageEvents ? 'No events yet' : 'No event assigned to you yet'} hint={canManageEvents ? 'Create an event, then operate its live auction from here.' : 'Ask a super-admin to assign you an event.'} action={canManageEvents ? <button onClick={() => setView('events')} className="rounded-full bg-amber-400 text-slate-900 font-bold px-5 py-2 text-sm hover:brightness-105">Go to Events →</button> : null} />
           ) : (
             <div>
               <div className="flex items-center justify-between gap-2 mb-2 flex-wrap">
@@ -714,6 +714,16 @@ const Stepper = ({ value, onChange, min = 0, max = 9999, placeholder, T }) => {
     </div>
   );
 };
+
+// Friendly empty-state block: icon + title + optional hint + optional action.
+const EmptyState = ({ icon = '📭', title, hint, action, T }) => (
+  <div className={`${T.card} px-6 py-12 text-center`}>
+    <div className="text-4xl mb-3">{icon}</div>
+    <p className={`font-semibold ${T.heading}`}>{title}</p>
+    {hint && <p className={`mt-1 text-sm ${T.sub}`}>{hint}</p>}
+    {action && <div className="mt-4 flex justify-center">{action}</div>}
+  </div>
+);
 const EventsPanel = ({ canManageEvents, canAssignOrganizer, events, organizers, selected, onSelect, onGoToAuctions, reload, showSuccess, showError, showConfirm, T }) => {
   const [creating, setCreating] = useState(false);
   const [editing, setEditing] = useState(null);
@@ -1381,7 +1391,12 @@ const RegistrationsPanel = ({ event, canImport, reloadEvents, showSuccess, showE
       {loading ? (
         <p className={`text-sm py-8 text-center ${T.sub}`}>Loading…</p>
       ) : regs.length === 0 ? (
-        <p className={`text-sm py-8 text-center ${T.sub}`}>No registrations here.</p>
+        <EmptyState
+          T={T}
+          icon={all.length === 0 ? '📭' : '🔍'}
+          title={all.length === 0 ? 'No registrations yet' : 'No matches'}
+          hint={all.length === 0 ? 'Share the registration link — new entries will appear here as players sign up.' : 'Try a different filter or search term.'}
+        />
       ) : (
         <div className="space-y-3">
           {regs.map((r) => {
