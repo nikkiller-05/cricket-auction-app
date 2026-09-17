@@ -643,7 +643,7 @@ const ProfileModal = ({ auth, onClose, updateAuthUser, showSuccess, showError, T
           <input inputMode="numeric" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })} className={`w-full rounded-lg border px-3 py-2.5 mb-4 ${T.input}`} placeholder="10-digit number" />
           <div className="flex justify-end gap-2">
             <button type="button" onClick={() => setEditing(false)} className={`rounded-full border px-4 py-2 text-sm font-semibold ${T.chip}`}>Cancel</button>
-            <button disabled={busy} className="rounded-full bg-indigo-600 text-white px-5 py-2 text-sm font-semibold hover:bg-indigo-500 disabled:opacity-50">{busy ? 'Saving…' : 'Save'}</button>
+            <button disabled={busy} className="inline-flex items-center justify-center gap-2 rounded-full bg-indigo-600 text-white px-5 py-2 text-sm font-semibold hover:bg-indigo-500 disabled:opacity-50">{busy && <Spinner />}{busy ? 'Saving…' : 'Save'}</button>
           </div>
         </form>
       ) : (
@@ -688,7 +688,7 @@ const ChangePasswordModal = ({ onClose, showSuccess, showError, T }) => {
         <input type="password" placeholder="New password (min 6)" value={next} onChange={(e) => setNext(e.target.value)} className={`w-full rounded-lg border px-3 py-2.5 mb-4 ${T.input}`} />
         <div className="flex justify-end gap-2">
           <button type="button" onClick={onClose} className={`rounded-full border px-4 py-2 text-sm font-semibold ${T.chip}`}>Cancel</button>
-          <button disabled={busy} className="rounded-full bg-indigo-600 text-white px-5 py-2 text-sm font-semibold hover:bg-indigo-500 disabled:opacity-50">{busy ? 'Saving…' : 'Save'}</button>
+          <button disabled={busy} className="inline-flex items-center justify-center gap-2 rounded-full bg-indigo-600 text-white px-5 py-2 text-sm font-semibold hover:bg-indigo-500 disabled:opacity-50">{busy && <Spinner />}{busy ? 'Saving…' : 'Save'}</button>
         </div>
       </form>
     </ModalShell>
@@ -1179,7 +1179,7 @@ const EditOrganizerModal = ({ user, onClose, showSuccess, showError, reload, T }
         <input inputMode="numeric" value={form.phone} onChange={(e) => setForm({ ...form, phone: e.target.value.replace(/\D/g, '').slice(0, 10) })} className={`w-full rounded-lg border px-3 py-2.5 mb-4 ${T.input}`} placeholder="10-digit number" />
         <div className="flex justify-end gap-2">
           <button type="button" onClick={onClose} className={`rounded-full border px-4 py-2 text-sm font-semibold ${T.chip}`}>Cancel</button>
-          <button disabled={busy} className="rounded-full bg-indigo-600 text-white px-5 py-2 text-sm font-semibold hover:bg-indigo-500 disabled:opacity-50">{busy ? 'Saving…' : 'Save'}</button>
+          <button disabled={busy} className="inline-flex items-center justify-center gap-2 rounded-full bg-indigo-600 text-white px-5 py-2 text-sm font-semibold hover:bg-indigo-500 disabled:opacity-50">{busy && <Spinner />}{busy ? 'Saving…' : 'Save'}</button>
         </div>
       </form>
     </ModalShell>
@@ -1293,6 +1293,7 @@ const RegistrationsPanel = ({ event, canImport, reloadEvents, showSuccess, showE
   const [loading, setLoading] = useState(true);
   const [importing, setImporting] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [savingKey, setSavingKey] = useState(null); // `${regId}:${status}` while a decision saves
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -1305,8 +1306,10 @@ const RegistrationsPanel = ({ event, canImport, reloadEvents, showSuccess, showE
   useEffect(() => { load(); }, [load]);
 
   const setStatus = async (id, status) => {
-    try { await api.patch(`/api/registrations/registrations/${id}/status`, { status }); load(); reloadEvents?.(); }
+    setSavingKey(`${id}:${status}`);
+    try { await api.patch(`/api/registrations/registrations/${id}/status`, { status }); await load(); reloadEvents?.(); }
     catch (err) { showError(err.response?.data?.error || 'Update failed'); }
+    finally { setSavingKey(null); }
   };
 
   const deleteReg = (r) => {
@@ -1420,6 +1423,7 @@ const RegistrationsPanel = ({ event, canImport, reloadEvents, showSuccess, showE
         <div className="space-y-3">
           {regs.map((r) => {
             const decided = r.payment_status === 'verified' || r.payment_status === 'rejected';
+            const rowSaving = !!savingKey && savingKey.startsWith(`${r.id}:`);
             return (
               <div key={r.id} className={`flex flex-col sm:flex-row sm:items-center gap-3 rounded-xl border p-3 ${T.cardIdle}`}>
                 <img src={r.profile_pic_url || '/logo192.png'} alt="" className="w-14 h-14 rounded-lg object-cover bg-slate-200 shrink-0" />
@@ -1437,13 +1441,13 @@ const RegistrationsPanel = ({ event, canImport, reloadEvents, showSuccess, showE
                 </div>
                 <div className="flex gap-2 shrink-0">
                   {decided ? (
-                    <button onClick={() => setStatus(r.id, 'pending')} className={`rounded-full border px-3 py-1.5 text-xs font-semibold ${T.chip}`}>✏️ Edit decision</button>
+                    <button disabled={rowSaving} onClick={() => setStatus(r.id, 'pending')} className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold disabled:opacity-50 ${T.chip}`}>{savingKey === `${r.id}:pending` && <Spinner />}✏️ Edit decision</button>
                   ) : r.payment_status === 'not_required' ? (
-                    <button onClick={() => setStatus(r.id, 'verified')} className="rounded-full bg-emerald-600 text-white px-3 py-1.5 text-xs font-semibold hover:bg-emerald-500">Approve</button>
+                    <button disabled={rowSaving} onClick={() => setStatus(r.id, 'verified')} className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 text-white px-3 py-1.5 text-xs font-semibold hover:bg-emerald-500 disabled:opacity-50">{savingKey === `${r.id}:verified` && <Spinner />}Approve</button>
                   ) : (
                     <>
-                      <button onClick={() => setStatus(r.id, 'verified')} className="rounded-full bg-emerald-600 text-white px-3 py-1.5 text-xs font-semibold hover:bg-emerald-500">Approve</button>
-                      <button onClick={() => setStatus(r.id, 'rejected')} className="rounded-full bg-rose-100 text-rose-700 px-3 py-1.5 text-xs font-semibold hover:bg-rose-200">Reject</button>
+                      <button disabled={rowSaving} onClick={() => setStatus(r.id, 'verified')} className="inline-flex items-center gap-1.5 rounded-full bg-emerald-600 text-white px-3 py-1.5 text-xs font-semibold hover:bg-emerald-500 disabled:opacity-50">{savingKey === `${r.id}:verified` && <Spinner />}Approve</button>
+                      <button disabled={rowSaving} onClick={() => setStatus(r.id, 'rejected')} className="inline-flex items-center gap-1.5 rounded-full bg-rose-100 text-rose-700 px-3 py-1.5 text-xs font-semibold hover:bg-rose-200 disabled:opacity-50">{savingKey === `${r.id}:rejected` && <Spinner />}Reject</button>
                     </>
                   )}
                   <button onClick={() => deleteReg(r)} title="Delete registration" className={`rounded-full border px-2.5 py-1.5 text-xs font-semibold ${T.chip}`}>🗑️</button>
