@@ -11,11 +11,30 @@ const IcoMail = (p) => (<svg viewBox="0 0 24 24" fill="currentColor" width="18" 
 
 const authInputCls = 'w-full rounded-lg border border-white/20 bg-white/10 text-white placeholder-white/40 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-300/50';
 
+// Downscale a chosen image to a small square-ish JPEG data URL for the avatar.
+const compressAvatarDataUrl = (file, maxDim = 160) => new Promise((resolve, reject) => {
+  const img = new Image();
+  const url = URL.createObjectURL(file);
+  img.onload = () => {
+    let { width, height } = img;
+    const scale = Math.min(1, maxDim / Math.max(width, height));
+    width = Math.round(width * scale); height = Math.round(height * scale);
+    const canvas = document.createElement('canvas');
+    canvas.width = width; canvas.height = height;
+    canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+    URL.revokeObjectURL(url);
+    resolve(canvas.toDataURL('image/jpeg', 0.72));
+  };
+  img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('invalid image')); };
+  img.src = url;
+});
+
 // Sign in / sign up (self-serve organizer) — opens over the landing page.
 const AuthModal = ({ onClose }) => {
   const navigate = useNavigate();
   const [mode, setMode] = useState('signin');
   const [form, setForm] = useState({ username: '', password: '', name: '', email: '', phone: '', website: '' });
+  const [avatar, setAvatar] = useState('');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState('');
   const set = (k) => (e) => setForm({ ...form, [k]: k === 'phone' ? e.target.value.replace(/\D/g, '').slice(0, 10) : e.target.value });
@@ -39,6 +58,7 @@ const AuthModal = ({ onClose }) => {
         const res = await axios.post(`${API_BASE_URL}/api/auth/signup-organizer`, {
           username: form.username.trim(), password: form.password, name: form.name.trim(),
           email: form.email.trim(), phone: form.phone, website: form.website,
+          avatarUrl: avatar,
         });
         finish(res.data);
       }
@@ -65,6 +85,18 @@ const AuthModal = ({ onClose }) => {
         <form onSubmit={submit} className="space-y-3">
           <input type="text" name="website" tabIndex={-1} autoComplete="off" value={form.website} onChange={set('website')} className="absolute -left-[9999px] h-0 w-0 opacity-0" aria-hidden="true" />
           {mode === 'signup' && <input placeholder="Full name" value={form.name} onChange={set('name')} className={authInputCls} />}
+          {mode === 'signup' && (
+            <div className="flex items-center gap-3">
+              {avatar
+                ? <img src={avatar} alt="" className="h-12 w-12 rounded-full object-cover ring-2 ring-amber-300/40" />
+                : <span className="grid h-12 w-12 place-items-center rounded-full bg-white/10 text-lg">👤</span>}
+              <label className="cursor-pointer rounded-full border border-white/20 text-indigo-100/80 text-xs font-semibold px-3 py-1.5 hover:text-white hover:border-white/40 transition">
+                {avatar ? 'Change photo' : 'Add profile photo (optional)'}
+                <input type="file" accept="image/*" className="hidden" onChange={async (e) => { const f = e.target.files?.[0]; if (f) { try { setAvatar(await compressAvatarDataUrl(f)); } catch { /* ignore bad image */ } } }} />
+              </label>
+              {avatar && <button type="button" onClick={() => setAvatar('')} className="text-xs text-indigo-200/60 hover:text-white">Remove</button>}
+            </div>
+          )}
           <input placeholder={mode === 'signin' ? 'Username or email' : 'Username *'} value={form.username} onChange={set('username')} className={authInputCls} />
           {mode === 'signup' && (
             <>

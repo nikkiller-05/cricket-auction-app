@@ -59,7 +59,19 @@ const buildProfilePayload = async (body, selfId, res) => {
     payload.phone = phone;
   }
 
+  if (body.avatarUrl !== undefined) payload.avatar_url = sanitizeAvatar(body.avatarUrl);
+
   return payload;
+};
+
+// Accept only a compressed image data URL (or an http URL); cap size so a huge
+// paste can't bloat the row. Returns null when invalid or cleared.
+const sanitizeAvatar = (v) => {
+  if (v === null || v === '' || v === undefined) return null;
+  const s = String(v);
+  if (!/^data:image\/(png|jpe?g|webp|gif);base64,/i.test(s) && !/^https?:\/\//i.test(s)) return null;
+  if (s.length > 400000) return null;
+  return s;
 };
 
 const publicUser = (u) => ({
@@ -69,6 +81,7 @@ const publicUser = (u) => ({
   email: u.email,
   phone: u.phone,
   role: u.role,
+  avatarUrl: u.avatar_url || null,
   permissions: u.permissions,
   createdAt: u.created_at,
   createdBy: u.created_by,
@@ -123,6 +136,7 @@ const authController = {
           email: user.email || null,
           phone: user.phone || null,
           role: user.role,
+          avatarUrl: user.avatar_url || null,
           eventId: user.event_id || null,
         },
       });
@@ -332,6 +346,7 @@ const authController = {
           phone,
           role: 'organizer',
           permissions: ['registrations'],
+          avatar_url: sanitizeAvatar(req.body.avatarUrl),
           created_by: 'self-signup',
         })
         .select()
@@ -357,7 +372,7 @@ const authController = {
       res.json({
         message: 'Account created',
         token,
-        user: { id: data.id, username: data.username, name: data.name, email: data.email, phone: data.phone, role: data.role, eventId: null },
+        user: { id: data.id, username: data.username, name: data.name, email: data.email, phone: data.phone, role: data.role, avatarUrl: data.avatar_url || null, eventId: null },
       });
     } catch (error) {
       next(error);
@@ -369,7 +384,7 @@ const authController = {
       if (!supabase) return res.json({ organizers: [] });
       const { data, error } = await supabase
         .from(TABLE)
-        .select('id, username, name, email, phone, role, event_id, reset_requested_at, created_at')
+        .select('id, username, name, email, phone, role, event_id, reset_requested_at, created_at, avatar_url')
         .eq('role', 'organizer')
         .order('created_at', { ascending: false });
       if (error) {

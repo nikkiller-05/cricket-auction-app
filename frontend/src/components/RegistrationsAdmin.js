@@ -328,15 +328,26 @@ const ProfileMenu = ({ auth, onChangePassword, onProfile, onLogout, onTestEmail,
   return (
     <div className="relative" ref={ref}>
       <button onClick={() => setOpen((v) => !v)} className={`flex items-center gap-2 rounded-full border pl-1 pr-3 py-1 ${T.chip}`}>
-        <span className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-xs font-black text-slate-900">{initials(auth.user.name || auth.user.username)}</span>
+        {auth.user.avatarUrl ? (
+          <img src={auth.user.avatarUrl} alt="" className="h-8 w-8 rounded-full object-cover" />
+        ) : (
+          <span className="grid h-8 w-8 place-items-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-xs font-black text-slate-900">{initials(auth.user.name || auth.user.username)}</span>
+        )}
         <span className="hidden sm:inline text-sm font-semibold">{auth.user.username}</span>
         <span className="text-xs opacity-70">▾</span>
       </button>
       {open && (
         <div className={`absolute right-0 mt-2 w-60 overflow-hidden rounded-2xl ${T.menu} z-50`}>
-          <div className={`px-4 py-3 border-b ${T.divide}`}>
-            <p className={`text-sm font-bold ${T.heading}`}>{auth.user.name || auth.user.username}</p>
-            <p className={`text-xs capitalize ${T.sub}`}>{String(auth.user.role).replace('-', ' ')}</p>
+          <div className={`flex items-center gap-3 px-4 py-3 border-b ${T.divide}`}>
+            {auth.user.avatarUrl ? (
+              <img src={auth.user.avatarUrl} alt="" className="h-10 w-10 rounded-full object-cover shrink-0" />
+            ) : (
+              <span className="grid h-10 w-10 shrink-0 place-items-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-sm font-black text-slate-900">{initials(auth.user.name || auth.user.username)}</span>
+            )}
+            <div className="min-w-0">
+              <p className={`text-sm font-bold truncate ${T.heading}`}>{auth.user.name || auth.user.username}</p>
+              <p className={`text-xs capitalize ${T.sub}`}>{String(auth.user.role).replace('-', ' ')}</p>
+            </div>
           </div>
           <div className="py-1">
             <Item icon="👤" label="Profile" onClick={onProfile} />
@@ -607,7 +618,7 @@ const Console = ({ auth, onLogout, updateAuthUser, showSuccess, showError, showC
 // ---------------- Profile (view + edit) ----------------
 const ProfileModal = ({ auth, onClose, updateAuthUser, showSuccess, showError, T }) => {
   const [editing, setEditing] = useState(false);
-  const [form, setForm] = useState({ name: auth.user.name || '', email: auth.user.email || '', phone: auth.user.phone || '' });
+  const [form, setForm] = useState({ name: auth.user.name || '', email: auth.user.email || '', phone: auth.user.phone || '', avatarUrl: auth.user.avatarUrl || '' });
   const [busy, setBusy] = useState(false);
 
   const save = async (e) => {
@@ -616,7 +627,7 @@ const ProfileModal = ({ auth, onClose, updateAuthUser, showSuccess, showError, T
     try {
       const res = await api.put('/api/auth/profile', form);
       const u = res.data.user;
-      updateAuthUser({ ...auth.user, name: u.name, email: u.email, phone: u.phone });
+      updateAuthUser({ ...auth.user, name: u.name, email: u.email, phone: u.phone, avatarUrl: u.avatarUrl });
       showSuccess('Profile updated');
       setEditing(false);
     } catch (err) { showError(err.response?.data?.error || 'Could not update profile'); }
@@ -635,6 +646,19 @@ const ProfileModal = ({ auth, onClose, updateAuthUser, showSuccess, showError, T
     <ModalShell onClose={onClose} T={T} title="Profile">
       {editing ? (
         <form onSubmit={save}>
+          <label className={`block text-xs font-semibold ${T.label} mb-1`}>Profile photo <span className={T.sub}>(optional)</span></label>
+          <div className="mb-3 flex items-center gap-3">
+            {form.avatarUrl ? (
+              <img src={form.avatarUrl} alt="" className="h-14 w-14 rounded-full object-cover ring-2 ring-amber-300/40" />
+            ) : (
+              <span className="grid h-14 w-14 place-items-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-sm font-black text-slate-900">{initials(form.name || auth.user.username)}</span>
+            )}
+            <label className={`cursor-pointer rounded-full border px-3 py-1.5 text-xs font-semibold ${T.chip}`}>
+              {form.avatarUrl ? 'Change' : 'Upload'}
+              <input type="file" accept="image/*" className="hidden" onChange={async (e) => { const f = e.target.files?.[0]; if (f) { const url = await compressLogoDataUrl(f); setForm((s) => ({ ...s, avatarUrl: url })); } }} />
+            </label>
+            {form.avatarUrl && <button type="button" onClick={() => setForm((s) => ({ ...s, avatarUrl: '' }))} className={`text-xs font-semibold ${T.sub} hover:opacity-80`}>Remove</button>}
+          </div>
           <label className={`block text-xs font-semibold ${T.label} mb-1`}>Name</label>
           <input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} className={`w-full rounded-lg border px-3 py-2.5 mb-3 ${T.input}`} placeholder="Full name" />
           <label className={`block text-xs font-semibold ${T.label} mb-1`}>Email</label>
@@ -648,6 +672,17 @@ const ProfileModal = ({ auth, onClose, updateAuthUser, showSuccess, showError, T
         </form>
       ) : (
         <>
+          <div className="mb-4 flex items-center gap-3">
+            {auth.user.avatarUrl ? (
+              <img src={auth.user.avatarUrl} alt="" className="h-16 w-16 rounded-full object-cover ring-2 ring-amber-300/40" />
+            ) : (
+              <span className="grid h-16 w-16 place-items-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-lg font-black text-slate-900">{initials(auth.user.name || auth.user.username)}</span>
+            )}
+            <div className="min-w-0">
+              <p className={`font-bold truncate ${T.heading}`}>{auth.user.name || auth.user.username}</p>
+              <p className={`text-xs capitalize ${T.sub}`}>{String(auth.user.role).replace('-', ' ')}</p>
+            </div>
+          </div>
           <div className="space-y-2">
             {rows.map(([k, v]) => (
               <div key={k} className={`flex justify-between gap-4 text-sm border-b pb-2 ${T.divide}`}>
@@ -1258,6 +1293,9 @@ const OrganizersPanel = ({ events, organizers, reload, showSuccess, showError, s
                 <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
                   <div className="min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
+                      {o.avatar_url
+                        ? <img src={o.avatar_url} alt="" className="h-7 w-7 rounded-full object-cover shrink-0" />
+                        : <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-gradient-to-br from-amber-400 to-amber-600 text-[10px] font-black text-slate-900">{initials(o.name || o.username)}</span>}
                       <span className={`font-semibold ${T.heading}`}>{o.name || o.username}</span>
                       <span className={`text-xs ${T.sub}`}>@{o.username}</span>
                       {o.reset_requested_at && <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-800">🔒 Reset requested</span>}
