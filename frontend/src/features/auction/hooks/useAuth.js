@@ -17,6 +17,7 @@ export default function useAuth(location, auctionIdOverride = null, forceSpectat
   const [eventSlug, setEventSlug] = useState('');
   const [canConfigure, setCanConfigure] = useState(false);
   const [canUndo, setCanUndo] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState('');
 
   useEffect(() => {
     const auctionId = auctionIdOverride || new URLSearchParams(location.search).get('auctionId') || 'default';
@@ -47,6 +48,7 @@ export default function useAuth(location, auctionIdOverride = null, forceSpectat
           setUsername('');
           setCanConfigure(false);
           setCanUndo(false);
+          setAvatarUrl('');
           return;
         }
         setIsAdmin(!!data.canOperate);
@@ -54,6 +56,9 @@ export default function useAuth(location, auctionIdOverride = null, forceSpectat
         setUsername(data.username || '');
         setCanConfigure(!!data.canConfigure);
         setCanUndo(!!data.canUndo);
+        // The operator's own avatar isn't in the access payload — read it from the
+        // stored session (set at login/signup).
+        try { const ru = JSON.parse(localStorage.getItem('regUser') || 'null'); setAvatarUrl(ru?.avatarUrl || ''); } catch { setAvatarUrl(''); }
       })
       .catch(() => {
         if (!active) return;
@@ -92,5 +97,5 @@ export default function useAuth(location, auctionIdOverride = null, forceSpectat
     navigate('/');
   };
 
-  return { isAdmin, userRole, username, eventName, eventSlug, canConfigure, canUndo, logout };
+  return { isAdmin, userRole, username, eventName, eventSlug, canConfigure, canUndo, avatarUrl, logout };
 }

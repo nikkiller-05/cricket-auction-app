@@ -48,7 +48,7 @@ const UnifiedDashboard = ({ publicAuctionId = null }) => {
   // Full-screen SOLD/UNSOLD celebration overlay
   const [celebration, setCelebration] = useState(null);
 
-  const { isAdmin, userRole, username, eventName, eventSlug, canConfigure, canUndo, logout } = useAuth(location, publicAuctionId, !!publicAuctionId);
+  const { isAdmin, userRole, username, eventName, eventSlug, canConfigure, canUndo, avatarUrl, logout } = useAuth(location, publicAuctionId, !!publicAuctionId);
   const [activeTab, setActiveTab] = useState('live');
   // Multi-tenant: an event-scoped auction is addressed by ?auctionId=<event.id>,
   // or by publicAuctionId when reached via the clean /a/{slug} spectator link.
@@ -515,6 +515,7 @@ const UnifiedDashboard = ({ publicAuctionId = null }) => {
         onConsole={['super-admin', 'admin', 'organizer'].includes(userRole) ? () => navigate('/console') : null}
         canConfigure={canConfigure}
         eventName={eventName}
+        avatarUrl={avatarUrl}
         isAuctionOn={['running', 'fast-track'].includes(auctionData.auctionStatus)}
         onToggleAuction={isAdmin ? handleAuctionToggle : null}
         auctionLoading={auctionToggleLoading}

@@ -27,6 +27,7 @@ const Header = memo(({
   onConsole = null,
   canConfigure = false,
   eventName = '',
+  avatarUrl = '',
   canUndo = false,
   onEndAuction = null,
   onReopen = null,
@@ -388,7 +389,7 @@ const Header = memo(({
             >
               {/* Modern Circular Avatar Button */}
               <div className={`avatar-circle ${isDropdownOpen ? 'is-open' : ''}`}>
-                <span className="avatar-initials">{getUserInitials(username)}</span>
+                {avatarUrl ? <img src={avatarUrl} alt="" className="avatar-photo" /> : <span className="avatar-initials">{getUserInitials(username)}</span>}
                 <div className="avatar-status-indicator"></div>
               </div>
               {/* Username Tooltip */}
@@ -405,7 +406,7 @@ const Header = memo(({
                 {/* User Info */}
                 <div className="user-info" role="menuitem">
                   <div className="user-avatar">
-                    {getUserInitials(username)}
+                    {avatarUrl ? <img src={avatarUrl} alt="" className="avatar-photo" /> : getUserInitials(username)}
                   </div>
                   <div className="user-details">
                     <span className="user-name">{username}</span>
