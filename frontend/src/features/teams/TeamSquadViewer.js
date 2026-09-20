@@ -9,7 +9,7 @@ import TeamLogo from './TeamLogo';
 // Per-team squad view: team selector, budget bar, quick stats, captain card,
 // players grouped by category, and a composition summary. Captain/Retained
 // sections are gated by the enableCaptains / enableRetention feature flags.
-const TeamSquadViewer = ({ teams, players, enableCaptains = true, enableRetention = true }) => {
+const TeamSquadViewer = ({ teams, players, enableCaptains = true, enableRetention = true, interactive = true }) => {
   const [selectedTeam, setSelectedTeam] = useState(teams[0]?.id || null);
   const [cardPlayer, setCardPlayer] = useState(null);
 
@@ -220,11 +220,11 @@ const TeamSquadViewer = ({ teams, players, enableCaptains = true, enableRetentio
                   <span className="ml-2 text-sm text-gray-500">(1)</span>
                 </h4>
                 <div
-                  className="gbx-squad-row cursor-pointer"
-                  role="button"
-                  tabIndex={0}
-                  onClick={() => setCardPlayer(captain)}
-                  onKeyDown={(e) => { if (e.key === 'Enter') setCardPlayer(captain); }}
+                  className={`gbx-squad-row ${interactive ? 'cursor-pointer' : ''}`}
+                  role={interactive ? 'button' : undefined}
+                  tabIndex={interactive ? 0 : undefined}
+                  onClick={interactive ? () => setCardPlayer(captain) : undefined}
+                  onKeyDown={interactive ? (e) => { if (e.key === 'Enter') setCardPlayer(captain); } : undefined}
                 >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
@@ -273,11 +273,11 @@ const TeamSquadViewer = ({ teams, players, enableCaptains = true, enableRetentio
                     {categoryPlayers.map((player) => (
                       <div
                         key={player.id}
-                        className="gbx-squad-row cursor-pointer"
-                        role="button"
-                        tabIndex={0}
-                        onClick={() => setCardPlayer(player)}
-                        onKeyDown={(e) => { if (e.key === 'Enter') setCardPlayer(player); }}
+                        className={`gbx-squad-row ${interactive ? 'cursor-pointer' : ''}`}
+                        role={interactive ? 'button' : undefined}
+                        tabIndex={interactive ? 0 : undefined}
+                        onClick={interactive ? () => setCardPlayer(player) : undefined}
+                        onKeyDown={interactive ? (e) => { if (e.key === 'Enter') setCardPlayer(player); } : undefined}
                       >
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center space-x-3 min-w-0">

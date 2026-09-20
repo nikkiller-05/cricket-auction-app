@@ -824,6 +824,7 @@ const UnifiedDashboard = ({ publicAuctionId = null }) => {
                       players={auctionData.players || []}
                       enableCaptains={enableCaptains}
                       enableRetention={enableRetention}
+                      interactive={!isAdmin}
                     />
                   )}
 
@@ -864,6 +865,7 @@ const UnifiedDashboard = ({ publicAuctionId = null }) => {
                   players={auctionData.players || []}
                   enableCaptains={enableCaptains}
                   enableRetention={enableRetention}
+                  interactive={!isAdmin}
                 />
               ) : (
                 <div className="text-center py-12 text-gray-500 bg-white bg-opacity-25 rounded-lg border-2 border-gray-300 border-opacity-60 shadow-xl">
