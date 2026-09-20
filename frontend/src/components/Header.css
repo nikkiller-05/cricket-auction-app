@@ -45,9 +45,9 @@
   background:
     radial-gradient(60% 100% at 100% 50%, rgba(245, 168, 0, 0.06) 0%, transparent 70%),
     linear-gradient(180deg, #17130c 0%, #100e0b 100%);
-  border-bottom: 1px solid rgba(253, 224, 71, 0.16);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
   box-shadow:
-    0 1px 0 rgba(253, 224, 71, 0.06) inset,
+    0 1px 0 rgba(255, 255, 255, 0.04) inset,
     0 6px 16px -4px rgba(0, 0, 0, 0.5);
 }
 
@@ -809,6 +809,20 @@
 }
 
 /* User Info Section */
+/* Profile dropdown — dark theme uses the elevated card surface (Phase 1),
+   not a bright white or near-black glassy panel. */
+.dash-root[data-theme="dark"] .dropdown-menu {
+  background: #24212d;
+  border-color: rgba(255, 255, 255, 0.10);
+  box-shadow: 0 18px 44px -12px rgba(0, 0, 0, 0.55);
+}
+.dash-root[data-theme="dark"] .user-info { background: rgba(255, 255, 255, 0.04); }
+.dash-root[data-theme="dark"] .user-name { color: #f5f3ee; }
+.dash-root[data-theme="dark"] .user-role { color: #b7b2c0; }
+.dash-root[data-theme="dark"] .menu-divider { background: linear-gradient(90deg, transparent, rgba(255,255,255,0.12), transparent); }
+.dash-root[data-theme="dark"] .menu-option { color: #d7d3de; }
+.dash-root[data-theme="dark"] .menu-option:hover,
+.dash-root[data-theme="dark"] .menu-option:focus { background: rgba(255,255,255,0.06); color: #f5f3ee; }
 .user-info {
   display: flex;
   align-items: center;
@@ -1250,28 +1264,32 @@
 }
 .gbx-status-dot { width: 0.5rem; height: 0.5rem; border-radius: 9999px; flex-shrink: 0; }
 .gbx-status-live { color: #6ee7b7; background: rgba(16,185,129,0.14); border-color: rgba(16,185,129,0.4); }
-.gbx-status-live .gbx-status-dot { background: #ef4444; animation: gbxDotPulse 1.8s ease-out infinite; }
-.gbx-status-paused { color: #3a2406; background: linear-gradient(135deg, #fbbf24, #f59e0b); border-color: rgba(180,83,9,0.5); }
-.gbx-status-paused .gbx-status-dot { background: #7c2d12; }
+.gbx-status-live .gbx-status-dot { background: #34d399; animation: gbxDotPulse 1.8s ease-out infinite; }
+.gbx-status-paused { color: #fcd34d; background: rgba(245,158,11,0.14); border-color: rgba(245,158,11,0.4); }
+.gbx-status-paused .gbx-status-dot { background: #f59e0b; }
+.dash-root[data-theme="light"] .gbx-status-paused { color: #92400e; background: rgba(245,158,11,0.18); border-color: rgba(180,83,9,0.35); }
+.dash-root[data-theme="light"] .gbx-status-paused .gbx-status-dot { background: #b45309; }
 .gbx-status-notstarted { color: #cbd5e1; background: rgba(148,163,184,0.14); border-color: rgba(148,163,184,0.35); }
 .gbx-status-notstarted .gbx-status-dot { background: #94a3b8; }
 .gbx-status-ended { color: #fca5a5; background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.35); }
 .gbx-status-ended .gbx-status-dot { background: #ef4444; }
-@keyframes gbxDotPulse { 0%,100%{ box-shadow: 0 0 0 0 rgba(239,68,68,0.6);} 50%{ box-shadow: 0 0 0 5px rgba(239,68,68,0);} }
+@keyframes gbxDotPulse { 0%,100%{ box-shadow: 0 0 0 0 rgba(52,211,153,0.5);} 50%{ box-shadow: 0 0 0 5px rgba(52,211,153,0);} }
 
 /* Primary action: Start / Pause / Resume */
 .gbx-pa {
   display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem;
   height: 2.25rem; padding: 0 1rem; border-radius: 9999px; border: none; cursor: pointer;
   font-size: 0.82rem; font-weight: 700;
-  box-shadow: 0 6px 16px -6px rgba(0,0,0,0.45), inset 0 1px 0 rgba(255,255,255,0.35);
-  transition: transform 0.15s ease, filter 0.2s ease;
+  box-shadow: 0 4px 12px -5px rgba(0,0,0,0.4);
+  transition: transform 0.15s ease, filter 0.18s ease, box-shadow 0.18s ease;
 }
-.gbx-pa:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.06); }
+.gbx-pa:hover:not(:disabled) { transform: translateY(-1px); filter: brightness(1.05); }
+.gbx-pa:active:not(:disabled) { transform: scale(0.98); }
+.gbx-pa:focus-visible { outline: none; box-shadow: 0 0 0 2px rgba(245,168,0,0.65); }
 .gbx-pa:disabled { opacity: 0.6; cursor: default; }
 .gbx-pa-ico { font-size: 0.9rem; line-height: 1; }
-.gbx-pa-notstarted, .gbx-pa-paused { background: linear-gradient(135deg,#34d399,#059669); color: #062012; }
-.gbx-pa-live { background: linear-gradient(135deg,#fbbf24,#f59e0b); color: #2a1806; }
+.gbx-pa-notstarted, .gbx-pa-paused { background: #059669; color: #ffffff; }
+.gbx-pa-live { background: #f59e0b; color: #26160a; }
 .gbx-pa-spin { width: 1rem; height: 1rem; border: 2px solid rgba(0,0,0,0.25); border-top-color: #000; border-radius: 9999px; animation: spin 1s linear infinite; }
 
 /* Header utility button (Auction Controls trigger) */
@@ -1290,9 +1308,9 @@
 .dash-root[data-theme="light"] .gbx-hd-btn { color: #4a350a; background: rgba(110,75,12,0.12); border-color: rgba(110,75,12,0.4); }
 .dash-root[data-theme="light"] .gbx-hd-btn:hover { background: rgba(110,75,12,0.2); border-color: rgba(110,75,12,0.55); }
 
-/* Controls = warm taupe pill so it belongs to the golden header (both themes). */
-.gbx-hd-grey { color: #e6dabc; background: rgba(190,160,100,0.16); border-color: rgba(190,160,100,0.4); }
-.gbx-hd-grey:hover { background: rgba(190,160,100,0.26); border-color: rgba(190,160,100,0.56); }
+/* Controls = quiet neutral surface (secondary action, not gold). */
+.gbx-hd-grey { color: #d7d3de; background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.13); }
+.gbx-hd-grey:hover { background: rgba(255,255,255,0.11); border-color: rgba(255,255,255,0.2); }
 
 /* Spectator theme/home icons — identical look to the console toggle
    (translucent + amber icon in dark; solid slate + amber in light). */
@@ -1310,14 +1328,14 @@
 }
 .gbx-hd-iconbtn:hover { transform: translateY(-1px); }
 .gbx-hd-iconbtn .gbx-hd-btn-svg { width: 1.15rem; height: 1.15rem; }
-.dash-root[data-theme="light"] .gbx-hd-grey { color: #3a2c08; background: rgba(110,75,12,0.14); border-color: rgba(110,75,12,0.42); }
-.dash-root[data-theme="light"] .gbx-hd-grey:hover { background: rgba(110,75,12,0.24); border-color: rgba(110,75,12,0.58); }
+.dash-root[data-theme="light"] .gbx-hd-grey { color: #4a350a; background: rgba(255,255,255,0.6); border-color: rgba(120,90,20,0.28); }
+.dash-root[data-theme="light"] .gbx-hd-grey:hover { background: rgba(255,255,255,0.82); border-color: rgba(120,90,20,0.42); }
 
-/* Export = amber primary pill — on-brand gold in both themes, not blue. */
-.gbx-hd-sky { color: #fde68a; background: rgba(217,119,6,0.26); border-color: rgba(245,158,11,0.5); }
-.gbx-hd-sky:hover { background: rgba(217,119,6,0.4); border-color: rgba(245,158,11,0.66); }
-.dash-root[data-theme="light"] .gbx-hd-sky { color: #7c3a08; background: rgba(184,124,26,0.22); border-color: rgba(146,64,14,0.5); }
-.dash-root[data-theme="light"] .gbx-hd-sky:hover { background: rgba(184,124,26,0.32); border-color: rgba(146,64,14,0.64); }
+/* Export = quiet utility surface with an amber icon accent (not a filled gold block). */
+.gbx-hd-sky { color: #fcd34d; background: rgba(255,255,255,0.06); border-color: rgba(255,255,255,0.13); }
+.gbx-hd-sky:hover { background: rgba(255,255,255,0.11); border-color: rgba(255,255,255,0.2); }
+.dash-root[data-theme="light"] .gbx-hd-sky { color: #b45309; background: rgba(255,255,255,0.6); border-color: rgba(120,90,20,0.28); }
+.dash-root[data-theme="light"] .gbx-hd-sky:hover { background: rgba(255,255,255,0.82); border-color: rgba(120,90,20,0.42); }
 
 /* Status pill — light theme (cream header needs darker ink + stronger fills) */
 .dash-root[data-theme="light"] .gbx-status-live {
@@ -1326,7 +1344,7 @@
   border-color: rgba(6, 95, 70, 0.55);
   animation: gbxLivePillPulse 1.7s ease-out infinite;
 }
-.dash-root[data-theme="light"] .gbx-status-live .gbx-status-dot { background: #ef4444; box-shadow: 0 0 0 3px rgba(239,68,68,0.35); animation: none; }
+.dash-root[data-theme="light"] .gbx-status-live .gbx-status-dot { background: #ffffff; box-shadow: 0 0 0 3px rgba(255,255,255,0.4); animation: none; }
 @keyframes gbxLivePillPulse {
   0%, 100% { box-shadow: 0 2px 10px -2px rgba(5, 150, 105, 0.5), 0 0 0 0 rgba(16, 185, 129, 0.55); }
   50% { box-shadow: 0 2px 10px -2px rgba(5, 150, 105, 0.5), 0 0 0 6px rgba(16, 185, 129, 0); }
@@ -1374,7 +1392,7 @@
 .dash-root[data-theme="light"] .gbx-progress-meta { color: rgba(60,42,8,0.75); }
 .gbx-progress-pct { color: #fcd34d; }
 .dash-root[data-theme="light"] .gbx-progress-pct { color: #92400e; }
-.gbx-progress-track { height: 5px; border-radius: 9999px; overflow: hidden; background: rgba(255,255,255,0.12); }
+.gbx-progress-track { height: 3px; border-radius: 9999px; overflow: hidden; background: rgba(255,255,255,0.09); }
 .dash-root[data-theme="light"] .gbx-progress-track { background: rgba(74,53,10,0.16); }
 .gbx-progress-fill { height: 100%; border-radius: 9999px; transition: width 0.5s cubic-bezier(0.4,0,0.2,1); background: linear-gradient(90deg,#f59e0b,#fcd34d); }
 .gbx-progress-live { background: linear-gradient(90deg,#10b981,#34d399); }
