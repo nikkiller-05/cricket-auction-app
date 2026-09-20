@@ -35,7 +35,7 @@ const SpectatorPlayerGroups = ({
                     const capAmt =
                       player.captainAmount || team?.captainAmount || player.finalBid || 0;
                     return (
-                      <div key={player.id} className="border rounded-lg p-4 bg-purple-50">
+                      <div key={player.id} className="gbx-player-card gbx-player-card--captain">
                         <div className="flex justify-between items-start mb-2 gap-3">
                           <div className="flex items-center gap-3 min-w-0">
                             <PlayerAvatar player={player} size="md" />
@@ -83,7 +83,7 @@ const SpectatorPlayerGroups = ({
                     return (
                       <div
                         key={player.id}
-                        className="bg-green-50 border-2 border-green-300 border-opacity-60 rounded-lg p-4 hover:shadow-lg hover:border-green-400 hover:border-opacity-80 transition-colors duration-150"
+                        className="gbx-player-card gbx-player-card--sold"
                       >
                         <div className="flex justify-between items-start mb-2 gap-3">
                           <div className="flex items-center gap-3 min-w-0">
@@ -127,7 +127,7 @@ const SpectatorPlayerGroups = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {availablePlayers.map((player) => {
                     return (
-                      <div key={player.id} className="border rounded-lg p-4 bg-yellow-50">
+                      <div key={player.id} className="gbx-player-card gbx-player-card--available">
                         <div className="flex justify-between items-start mb-2 gap-3">
                           <div className="flex items-center gap-3 min-w-0">
                             <PlayerAvatar player={player} size="md" />
@@ -162,7 +162,7 @@ const SpectatorPlayerGroups = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {unsoldPlayers.map((player) => {
                     return (
-                      <div key={player.id} className="border border-red-200 rounded-lg p-4 bg-red-50">
+                      <div key={player.id} className="gbx-player-card gbx-player-card--unsold">
                         <div className="flex justify-between items-start mb-2 gap-3">
                           <div className="flex items-center gap-3 min-w-0">
                             <PlayerAvatar player={player} size="md" />
@@ -208,7 +208,7 @@ const SpectatorPlayerGroups = ({
                     return (
                       <div
                         key={player.id}
-                        className="border-2 border-purple-300 rounded-lg p-4 bg-purple-50"
+                        className="gbx-player-card gbx-player-card--captain"
                       >
                         <div className="flex justify-between items-start mb-2 gap-3">
                           <div className="flex items-center gap-3 min-w-0">
@@ -274,7 +274,7 @@ const SpectatorPlayerGroups = ({
                       return (
                         <div
                           key={player.id}
-                          className="border-2 border-gray-300 rounded-lg p-4 bg-white bg-opacity-40"
+                          className={`gbx-player-card gbx-player-card--${status}`}
                         >
                           <div className="flex justify-between items-start mb-2 gap-3">
                             <div className="flex items-center gap-3 min-w-0">

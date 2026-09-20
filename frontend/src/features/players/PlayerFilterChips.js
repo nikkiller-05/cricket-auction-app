@@ -27,7 +27,7 @@ const PlayerFilterChips = ({
 
   return (
     <div className="space-y-4">
-      <h3 className="text-2xl font-bold text-gray-900 tracking-wide">All Players</h3>
+      <h3 className="text-xl font-bold text-gray-900">All Players</h3>
 
       {/* Modern Filter Tabs */}
       <div className="flex flex-wrap gap-2 pb-2">

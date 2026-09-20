@@ -149,6 +149,25 @@
 /* Content wrapper blends with the page (no distinct card-vs-background shade). */
 .gbx-dashboard-content { background: transparent !important; border-color: transparent !important; box-shadow: none !important; }
 
+/* ===== Phase 4: Player List card foundation =====
+   Solid, theme-aware surface (Phase 1 tokens) with a slim semantic accent
+   stripe — replaces the old pastel/glassy per-status backgrounds so cards read
+   as one consistent product instead of colored tiles. Gold stays an accent. */
+.gbx-player-card {
+  background: var(--gbx-bg-card);
+  border: 1px solid var(--gbx-border-subtle);
+  border-radius: 12px;
+  padding: 1rem;
+  box-shadow: var(--gbx-shadow-card);
+  transition: transform 150ms ease, box-shadow 150ms ease, border-color 150ms ease;
+}
+.gbx-player-card:hover { transform: translateY(-1px); border-color: var(--gbx-border-default); }
+.gbx-player-card--sold { border-left: 3px solid var(--gbx-success); }
+.gbx-player-card--available { border-left: 3px solid var(--gbx-brand); }
+.gbx-player-card--unsold { border-left: 3px solid var(--gbx-danger); }
+.gbx-player-card--captain,
+.gbx-player-card--retained { border-left: 3px solid #a78bfa; }
+
 /* Slate text (used across cards/tabs). */
 .dash-root[data-theme="dark"] .text-slate-900,
 .dash-root[data-theme="dark"] .text-slate-800 { color: #f3f1ea !important; }
