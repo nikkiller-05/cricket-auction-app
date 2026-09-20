@@ -255,7 +255,7 @@ const PublicCompletedAuction = ({ event }) => {
   };
 
   return (
-    <div className="min-h-screen flex flex-col overflow-x-hidden bg-gradient-to-br from-[#0b0a06] via-[#1c1608] to-[#2a1f08] text-white">
+    <div className="min-h-screen flex flex-col overflow-x-hidden gbx-bg text-white">
       {/* Top bar */}
       <header className="sticky top-0 z-30 backdrop-blur-xl bg-black/40 border-b border-amber-300/20">
         <div className="max-w-6xl mx-auto px-4 h-14 flex items-center justify-between gap-3">

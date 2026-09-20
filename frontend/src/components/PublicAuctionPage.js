@@ -39,7 +39,7 @@ const PublicAuctionPage = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0b0a06] via-[#1c1608] to-[#2a1f08] px-4">
+      <div className="min-h-screen flex items-center justify-center gbx-bg px-4">
         <div className="text-center">
           <p className="text-amber-100 text-lg mb-4">{error}</p>
           <button
@@ -55,7 +55,7 @@ const PublicAuctionPage = () => {
 
   if (!event) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-[#0b0a06] via-[#1c1608] to-[#2a1f08] px-4">
+      <div className="min-h-screen flex items-center justify-center gbx-bg px-4">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber-400 mx-auto mb-4" />
           <p className="text-amber-100 text-lg">Loading auction…</p>
