@@ -43,27 +43,24 @@
 /* Theme-aware golden header (overrides the base gradient above). */
 .dash-root[data-theme="dark"] .header {
   background:
-    radial-gradient(60% 100% at 100% 50%, rgba(232, 184, 75, 0.16) 0%, transparent 70%),
-    radial-gradient(70% 100% at 0% 0%, rgba(202, 138, 4, 0.22) 0%, transparent 65%),
-    linear-gradient(135deg, #0b0a06 0%, #1c1608 55%, #2a1f08 100%);
-  border-bottom: 1px solid rgba(253, 224, 71, 0.22);
+    radial-gradient(60% 100% at 100% 50%, rgba(245, 168, 0, 0.06) 0%, transparent 70%),
+    linear-gradient(180deg, #17130c 0%, #100e0b 100%);
+  border-bottom: 1px solid rgba(253, 224, 71, 0.16);
   box-shadow:
-    0 1px 0 rgba(253, 224, 71, 0.1) inset,
-    0 6px 16px -4px rgba(0, 0, 0, 0.5),
-    0 2px 0 -1px rgba(255, 255, 255, 0.06);
+    0 1px 0 rgba(253, 224, 71, 0.06) inset,
+    0 6px 16px -4px rgba(0, 0, 0, 0.5);
 }
 
 .dash-root[data-theme="light"] .header {
-  /* 50/50 golden-cream, light — a touch deeper, with a defined drop shadow. */
+  /* Warm champagne — premium, not a bright yellow block. */
   background:
-    radial-gradient(60% 100% at 100% 50%, rgba(214, 165, 60, 0.45) 0%, transparent 70%),
-    radial-gradient(60% 100% at 0% 0%, rgba(255, 232, 178, 0.7) 0%, transparent 65%),
-    linear-gradient(135deg, #e9d295 0%, #d8b155 50%, #e4c87e 100%);
-  border-bottom: 1px solid rgba(140, 95, 15, 0.45);
+    radial-gradient(70% 100% at 0% 0%, rgba(255, 244, 214, 0.75) 0%, transparent 68%),
+    linear-gradient(135deg, #f7ebc8 0%, #f0dfa8 55%, #ebd18a 100%);
+  border-bottom: 1px solid rgba(140, 95, 15, 0.32);
   box-shadow:
-    0 1px 0 rgba(255, 255, 255, 0.45) inset,
-    0 6px 16px -4px rgba(110, 75, 12, 0.4),
-    0 14px 30px -12px rgba(110, 75, 12, 0.45);
+    0 1px 0 rgba(255, 255, 255, 0.5) inset,
+    0 6px 16px -4px rgba(110, 75, 12, 0.35),
+    0 14px 30px -12px rgba(110, 75, 12, 0.4);
 }
 
 /* Light header sits on cream → wordmark needs dark ink, not white/bright gold. */
