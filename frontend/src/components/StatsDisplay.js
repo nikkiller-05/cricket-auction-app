@@ -1,5 +1,6 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import PlayerAvatar from './PlayerAvatar';
+import PlayerCardModal from './PlayerCardModal';
 import { formatCurrency } from '../lib/format';
 import { getTeamIcon } from '../sports';
 
@@ -13,7 +14,10 @@ const CATEGORY_LABELS = {
 };
 const formatCategoryLabel = (c) => CATEGORY_LABELS[c] || (c ? c.charAt(0).toUpperCase() + c.slice(1) : '—');
 
-const StatsDisplay = ({ stats, teams, players, settings }) => {
+const StatsDisplay = ({ stats, teams, players, settings, eventName }) => {
+  // Reuses the existing player-card modal (same one used in Squads/Players) —
+  // clicking a highlighted player here opens the identical profile view.
+  const [cardPlayer, setCardPlayer] = useState(null);
   // Memoize calculated stats to avoid recalculation on every render
   const { soldPlayers, captains, availablePlayers, unsoldPlayers, totalSpent } = useMemo(() => {
     const sold = players?.filter(p => p.status === 'sold' && p.category !== 'captain') || [];
@@ -50,36 +54,40 @@ const StatsDisplay = ({ stats, teams, players, settings }) => {
 
       {/* Headline tiles */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div className="relative overflow-hidden rounded-2xl border border-emerald-200/70 bg-white/90 p-5 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)]">
-          <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-emerald-500 to-teal-500" />
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white/90 p-5 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)]">
+          <span className="gbx-stat-accent gbx-stat-accent--success" />
           <div className="text-[11px] uppercase tracking-[0.18em] font-semibold text-slate-500">Total Spent</div>
-          <div className="mt-1 text-2xl font-extrabold text-emerald-600">{formatCurrency(totalSpent)}</div>
+          <div className="mt-1 text-2xl font-bold text-emerald-600">{formatCurrency(totalSpent)}</div>
           <div className="mt-0.5 text-xs text-slate-500">{soldPlayers.length} sold via bidding</div>
         </div>
 
-        <div className="relative overflow-hidden rounded-2xl border border-amber-200/70 bg-white/90 p-5 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)]">
-          <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-amber-500 to-orange-500" />
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white/90 p-5 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)]">
+          <span className="gbx-stat-accent gbx-stat-accent--gold" />
           <div className="text-[11px] uppercase tracking-[0.18em] font-semibold text-slate-500">Most Expensive</div>
           {stats?.highestBid?.player ? (
-            <div className="mt-1 flex items-center gap-3">
+            <button
+              type="button"
+              onClick={() => setCardPlayer({ player: stats.highestBid.player, team: teams?.find(t => t.id === stats.highestBid.player.team) })}
+              className="mt-1 flex w-full items-center gap-3 rounded-xl text-left transition hover:bg-slate-500/[0.06] -mx-1.5 px-1.5 py-1"
+            >
               <PlayerAvatar player={stats.highestBid.player} size="md" />
               <div className="min-w-0">
                 <div className="font-bold text-slate-900 truncate">{stats.highestBid.player.name}</div>
                 <div className="text-sm font-bold text-amber-600">{formatCurrency(stats.highestBid.amount)}</div>
               </div>
-            </div>
+            </button>
           ) : (
             <div className="mt-1 text-sm text-slate-400">—</div>
           )}
         </div>
 
-        <div className="relative overflow-hidden rounded-2xl border border-indigo-200/70 bg-white/90 p-5 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)]">
-          <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-indigo-500 to-violet-500" />
+        <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white/90 p-5 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)]">
+          <span className="gbx-stat-accent gbx-stat-accent--info" />
           <div className="text-[11px] uppercase tracking-[0.18em] font-semibold text-slate-500">Biggest Spender</div>
           {biggestSpender && biggestSpender.spent > 0 ? (
             <>
               <div className="mt-1 font-bold text-slate-900 truncate">{biggestSpender.team.name}</div>
-              <div className="text-sm font-bold text-indigo-600">{formatCurrency(biggestSpender.spent)}</div>
+              <div className="text-sm font-bold text-sky-600">{formatCurrency(biggestSpender.spent)}</div>
             </>
           ) : (
             <div className="mt-1 text-sm text-slate-400">—</div>
@@ -90,7 +98,7 @@ const StatsDisplay = ({ stats, teams, players, settings }) => {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         {/* Overall Statistics */}
         <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white/90 p-6 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)]">
-          <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-indigo-500 to-violet-500" />
+          <span className="gbx-stat-accent gbx-stat-accent--neutral" />
           <h4 className="text-xs uppercase tracking-[0.18em] font-semibold text-slate-500 mb-4">Overall</h4>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
@@ -118,7 +126,7 @@ const StatsDisplay = ({ stats, teams, players, settings }) => {
 
         {/* Financial Statistics */}
         <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white/90 p-6 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)]">
-          <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-emerald-500 to-teal-500" />
+          <span className="gbx-stat-accent gbx-stat-accent--success" />
           <h4 className="text-xs uppercase tracking-[0.18em] font-semibold text-slate-500 mb-4">Financials</h4>
           <div className="space-y-3">
             <div className="flex justify-between items-center">
@@ -129,7 +137,7 @@ const StatsDisplay = ({ stats, teams, players, settings }) => {
             {stats?.highestBid && stats.highestBid.player && (
               <div className="flex justify-between items-center">
                 <span className="text-sm text-slate-600">Highest Bid</span>
-                <span className="font-semibold text-emerald-600">{formatCurrency(stats.highestBid.amount)}</span>
+                <span className="font-semibold text-amber-600">{formatCurrency(stats.highestBid.amount)}</span>
               </div>
             )}
             
@@ -143,7 +151,7 @@ const StatsDisplay = ({ stats, teams, players, settings }) => {
             {stats?.averageBid && stats.averageBid > 0 && (
               <div className="flex justify-between items-center">
                 <span className="text-sm text-slate-600">Average Sale Price</span>
-                <span className="font-semibold text-indigo-600">{formatCurrency(Math.round(stats.averageBid))}</span>
+                <span className="font-semibold text-slate-900">{formatCurrency(Math.round(stats.averageBid))}</span>
               </div>
             )}
 
@@ -164,13 +172,17 @@ const StatsDisplay = ({ stats, teams, players, settings }) => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Highest Bid Card */}
           {stats?.highestBid?.player && (
-            <div className="relative overflow-hidden rounded-2xl border border-emerald-200/70 bg-white/90 p-6 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)]">
-              <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-emerald-500 to-teal-500" />
+            <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white/90 p-6 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)]">
+              <span className="gbx-stat-accent gbx-stat-accent--gold" />
               <div className="flex items-center justify-between mb-4">
                 <h4 className="text-xs uppercase tracking-[0.18em] font-semibold text-slate-500">🤑 Highest Bid</h4>
-                <span className="text-2xl sm:text-3xl font-extrabold text-emerald-600">{formatCurrency(stats.highestBid.amount)}</span>
+                <span className="text-2xl sm:text-3xl font-extrabold text-amber-600">{formatCurrency(stats.highestBid.amount)}</span>
               </div>
-              <div className="flex items-center gap-4">
+              <button
+                type="button"
+                onClick={() => setCardPlayer({ player: stats.highestBid.player, team: teams?.find(t => t.id === stats.highestBid.player.team) })}
+                className="flex w-full items-center gap-4 rounded-xl text-left transition hover:bg-slate-500/[0.06] -mx-2 px-2 py-1.5"
+              >
                 <PlayerAvatar player={stats.highestBid.player} size="lg" />
                 <div className="min-w-0 space-y-1">
                   <div className="text-lg font-bold text-slate-900 truncate">{stats.highestBid.player.name}</div>
@@ -181,19 +193,23 @@ const StatsDisplay = ({ stats, teams, players, settings }) => {
                     </div>
                   )}
                 </div>
-              </div>
+              </button>
             </div>
           )}
 
           {/* Lowest Bid Card */}
           {stats?.lowestBid?.player && (
-            <div className="relative overflow-hidden rounded-2xl border border-sky-200/70 bg-white/90 p-6 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)]">
-              <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-sky-500 to-blue-500" />
+            <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white/90 p-6 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)]">
+              <span className="gbx-stat-accent gbx-stat-accent--info" />
               <div className="flex items-center justify-between mb-4">
                 <h4 className="text-xs uppercase tracking-[0.18em] font-semibold text-slate-500">💎 Lowest Bid</h4>
                 <span className="text-2xl sm:text-3xl font-extrabold text-sky-600">{formatCurrency(stats.lowestBid.amount)}</span>
               </div>
-              <div className="flex items-center gap-4">
+              <button
+                type="button"
+                onClick={() => setCardPlayer({ player: stats.lowestBid.player, team: teams?.find(t => t.id === stats.lowestBid.player.team) })}
+                className="flex w-full items-center gap-4 rounded-xl text-left transition hover:bg-slate-500/[0.06] -mx-2 px-2 py-1.5"
+              >
                 <PlayerAvatar player={stats.lowestBid.player} size="lg" />
                 <div className="min-w-0 space-y-1">
                   <div className="text-lg font-bold text-slate-900 truncate">{stats.lowestBid.player.name}</div>
@@ -204,7 +220,7 @@ const StatsDisplay = ({ stats, teams, players, settings }) => {
                     </div>
                   )}
                 </div>
-              </div>
+              </button>
             </div>
           )}
         </div>
@@ -213,7 +229,7 @@ const StatsDisplay = ({ stats, teams, players, settings }) => {
       {/* Spend by Team — comparative bar chart */}
       {teamSpend.some(t => t.spent > 0) && (
         <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white/90 p-6 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)]">
-          <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-sky-500 to-indigo-500" />
+          <span className="gbx-stat-accent gbx-stat-accent--gold" />
           <h4 className="text-xs uppercase tracking-[0.18em] font-semibold text-slate-500 mb-4">Spend by Team</h4>
           <div className="space-y-3">
             {teamSpend.slice().sort((a, b) => b.spent - a.spent).map(({ team, spent }) => (
@@ -221,7 +237,7 @@ const StatsDisplay = ({ stats, teams, players, settings }) => {
                 <span className="w-28 sm:w-36 shrink-0 truncate text-sm font-medium text-slate-700">{team.name}</span>
                 <div className="flex-1 h-3 rounded-full bg-slate-100 overflow-hidden">
                   <div
-                    className="h-3 rounded-full bg-gradient-to-r from-indigo-500 to-violet-500 transition-[width] duration-500"
+                    className="h-3 rounded-full bg-amber-500 transition-[width] duration-500"
                     style={{ width: `${Math.max(2, (spent / maxTeamSpend) * 100)}%` }}
                   />
                 </div>
@@ -234,7 +250,7 @@ const StatsDisplay = ({ stats, teams, players, settings }) => {
 
       {/* Team Budget Analysis */}
       <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white/90 p-6 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)]">
-        <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-fuchsia-500 to-purple-500" />
+        <span className="gbx-stat-accent gbx-stat-accent--neutral" />
         <h4 className="text-xs uppercase tracking-[0.18em] font-semibold text-slate-500 mb-4">Team Budget Analysis</h4>
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-3 sm:gap-4">
           {teams?.map((team) => {
@@ -275,7 +291,7 @@ const StatsDisplay = ({ stats, teams, players, settings }) => {
 
       {/* Category Breakdown */}
       <div className="relative overflow-hidden rounded-2xl border border-slate-200/70 bg-white/90 p-6 shadow-[0_1px_0_rgba(255,255,255,0.7)_inset,0_8px_20px_-12px_rgba(15,23,42,0.18)]">
-        <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-amber-500 to-orange-500" />
+        <span className="gbx-stat-accent gbx-stat-accent--neutral" />
         <h4 className="text-xs uppercase tracking-[0.18em] font-semibold text-slate-500 mb-4">Category Breakdown</h4>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {['batter', 'bowler', 'allrounder', 'wicket-keeper'].map(category => {
@@ -284,7 +300,7 @@ const StatsDisplay = ({ stats, teams, players, settings }) => {
             const totalSpentInCategory = soldInCategory.reduce((sum, p) => sum + (p.finalBid || 0), 0);
             
             return (
-              <div key={category} className="text-center p-4 bg-white bg-opacity-70 rounded-lg border border-gray-300 shadow-md">
+              <div key={category} className="text-center p-4 bg-white/70 rounded-xl border border-slate-200/70 shadow-sm">
                 <h5 className="font-medium text-gray-900 mb-2">{formatCategoryLabel(category)}</h5>
                 <div className="space-y-1 text-sm">
                   <div className="text-gray-600">Total: {categoryPlayers.length}</div>
@@ -320,6 +336,15 @@ const StatsDisplay = ({ stats, teams, players, settings }) => {
             </div>
           </div>
         </div>
+      )}
+
+      {cardPlayer && (
+        <PlayerCardModal
+          player={cardPlayer.player}
+          team={cardPlayer.team}
+          eventName={eventName}
+          onClose={() => setCardPlayer(null)}
+        />
       )}
     </div>
   );

@@ -889,6 +889,7 @@ const UnifiedDashboard = ({ publicAuctionId = null }) => {
               teams={auctionData.teams || []}
               players={auctionData.players || []}
               settings={auctionData.settings || {}}
+              eventName={eventName}
             />
           )}
         </div>

@@ -168,6 +168,20 @@
 .gbx-player-card--captain,
 .gbx-player-card--retained { border-left: 3px solid #a78bfa; }
 
+/* ===== Phase 6: Statistics accent bars =====
+   Deliberate, fixed-hex accents for the Statistics cards' top hairline. Named
+   classes (not Tailwind "from-" / "to-" gradient utilities) so they are NOT
+   swept up by the generic dash-root "decorative accent -> gold" recolor rules
+   above, which previously made most Statistics cards gold regardless of their
+   intended semantic color (and mismatched a couple of two-color gradients).
+   Use gold sparingly (one true "important value" card), everything else is
+   a calm semantic tone. */
+.gbx-stat-accent { position: absolute; left: 0; right: 0; top: 0; height: 2px; }
+.gbx-stat-accent--gold { background: linear-gradient(90deg, #f59e0b, #d97706); }
+.gbx-stat-accent--success { background: linear-gradient(90deg, #10b981, #14b8a6); }
+.gbx-stat-accent--info { background: linear-gradient(90deg, #0ea5e9, #3b82f6); }
+.gbx-stat-accent--neutral { background: linear-gradient(90deg, rgba(148,163,184,0.6), rgba(148,163,184,0.25)); }
+
 /* ===== Phase 5: Squads / Team card foundation =====
    Solid, theme-aware surfaces (Phase 1 tokens) replacing the old pastel
    per-category backgrounds and heavy double-borders on every player row. */
