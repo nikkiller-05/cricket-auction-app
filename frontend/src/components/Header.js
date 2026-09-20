@@ -516,14 +516,14 @@ const Header = memo(({
           {/* Spectators have no dropdown, so their theme toggle + home live here. */}
           {isSpectator && (
             <>
-              <button type="button" onClick={() => toggleTheme()} className="gbx-hd-btn gbx-hd-grey" title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} aria-label="Toggle theme">
+              <button type="button" onClick={() => toggleTheme()} className="gbx-hd-btn gbx-hd-toggle" title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'} aria-label="Toggle theme">
                 {theme === 'dark' ? (
                   <svg className="gbx-hd-btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
                 ) : (
                   <svg className="gbx-hd-btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z" /></svg>
                 )}
               </button>
-              <a href="/" className="gbx-hd-btn gbx-hd-grey gbx-hd-home" title="Home" aria-label="Go to home">
+              <a href="/" className="gbx-hd-btn gbx-hd-toggle gbx-hd-home" title="Home" aria-label="Go to home">
                 <svg className="gbx-hd-btn-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                   <path d="M3 11.5 12 4l9 7.5" />
                   <path d="M5 10v10h5v-6h4v6h5V10" />

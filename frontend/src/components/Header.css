@@ -1296,6 +1296,13 @@
 /* Controls = warm taupe pill so it belongs to the golden header (both themes). */
 .gbx-hd-grey { color: #e6dabc; background: rgba(190,160,100,0.16); border-color: rgba(190,160,100,0.4); }
 .gbx-hd-grey:hover { background: rgba(190,160,100,0.26); border-color: rgba(190,160,100,0.56); }
+
+/* Spectator theme/home icons — identical look to the console toggle
+   (translucent + amber icon in dark; solid slate + amber in light). */
+.gbx-hd-toggle { color: #fcd34d; background: rgba(255,255,255,0.10); border-color: rgba(255,255,255,0.20); }
+.gbx-hd-toggle:hover { background: rgba(255,255,255,0.20); border-color: rgba(255,255,255,0.32); }
+.dash-root[data-theme="light"] .gbx-hd-toggle { color: #fcd34d; background: #1e293b; border-color: #1e293b; }
+.dash-root[data-theme="light"] .gbx-hd-toggle:hover { background: #334155; border-color: #334155; }
 .dash-root[data-theme="light"] .gbx-hd-grey { color: #3a2c08; background: rgba(110,75,12,0.14); border-color: rgba(110,75,12,0.42); }
 .dash-root[data-theme="light"] .gbx-hd-grey:hover { background: rgba(110,75,12,0.24); border-color: rgba(110,75,12,0.58); }
 
