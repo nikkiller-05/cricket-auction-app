@@ -183,7 +183,7 @@ const SmartRandomStage = ({
               type="button"
               onClick={onPick}
               disabled={stage !== 'idle' || busy || eligibleCount === 0}
-              className="rounded-xl bg-gradient-to-b from-amber-400 to-amber-500 px-5 py-3 text-sm font-bold text-slate-900 shadow-md shadow-amber-500/30 transition hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50"
+              className="rounded-full bg-gradient-to-b from-fuchsia-500 to-purple-600 px-5 py-3 text-sm font-bold text-white shadow-md shadow-fuchsia-500/30 transition hover:-translate-y-0.5 active:translate-y-0 disabled:cursor-not-allowed disabled:opacity-50"
             >
               {eligibleCount === 0 ? 'No players left' : '🎲 Pick Player'}
             </button>

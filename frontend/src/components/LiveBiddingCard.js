@@ -317,7 +317,7 @@ const LiveBiddingCardInner = ({
       </div>
 
       {rightSlot && (
-        <div className="gbx-live-placebid relative px-4 sm:px-6 pb-5 sm:pb-6">
+        <div className="gbx-live-placebid relative px-4 sm:px-6 pb-5 sm:pb-6 sticky bottom-0 z-30 pt-3 bg-gradient-to-b from-transparent via-[#1c1608]/95 to-[#0b0a06] sm:static sm:z-auto sm:pt-0 sm:bg-none">
           <div className="relative bg-gradient-to-br from-white/15 to-white/5 rounded-2xl p-3 sm:p-4 border border-white/20 shadow-2xl overflow-hidden">
             <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
             {rightSlot}
