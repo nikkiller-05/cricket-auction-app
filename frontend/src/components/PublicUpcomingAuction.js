@@ -36,11 +36,11 @@ const PublicUpcomingAuction = ({ event }) => {
 
   return (
     <div className="min-h-screen flex flex-col overflow-x-hidden gbx-bg text-white">
-      <header className="sticky top-0 z-30 backdrop-blur-xl bg-black/40 border-b border-amber-300/20">
-        <div className="max-w-5xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
+      <header className="sticky top-0 z-30 backdrop-blur-xl bg-gradient-to-b from-black/70 to-black/15 border-b border-amber-300/25 shadow-[0_16px_34px_-18px_rgba(0,0,0,0.95)]">
+        <div className="max-w-5xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
           <button onClick={() => navigate('/')} className="flex items-center gap-2 min-w-0 group" title="Home">
-            <img src="/auction-logo.png" alt="" className="h-8 w-8 object-contain shrink-0" />
-            <span className="font-extrabold tracking-tight truncate">
+            <img src="/auction-logo.png" alt="" className="h-10 w-auto shrink-0 drop-shadow-[0_1px_3px_rgba(0,0,0,0.55)]" />
+            <span className="font-extrabold tracking-tight text-lg truncate">
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-400">Golden</span>
               <span className="text-white">Bid</span>
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-amber-200 to-amber-400">X</span>
