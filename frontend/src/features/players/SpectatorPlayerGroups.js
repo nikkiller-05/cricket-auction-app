@@ -367,7 +367,7 @@ const SpectatorPlayerGroups = ({
 
           return (
             isEmpty && (
-              <div className="text-center py-12 bg-white bg-opacity-20 rounded-lg border-2 border-gray-300 border-opacity-50 shadow-lg">
+              <div className="gbx-empty-state text-center py-12">
                 <div className="text-4xl mb-4">🔍</div>
                 <h3 className="text-lg font-medium text-gray-900 mb-2">No Players Found</h3>
                 <p className="text-gray-600">No players match the selected filter criteria.</p>

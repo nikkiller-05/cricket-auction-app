@@ -93,6 +93,8 @@
 .dash-root[data-theme="dark"] .text-red-800 { color: #fca5a5 !important; }
 .dash-root[data-theme="dark"] .text-orange-700,
 .dash-root[data-theme="dark"] .text-orange-800 { color: #fdba74 !important; }
+.dash-root[data-theme="dark"] .text-amber-700,
+.dash-root[data-theme="dark"] .text-amber-800 { color: #fcd34d !important; }
 .dash-root[data-theme="dark"] .text-green-700,
 .dash-root[data-theme="dark"] .text-green-800 { color: #86efac !important; }
 .dash-root[data-theme="dark"] .text-yellow-700,
@@ -229,6 +231,16 @@
   border: 1px solid var(--gbx-border-subtle);
   border-radius: 10px;
   padding: 0.75rem;
+}
+
+/* ===== Phase 9: shared empty-state surface =====
+   Consistent "no data yet" card (icon + heading + body) reused wherever a list
+   can be empty — was previously a bare unbordered block in some places and an
+   old glassy opacity-20 box in others. */
+.gbx-empty-state {
+  background: var(--gbx-bg-card);
+  border: 1px solid var(--gbx-border-subtle);
+  border-radius: 14px;
 }
 
 /* Slate text (used across cards/tabs). */
