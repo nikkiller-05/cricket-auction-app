@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import PlayerAvatar from '../../components/PlayerAvatar';
+import PlayerCardModal from '../../components/PlayerCardModal';
 import { formatCurrency } from '../../lib/format';
 import { formatRoleLabel } from '../players/categories';
 
@@ -63,7 +64,11 @@ const SmartRandomStage = ({
   onCancel = () => {},
   onBid = () => {},
   busy = false,
+  eventName,
 }) => {
+  // Opens the same player-card modal used across Squads/Players/Stats/public
+  // pages, for the player who's just been revealed here.
+  const [showProfile, setShowProfile] = useState(false);
   const availablePlayers = useMemo(
     () => players.filter((p) => p.status === 'available' && p.category !== 'captain'),
     [players]
@@ -262,10 +267,21 @@ const SmartRandomStage = ({
 
           {stage === 'revealed' && selectedPlayer && (
             <>
-              <div className="mb-3">
+              <button
+                type="button"
+                onClick={() => setShowProfile(true)}
+                className="mb-3 rounded-3xl transition hover:opacity-90 active:scale-[0.98]"
+                title="View player profile"
+              >
                 <PlayerAvatar player={selectedPlayer} size={avatarSize} shape="rounded" />
-              </div>
-              <div className="text-2xl font-extrabold text-white">{selectedPlayer.name}</div>
+              </button>
+              <button
+                type="button"
+                onClick={() => setShowProfile(true)}
+                className="text-2xl font-bold text-white hover:text-amber-200 transition"
+              >
+                {selectedPlayer.name}
+              </button>
               {selectedPlayer.role && (
                 <div className="mb-3 text-xs font-semibold uppercase tracking-widest text-amber-300">
                   {formatRoleLabel(selectedPlayer.role)}
@@ -307,6 +323,15 @@ const SmartRandomStage = ({
           )}
         </div>
       </div>
+
+      {showProfile && selectedPlayer && (
+        <PlayerCardModal
+          player={selectedPlayer}
+          team={null}
+          eventName={eventName}
+          onClose={() => setShowProfile(false)}
+        />
+      )}
     </div>
   );
 };

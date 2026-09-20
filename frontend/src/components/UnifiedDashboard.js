@@ -565,6 +565,7 @@ const UnifiedDashboard = ({ publicAuctionId = null }) => {
               onCancel={handleCancelSelection}
               onBid={handleBidSelected}
               busy={selectionBusy}
+              eventName={eventName}
             />
           )}
         {/* SINGLE Live Bidding Section - Visible to everyone */}
