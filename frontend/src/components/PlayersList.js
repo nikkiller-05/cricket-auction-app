@@ -258,7 +258,7 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
           <span className="text-xs font-semibold text-slate-500">{filteredPlayers.length} {filteredPlayers.length === 1 ? 'player' : 'players'}</span>
         </div>
         
-        <div className="overflow-x-auto">
+        <div className="hidden md:block overflow-x-auto">
           <table className="gbx-players-table min-w-full">
             <thead className="bg-slate-50/80">
               <tr>
@@ -416,6 +416,126 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
             </tbody>
           </table>
           
+          {filteredPlayers.length === 0 && (
+            <div className="text-center py-12">
+              <div className="text-4xl mb-4">🔍</div>
+              <h3 className="text-lg font-medium text-gray-900 mb-2">No Players Found</h3>
+              <p className="text-gray-600">
+                {searchTerm || categoryFilter !== 'all' || statusFilter !== 'all'
+                  ? 'Try adjusting your search or filter criteria'
+                  : 'No players have been uploaded yet'
+                }
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Mobile: stacked cards so Start Bidding / Edit / Delete never require
+            horizontal scrolling to reach — the table above is desktop/tablet only. */}
+        <div className="md:hidden divide-y divide-slate-100">
+          {filteredPlayers.map((player) => {
+            const team = teams?.find((t) => t.id === player.team);
+            const isCurrentlyBidding = currentBid?.playerId === player.id;
+            const canStartBiddingForPlayer = canStartBidding &&
+                                           player.status === 'available' &&
+                                           player.category !== 'captain' &&
+                                           !currentBid;
+            return (
+              <div key={player.id} className={`gbx-player-row-mobile p-4 ${isCurrentlyBidding ? 'bg-amber-50/70' : ''}`}>
+                <div className="flex items-start gap-3">
+                  <PlayerAvatar player={player} size="md" />
+                  <div className="min-w-0 flex-1">
+                    <div className="flex items-center flex-wrap gap-1.5">
+                      <span className="text-base font-bold text-gray-900">
+                        {player.cricHeroesLink ? (
+                          <a
+                            href={player.cricHeroesLink}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-blue-600 hover:text-blue-800 hover:underline"
+                          >
+                            {player.name}
+                          </a>
+                        ) : player.name}
+                      </span>
+                      {teams?.some((t) => t.captain === player.id) && <span className="text-sm">👑</span>}
+                      {player.status === 'retained' && <span className="text-sm">🔒</span>}
+                      {isCurrentlyBidding && (
+                        <span className="bg-yellow-200 text-yellow-800 px-2 py-0.5 rounded-full text-[10px] font-semibold animate-pulse border border-yellow-400">LIVE</span>
+                      )}
+                    </div>
+                    <div className="text-xs text-gray-500">{formatRoleLabel(player.role)}</div>
+                    <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border ${getCategoryStyle(player.category)}`}>
+                        {player.category === 'wicket-keeper' ? 'keeper' : player.category}
+                      </span>
+                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border ${getStatusStyle(player.status)}`}>
+                        {player.status === 'assigned' ? 'Captain' :
+                         player.status === 'retained' ? 'Retained' :
+                         player.status === 'sold' ? 'Sold' :
+                         player.status === 'unsold' ? 'Unsold' :
+                         player.status === 'available' ? 'Available' :
+                         player.status}
+                      </span>
+                      {player.status === 'sold' ? (
+                        <span className="text-[11px] font-bold text-emerald-600">{formatCurrency(player.finalBid)}</span>
+                      ) : player.status === 'assigned' ? (
+                        <span className="text-[11px] font-bold text-purple-600">Captain</span>
+                      ) : player.status === 'retained' ? (
+                        <span className="text-[11px] font-bold text-cyan-600">{formatCurrency(player.retentionAmount || player.finalBid)}</span>
+                      ) : isCurrentlyBidding && player.currentBid > 0 ? (
+                        <span className="text-[11px] font-bold text-indigo-600">{formatCurrency(player.currentBid)}</span>
+                      ) : null}
+                      {team && (
+                        <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${getTeamStyle(player.team, teams)}`}>
+                          {getTeamIcon()} {cleanTeamName(team.name)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {canPerformBidActions && (
+                  <div className="mt-3 flex flex-wrap items-center gap-2">
+                    <PlayerImageUpload
+                      playerId={player.id}
+                      onUploaded={() => onDataRefresh && onDataRefresh()}
+                    />
+                    {canStartBiddingForPlayer && (
+                      <Button
+                        variant="primary"
+                        size="sm"
+                        onClick={() => handleStartBidding(player.id)}
+                        disabled={loading}
+                      >
+                        {loading ? 'Starting…' : '🔨 Start Bidding'}
+                      </Button>
+                    )}
+                    {isCurrentlyBidding && (
+                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-700 border border-amber-200 animate-pulse">
+                        🔥 Bidding
+                      </span>
+                    )}
+                    {canConfigure && (
+                      <>
+                        <IconBtn title="Edit player" onClick={() => openEditPlayer(player)}>
+                          <IcoPencil />
+                        </IconBtn>
+                        <IconBtn title="Delete player" danger onClick={() => handleDeletePlayer(player)}>
+                          <IcoTrash />
+                        </IconBtn>
+                      </>
+                    )}
+                    {canConfigure && player.status === 'sold' && (
+                      <Button variant="secondary" size="sm" onClick={() => setEditPricePlayer(player)}>
+                        💰 Edit Price
+                      </Button>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
           {filteredPlayers.length === 0 && (
             <div className="text-center py-12">
               <div className="text-4xl mb-4">🔍</div>
