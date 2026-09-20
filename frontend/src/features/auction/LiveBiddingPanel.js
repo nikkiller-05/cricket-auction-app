@@ -109,7 +109,7 @@ const LiveBiddingPanel = ({
                     disabled={!canBid}
                     className={`group relative overflow-hidden px-3 sm:px-4 py-2 sm:py-2.5 rounded-xl text-xs sm:text-sm font-bold transition-colors duration-200 border ${
                       canBid
-                        ? 'bg-gradient-to-br from-cyan-400/90 to-blue-600/90 text-white border-cyan-300/60 shadow-lg shadow-cyan-500/30 hover:shadow-xl hover:shadow-cyan-400/50 hover:-translate-y-0.5 hover:from-cyan-300 hover:to-blue-500 active:scale-95'
+                        ? 'bg-gradient-to-br from-amber-400/90 to-amber-600/90 text-slate-900 border-amber-300/60 shadow-lg shadow-amber-500/30 hover:shadow-xl hover:shadow-amber-400/50 hover:-translate-y-0.5 hover:from-amber-300 hover:to-amber-500 active:scale-95'
                         : 'bg-white/5 text-white hover:-translate-y-0.5 active:translate-y-0 transition-[background-color,box-shadow,transform] duration-150/40 cursor-not-allowed border-white/10'
                     }`}
                     title={
@@ -126,7 +126,7 @@ const LiveBiddingPanel = ({
                     <div className="relative flex flex-col items-center leading-tight">
                       <span className="tracking-wide">{cleanTeamName(team.name)}</span>
                       <span
-                        className={`text-[10px] mt-0.5 font-semibold ${canBid ? 'text-white/85' : 'text-white/30'}`}
+                        className={`text-[10px] mt-0.5 font-semibold ${canBid ? 'text-slate-900/70' : 'text-white/30'}`}
                       >
                         {formatCurrency(team.budget)}
                       </span>
@@ -203,7 +203,7 @@ const LiveBiddingPanel = ({
                       showError(error.response?.data?.error || 'Error placing bid');
                     }
                   }}
-                  className="rounded-full bg-gradient-to-b from-emerald-500 to-teal-600 px-5 py-2 text-sm font-semibold text-white shadow-md shadow-emerald-500/30 hover:-translate-y-0.5 active:translate-y-0 transition"
+                  className="rounded-full border border-amber-300/50 bg-amber-400/10 px-5 py-2 text-sm font-semibold text-amber-200 hover:bg-amber-400/20 hover:-translate-y-0.5 active:translate-y-0 transition"
                 >
                   Place
                 </button>

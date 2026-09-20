@@ -232,7 +232,7 @@ const SmartRandomStage = ({
                     type="button"
                     onClick={onReveal}
                     disabled={busy}
-                    className="rounded-full bg-gradient-to-b from-fuchsia-500 to-purple-600 px-6 py-2.5 text-sm font-bold text-white shadow-md shadow-fuchsia-500/30 transition hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50"
+                    className="rounded-xl bg-gradient-to-b from-amber-400 to-amber-500 px-6 py-2.5 text-sm font-bold text-slate-900 shadow-md shadow-amber-500/30 transition hover:-translate-y-0.5 active:translate-y-0 disabled:opacity-50"
                   >
                     ✨ Reveal Player
                   </button>

@@ -37,7 +37,7 @@ const PlayerFilterChips = ({
             onClick={() => onSelect(filter.id)}
             className={`tab-button ${active === filter.id ? 'active' : ''} ${
               active === filter.id
-                ? 'bg-blue-500 text-white shadow-xl border-2 border-blue-600'
+                ? 'bg-amber-400 text-slate-900 shadow-xl border-2 border-amber-500'
                 : 'bg-white bg-opacity-25 text-gray-800 hover:text-gray-900 hover:bg-white hover:bg-opacity-35 border-2 border-white border-opacity-50 hover:border-opacity-70'
             } whitespace-nowrap py-2 px-4 font-medium text-sm flex items-center rounded-lg shadow-lg min-w-fit transition-colors duration-150`}
           >
