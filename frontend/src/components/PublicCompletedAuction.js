@@ -7,6 +7,7 @@ import { getTeamIcon } from '../sports';
 import BrandFooter from './BrandFooter';
 import TeamSquadsModal from './TeamSquadsModal';
 import PlayerAvatar from './PlayerAvatar';
+import PlayerCardModal from './PlayerCardModal';
 
 // Distinct accent per team card (cycled) — mirrors the squad export palette.
 const TEAM_ACCENTS = [
@@ -136,6 +137,7 @@ const PublicCompletedAuction = ({ event }) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const [showSquads, setShowSquads] = useState(false);
   const [showPlayers, setShowPlayers] = useState(false);
+  const [cardPlayer, setCardPlayer] = useState(null);
   const [posterBusy, setPosterBusy] = useState(false);
   const menuRef = useRef(null);
   const posterRef = useRef(null);
@@ -200,7 +202,7 @@ const PublicCompletedAuction = ({ event }) => {
       teams, players, soldCount: soldPlayers.length,
       unsoldCount: players.length - soldPlayers.length,
       totalPlayers: players.length, totalSpend, squads, topBuys,
-      teamNameOf, spotlights, roster,
+      teamNameOf, teamById, spotlights, roster,
     };
   }, [data]);
 
@@ -408,7 +410,11 @@ const PublicCompletedAuction = ({ event }) => {
                     {summary.roster.map((p) => {
                       const sold = p.status === 'sold' || p.finalBid > 0;
                       return (
-                        <div key={p.id} className={`flex items-center gap-3 px-4 py-2.5 ${sold ? 'bg-emerald-500/[0.06]' : 'bg-rose-500/[0.05]'}`}>
+                        <div
+                          key={p.id}
+                          className={`flex items-center gap-3 px-4 py-2.5 cursor-pointer transition hover:bg-white/[0.06] ${sold ? 'bg-emerald-500/[0.06]' : 'bg-rose-500/[0.05]'}`}
+                          onClick={() => setCardPlayer({ player: p, team: summary.teamById[p.team] || null })}
+                        >
                           <PlayerAvatar player={p} size="sm" shape="rounded" />
                           <div className="min-w-0 flex-1">
                             <div className="font-semibold text-white truncate">{p.name}</div>
@@ -499,6 +505,14 @@ const PublicCompletedAuction = ({ event }) => {
         <div style={{ position: 'fixed', left: '-99999px', top: 0, pointerEvents: 'none' }} aria-hidden="true">
           <PosterCard ref={posterRef} event={event} summary={summary} />
         </div>
+      )}
+
+      {cardPlayer && (
+        <PlayerCardModal
+          player={cardPlayer.player}
+          team={cardPlayer.team}
+          onClose={() => setCardPlayer(null)}
+        />
       )}
     </div>
   );

@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useState } from 'react';
 import PlayerAvatar from '../../components/PlayerAvatar';
 import PlayerNameLink from '../../components/PlayerNameLink';
+import PlayerCardModal from '../../components/PlayerCardModal';
 import { formatCurrency, cleanTeamName } from '../../lib/format';
 import { getTeamStyle, CategoryTag } from './categories';
 import { getTeamIcon } from '../../sports';
@@ -17,6 +18,7 @@ const SpectatorPlayerGroups = ({
   unsoldPlayers = [],
   retainedPlayers = [],
 }) => {
+  const [cardPlayer, setCardPlayer] = useState(null);
   return (
     <>
       {(() => {
@@ -35,7 +37,7 @@ const SpectatorPlayerGroups = ({
                     const capAmt =
                       player.captainAmount || team?.captainAmount || player.finalBid || 0;
                     return (
-                      <div key={player.id} className="gbx-player-card gbx-player-card--captain">
+                      <div key={player.id} className="gbx-player-card gbx-player-card--captain cursor-pointer" onClick={() => setCardPlayer({ player, team })}>
                         <div className="flex justify-between items-start mb-2 gap-3">
                           <div className="flex items-center gap-3 min-w-0">
                             <PlayerAvatar player={player} size="md" />
@@ -83,7 +85,8 @@ const SpectatorPlayerGroups = ({
                     return (
                       <div
                         key={player.id}
-                        className="gbx-player-card gbx-player-card--sold"
+                        className="gbx-player-card gbx-player-card--sold cursor-pointer"
+                        onClick={() => setCardPlayer({ player, team })}
                       >
                         <div className="flex justify-between items-start mb-2 gap-3">
                           <div className="flex items-center gap-3 min-w-0">
@@ -127,7 +130,7 @@ const SpectatorPlayerGroups = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {availablePlayers.map((player) => {
                     return (
-                      <div key={player.id} className="gbx-player-card gbx-player-card--available">
+                      <div key={player.id} className="gbx-player-card gbx-player-card--available cursor-pointer" onClick={() => setCardPlayer({ player, team: null })}>
                         <div className="flex justify-between items-start mb-2 gap-3">
                           <div className="flex items-center gap-3 min-w-0">
                             <PlayerAvatar player={player} size="md" />
@@ -162,7 +165,7 @@ const SpectatorPlayerGroups = ({
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                   {unsoldPlayers.map((player) => {
                     return (
-                      <div key={player.id} className="gbx-player-card gbx-player-card--unsold">
+                      <div key={player.id} className="gbx-player-card gbx-player-card--unsold cursor-pointer" onClick={() => setCardPlayer({ player, team: null })}>
                         <div className="flex justify-between items-start mb-2 gap-3">
                           <div className="flex items-center gap-3 min-w-0">
                             <PlayerAvatar player={player} size="md" />
@@ -208,7 +211,8 @@ const SpectatorPlayerGroups = ({
                     return (
                       <div
                         key={player.id}
-                        className="gbx-player-card gbx-player-card--captain"
+                        className="gbx-player-card gbx-player-card--captain cursor-pointer"
+                        onClick={() => setCardPlayer({ player, team })}
                       >
                         <div className="flex justify-between items-start mb-2 gap-3">
                           <div className="flex items-center gap-3 min-w-0">
@@ -274,7 +278,8 @@ const SpectatorPlayerGroups = ({
                       return (
                         <div
                           key={player.id}
-                          className={`gbx-player-card gbx-player-card--${status}`}
+                          className={`gbx-player-card gbx-player-card--${status} cursor-pointer`}
+                          onClick={() => setCardPlayer({ player, team })}
                         >
                           <div className="flex justify-between items-start mb-2 gap-3">
                             <div className="flex items-center gap-3 min-w-0">
@@ -369,6 +374,14 @@ const SpectatorPlayerGroups = ({
             )
           );
         })()}
+
+      {cardPlayer && (
+        <PlayerCardModal
+          player={cardPlayer.player}
+          team={cardPlayer.team}
+          onClose={() => setCardPlayer(null)}
+        />
+      )}
     </>
   );
 };

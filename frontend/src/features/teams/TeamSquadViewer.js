@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import PlayerNameLink from '../../components/PlayerNameLink';
+import PlayerAvatar from '../../components/PlayerAvatar';
+import PlayerCardModal from '../../components/PlayerCardModal';
 import { formatCurrency, cleanTeamName } from '../../lib/format';
 import { getCategoryStyle, formatCategoryLabel } from '../players/categories';
 import TeamLogo from './TeamLogo';
@@ -9,6 +11,7 @@ import TeamLogo from './TeamLogo';
 // sections are gated by the enableCaptains / enableRetention feature flags.
 const TeamSquadViewer = ({ teams, players, enableCaptains = true, enableRetention = true }) => {
   const [selectedTeam, setSelectedTeam] = useState(teams[0]?.id || null);
+  const [cardPlayer, setCardPlayer] = useState(null);
 
   if (!teams || teams.length === 0) {
     return (
@@ -216,12 +219,16 @@ const TeamSquadViewer = ({ teams, players, enableCaptains = true, enableRetentio
                   Team Captain
                   <span className="ml-2 text-sm text-gray-500">(1)</span>
                 </h4>
-                <div className="gbx-squad-row">
+                <div
+                  className="gbx-squad-row cursor-pointer"
+                  role="button"
+                  tabIndex={0}
+                  onClick={() => setCardPlayer(captain)}
+                  onKeyDown={(e) => { if (e.key === 'Enter') setCardPlayer(captain); }}
+                >
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-semibold shrink-0">
-                        C
-                      </div>
+                      <PlayerAvatar player={captain} size="sm" shape="rounded" />
                       <div className="min-w-0">
                         <h5 className="font-semibold text-gray-900 flex items-center gap-2 text-sm">
                           <PlayerNameLink player={captain} />
@@ -263,16 +270,18 @@ const TeamSquadViewer = ({ teams, players, enableCaptains = true, enableRetentio
                   </h4>
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    {categoryPlayers.map((player, index) => (
+                    {categoryPlayers.map((player) => (
                       <div
                         key={player.id}
-                        className="gbx-squad-row"
+                        className="gbx-squad-row cursor-pointer"
+                        role="button"
+                        tabIndex={0}
+                        onClick={() => setCardPlayer(player)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') setCardPlayer(player); }}
                       >
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center space-x-3 min-w-0">
-                            <div className="w-6 h-6 bg-gray-600 text-white rounded-full flex items-center justify-center text-xs font-semibold shrink-0">
-                              {index + 1}
-                            </div>
+                            <PlayerAvatar player={player} size="sm" shape="rounded" />
                             <div className="min-w-0">
                               <h5 className="font-semibold text-gray-900 flex items-center text-sm">
                                 <PlayerNameLink player={player} />
@@ -400,6 +409,10 @@ const TeamSquadViewer = ({ teams, players, enableCaptains = true, enableRetentio
             </div>
           )}
         </div>
+      )}
+
+      {cardPlayer && (
+        <PlayerCardModal player={cardPlayer} team={currentTeam} onClose={() => setCardPlayer(null)} />
       )}
     </div>
   );

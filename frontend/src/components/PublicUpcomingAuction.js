@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 import BrandFooter from './BrandFooter';
+import PlayerCardModal from './PlayerCardModal';
 
 const roleLabel = (r) =>
   r === 'wicket-keeper' ? 'Keeper' : r ? r.charAt(0).toUpperCase() + r.slice(1) : 'Player';
@@ -18,6 +19,7 @@ const PublicUpcomingAuction = ({ event }) => {
   const navigate = useNavigate();
   const [players, setPlayers] = useState(null);
   const [err, setErr] = useState('');
+  const [cardPlayer, setCardPlayer] = useState(null);
 
   useEffect(() => {
     let active = true;
@@ -160,7 +162,11 @@ const PublicUpcomingAuction = ({ event }) => {
         ) : (
           <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-3">
             {players.map((p) => (
-              <div key={p.id} className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 flex items-center gap-3">
+              <div
+                key={p.id}
+                className="rounded-2xl border border-white/10 bg-white/[0.04] p-3 flex items-center gap-3 cursor-pointer hover:bg-white/[0.07] transition"
+                onClick={() => setCardPlayer({ ...p, imageUrl: p.profile_pic_url })}
+              >
                 <img src={p.profile_pic_url || '/logo192.png'} alt="" className="w-12 h-12 rounded-xl object-cover bg-white/10 shrink-0" />
                 <div className="min-w-0 flex-1">
                   <div className="font-semibold text-white truncate">{p.name}</div>
@@ -180,6 +186,10 @@ const PublicUpcomingAuction = ({ event }) => {
       </main>
 
       <BrandFooter theme="dark" compact />
+
+      {cardPlayer && (
+        <PlayerCardModal player={cardPlayer} team={null} onClose={() => setCardPlayer(null)} />
+      )}
     </div>
   );
 };
