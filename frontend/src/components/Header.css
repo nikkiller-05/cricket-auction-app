@@ -1303,6 +1303,16 @@
 .gbx-hd-toggle:hover { background: rgba(255,255,255,0.20); border-color: rgba(255,255,255,0.32); }
 .dash-root[data-theme="light"] .gbx-hd-toggle { color: #fcd34d; background: #1e293b; border-color: #1e293b; }
 .dash-root[data-theme="light"] .gbx-hd-toggle:hover { background: #334155; border-color: #334155; }
+
+/* Round icon-only header button — matches the console's h-9 w-9 round toggle. */
+.gbx-hd-iconbtn {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 2.25rem; width: 2.25rem; padding: 0;
+  border-radius: 9999px; border: 1px solid transparent; cursor: pointer;
+  transition: background 0.2s ease, border-color 0.2s ease, transform 0.15s ease;
+}
+.gbx-hd-iconbtn:hover { transform: translateY(-1px); }
+.gbx-hd-iconbtn .gbx-hd-btn-svg { width: 1.15rem; height: 1.15rem; }
 .dash-root[data-theme="light"] .gbx-hd-grey { color: #3a2c08; background: rgba(110,75,12,0.14); border-color: rgba(110,75,12,0.42); }
 .dash-root[data-theme="light"] .gbx-hd-grey:hover { background: rgba(110,75,12,0.24); border-color: rgba(110,75,12,0.58); }
 
