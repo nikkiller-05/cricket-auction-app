@@ -482,6 +482,16 @@
   .gbx-lead-ring { animation: none; opacity: 0; }
 }
 
+/* Player card poster: a small celebratory pop for the sale amount. */
+@keyframes gbxPosterAmountIn {
+  0% { transform: scale(0.6); opacity: 0; }
+  100% { transform: scale(1); opacity: 1; }
+}
+.gbx-poster-amount-in { animation: gbxPosterAmountIn 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) both; }
+@media (prefers-reduced-motion: reduce) {
+  .gbx-poster-amount-in { animation: none; }
+}
+
 /* ===== SOLD / UNSOLD celebration ===== */
 /* Sold photo: spin in and expand with an overshoot bounce. */
 @keyframes gbxSoldPhoto {

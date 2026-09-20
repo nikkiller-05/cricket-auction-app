@@ -511,6 +511,8 @@ const PublicCompletedAuction = ({ event }) => {
         <PlayerCardModal
           player={cardPlayer.player}
           team={cardPlayer.team}
+          eventName={event.name}
+          eventLogoUrl={event.logo_url}
           onClose={() => setCardPlayer(null)}
         />
       )}

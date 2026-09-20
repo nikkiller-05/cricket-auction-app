@@ -521,6 +521,12 @@ const auctionController = {
       team.budget -= currentBid.currentAmount;
       team.players.push(player.id);
 
+      // Snapshot the bid trail onto the player record (for the results/poster
+      // "auction bids" view) before clearing the transient undo-history below —
+      // additive only, does not change the undo mechanism or its data.
+      const priorBids = dataService.getPlayerBiddingHistory(player.id);
+      player.bidHistory = [...priorBids, { id: 'final', teamId: team.id, teamName: team.name, amount: player.finalBid }];
+
       // Clear bidding history for this player after sale
       dataService.clearPlayerBiddingHistory(player.id);
 

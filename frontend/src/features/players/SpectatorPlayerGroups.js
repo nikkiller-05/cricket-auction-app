@@ -17,6 +17,7 @@ const SpectatorPlayerGroups = ({
   availablePlayers = [],
   unsoldPlayers = [],
   retainedPlayers = [],
+  eventName,
 }) => {
   const [cardPlayer, setCardPlayer] = useState(null);
   return (
@@ -379,6 +380,7 @@ const SpectatorPlayerGroups = ({
         <PlayerCardModal
           player={cardPlayer.player}
           team={cardPlayer.team}
+          eventName={eventName}
           onClose={() => setCardPlayer(null)}
         />
       )}

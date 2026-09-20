@@ -188,7 +188,13 @@ const PublicUpcomingAuction = ({ event }) => {
       <BrandFooter theme="dark" compact />
 
       {cardPlayer && (
-        <PlayerCardModal player={cardPlayer} team={null} onClose={() => setCardPlayer(null)} />
+        <PlayerCardModal
+          player={cardPlayer}
+          team={null}
+          eventName={event.name}
+          eventLogoUrl={event.logo_url}
+          onClose={() => setCardPlayer(null)}
+        />
       )}
     </div>
   );

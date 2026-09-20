@@ -9,7 +9,7 @@ import TeamLogo from './TeamLogo';
 // Per-team squad view: team selector, budget bar, quick stats, captain card,
 // players grouped by category, and a composition summary. Captain/Retained
 // sections are gated by the enableCaptains / enableRetention feature flags.
-const TeamSquadViewer = ({ teams, players, enableCaptains = true, enableRetention = true, interactive = true }) => {
+const TeamSquadViewer = ({ teams, players, enableCaptains = true, enableRetention = true, interactive = true, eventName }) => {
   const [selectedTeam, setSelectedTeam] = useState(teams[0]?.id || null);
   const [cardPlayer, setCardPlayer] = useState(null);
 
@@ -412,7 +412,7 @@ const TeamSquadViewer = ({ teams, players, enableCaptains = true, enableRetentio
       )}
 
       {cardPlayer && (
-        <PlayerCardModal player={cardPlayer} team={currentTeam} onClose={() => setCardPlayer(null)} />
+        <PlayerCardModal player={cardPlayer} team={currentTeam} eventName={eventName} onClose={() => setCardPlayer(null)} />
       )}
     </div>
   );
