@@ -1288,8 +1288,10 @@
 .gbx-pa:focus-visible { outline: none; box-shadow: 0 0 0 2px rgba(245,168,0,0.65); }
 .gbx-pa:disabled { opacity: 0.6; cursor: default; }
 .gbx-pa-ico { font-size: 0.9rem; line-height: 1; }
-.gbx-pa-notstarted, .gbx-pa-paused { background: #059669; color: #ffffff; }
-.gbx-pa-live { background: #f59e0b; color: #26160a; }
+/* Primary actions (Start/Resume) = the established GoldenBidX gold. Pause gets
+   a slightly more muted amber so it reads as "in progress", not a fresh commit. */
+.gbx-pa-notstarted, .gbx-pa-paused { background: #f59e0b; color: #26160a; }
+.gbx-pa-live { background: #d97706; color: #ffffff; }
 .gbx-pa-spin { width: 1rem; height: 1rem; border: 2px solid rgba(0,0,0,0.25); border-top-color: #000; border-radius: 9999px; animation: spin 1s linear infinite; }
 
 /* Header utility button (Auction Controls trigger) */
@@ -1380,6 +1382,22 @@
 .gbx-menu-danger { color: #fca5a5; }
 .gbx-menu-danger:hover { background: rgba(239,68,68,0.14); color: #fecaca; }
 .gbx-menu-danger .gbx-menu-ico { color: #f87171; }
+
+/* Light theme: the Controls dropdown was hardcoded dark regardless of the
+   site's theme toggle — give it a proper warm-white surface. */
+.dash-root[data-theme="light"] .gbx-menu {
+  background: #ffffff;
+  border-color: rgba(160, 120, 30, 0.16);
+  box-shadow: 0 20px 50px -18px rgba(80, 60, 10, 0.3);
+}
+.dash-root[data-theme="light"] .gbx-menu-head { color: rgba(23, 32, 51, 0.5); }
+.dash-root[data-theme="light"] .gbx-menu-item { color: #172033; }
+.dash-root[data-theme="light"] .gbx-menu-item:hover:not(:disabled) { background: rgba(23, 32, 51, 0.06); }
+.dash-root[data-theme="light"] .gbx-menu-ico { color: #475569; }
+.dash-root[data-theme="light"] .gbx-menu-sep { background: rgba(23, 32, 51, 0.1); }
+.dash-root[data-theme="light"] .gbx-menu-danger { color: #b91c1c; }
+.dash-root[data-theme="light"] .gbx-menu-danger:hover { background: rgba(220, 38, 38, 0.1); color: #991b1b; }
+.dash-root[data-theme="light"] .gbx-menu-danger .gbx-menu-ico { color: #dc2626; }
 
 /* Compact progress strip */
 .gbx-progress { max-width: 1400px; margin: 0 auto; padding: 0.4rem 1.5rem 0.55rem; border-top: 1px solid rgba(255,255,255,0.07); }

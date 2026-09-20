@@ -182,6 +182,24 @@
 .gbx-stat-accent--info { background: linear-gradient(90deg, #0ea5e9, #3b82f6); }
 .gbx-stat-accent--neutral { background: linear-gradient(90deg, rgba(148,163,184,0.6), rgba(148,163,184,0.25)); }
 
+/* ===== Phase 7: Auction Controls confirmation modal surface =====
+   Shared by the promise-based confirm() dialog and the Undo/Revert Bid modal —
+   both were hardcoded dark regardless of the site's theme toggle. Solid,
+   theme-aware (Phase 1 tokens), not glassy. */
+.gbx-modal-surface {
+  background: var(--gbx-bg-card-elevated);
+  border: 1px solid var(--gbx-border-default);
+  color: var(--gbx-text-primary);
+}
+.gbx-modal-sub { color: var(--gbx-text-secondary); }
+.gbx-modal-cancel-btn {
+  background: rgba(148, 163, 184, 0.16);
+  color: var(--gbx-text-primary);
+  border: 1px solid var(--gbx-border-subtle);
+  transition: background-color 150ms ease;
+}
+.gbx-modal-cancel-btn:hover { background: rgba(148, 163, 184, 0.26); }
+
 /* ===== Phase 5: Squads / Team card foundation =====
    Solid, theme-aware surfaces (Phase 1 tokens) replacing the old pastel
    per-category backgrounds and heavy double-borders on every player row. */

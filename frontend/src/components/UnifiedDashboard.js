@@ -900,7 +900,7 @@ const UnifiedDashboard = ({ publicAuctionId = null }) => {
         <div className="fixed inset-0 z-[3000] flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/75 backdrop-blur-sm" onClick={cancelUndoAction} />
           <div
-            className="relative w-full max-w-md rounded-2xl border border-white/12 bg-[#14121c] shadow-[0_30px_80px_-20px_rgba(0,0,0,0.85)]"
+            className="gbx-modal-surface relative w-full max-w-md rounded-2xl shadow-[0_30px_80px_-20px_rgba(0,0,0,0.85)]"
             role="dialog"
             aria-modal="true"
           >
@@ -913,7 +913,7 @@ const UnifiedDashboard = ({ publicAuctionId = null }) => {
                 </div>
               </div>
 
-              <h3 className="text-lg font-bold text-center text-white mb-2">
+              <h3 className="text-lg font-bold text-center mb-2">
                 {undoConfirmAction?.type === 'bid'
                   ? 'Revert Bid?'
                   : undoConfirmAction?.type === 'unsold'
@@ -921,12 +921,12 @@ const UnifiedDashboard = ({ publicAuctionId = null }) => {
                     : 'Undo Sale?'}
               </h3>
 
-              <p className="text-sm text-center text-indigo-100/70 mb-6">{undoConfirmAction?.message}</p>
+              <p className="gbx-modal-sub text-sm text-center mb-6">{undoConfirmAction?.message}</p>
 
               <div className="flex flex-col sm:flex-row gap-3">
                 <button
                   onClick={cancelUndoAction}
-                  className="flex-1 bg-white/8 hover:bg-white/14 text-white font-semibold py-2.5 px-4 rounded-full border border-white/15 transition-colors"
+                  className="gbx-modal-cancel-btn flex-1 font-semibold py-2.5 px-4 rounded-full transition-colors"
                 >
                   Cancel
                 </button>

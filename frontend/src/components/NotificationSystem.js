@@ -134,18 +134,18 @@ const Notification = ({ notification, onRemove, onConfirm, onCancel }) => {
     const doCancel = () => { setIsExiting(true); setTimeout(() => onCancel(id), 200); };
     const doConfirm = () => { setIsExiting(true); setTimeout(() => onConfirm(id), 200); };
     return (
-      <div className={`w-full max-w-md rounded-2xl border border-amber-300/25 bg-[#1b1724] text-white shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7)] p-6 ${isExiting ? 'gbx-modal-out' : 'gbx-modal-in'}`}>
+      <div className={`gbx-modal-surface w-full max-w-md rounded-2xl shadow-[0_30px_80px_-20px_rgba(0,0,0,0.7)] p-6 ${isExiting ? 'gbx-modal-out' : 'gbx-modal-in'}`}>
         <div className="flex items-start gap-3.5">
           <span className="grid place-items-center h-10 w-10 shrink-0 rounded-full bg-amber-400/15 text-xl ring-1 ring-amber-300/30">{getIcon()}</span>
           <div className="flex-1 min-w-0 pt-0.5">
             {title && <h4 className="font-bold text-base tracking-tight">{title}</h4>}
-            <p className="mt-1 text-sm text-white/75 whitespace-pre-line break-words leading-relaxed">{message}</p>
+            <p className="gbx-modal-sub mt-1 text-sm whitespace-pre-line break-words leading-relaxed">{message}</p>
           </div>
         </div>
         <div className="mt-6 flex gap-2.5 justify-end">
           <button
             onClick={doCancel}
-            className="px-4 py-2 rounded-full bg-white/10 hover:bg-white/20 text-white text-sm font-semibold transition active:scale-95"
+            className="gbx-modal-cancel-btn px-4 py-2 rounded-full text-sm font-semibold transition active:scale-95"
           >
             Cancel
           </button>
