@@ -168,6 +168,37 @@
 .gbx-player-card--captain,
 .gbx-player-card--retained { border-left: 3px solid #a78bfa; }
 
+/* ===== Phase 5: Squads / Team card foundation =====
+   Solid, theme-aware surfaces (Phase 1 tokens) replacing the old pastel
+   per-category backgrounds and heavy double-borders on every player row. */
+.gbx-team-card {
+  background: var(--gbx-bg-container);
+  border: 1px solid var(--gbx-border-subtle);
+  border-radius: 16px;
+  box-shadow: var(--gbx-shadow-card);
+  overflow: hidden;
+}
+.gbx-squad-section {
+  background: var(--gbx-bg-card);
+  border: 1px solid var(--gbx-border-subtle);
+  border-radius: 14px;
+  padding: 1rem;
+}
+.gbx-squad-row {
+  background: var(--gbx-bg-muted);
+  border: 1px solid var(--gbx-border-subtle);
+  border-radius: 10px;
+  padding: 0.65rem 0.75rem;
+  transition: background-color 150ms ease, border-color 150ms ease;
+}
+.gbx-squad-row:hover { border-color: var(--gbx-border-default); }
+.gbx-squad-stat {
+  background: var(--gbx-bg-muted);
+  border: 1px solid var(--gbx-border-subtle);
+  border-radius: 10px;
+  padding: 0.75rem;
+}
+
 /* Slate text (used across cards/tabs). */
 .dash-root[data-theme="dark"] .text-slate-900,
 .dash-root[data-theme="dark"] .text-slate-800 { color: #f3f1ea !important; }

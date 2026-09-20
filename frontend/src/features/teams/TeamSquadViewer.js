@@ -61,11 +61,11 @@ const TeamSquadViewer = ({ teams, players, enableCaptains = true, enableRetentio
   const budgetUsed = currentTeam ? (totalSpent / (currentTeam.budget + totalSpent)) * 100 : 0;
 
   return (
-    <div className="bg-white bg-opacity-25 shadow-xl rounded-lg border border-white border-opacity-20">
+    <div className="gbx-team-card">
       {/* Team Selector Header */}
       <div className="border-b border-gray-200 px-6 py-4">
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between space-y-4 sm:space-y-0">
-          <h3 className="text-2xl font-bold text-gray-900">Team Squads</h3>
+          <h3 className="text-xl font-bold text-gray-900">Team Squads</h3>
         </div>
 
         {/* Team Navigation Cards */}
@@ -83,9 +83,9 @@ const TeamSquadViewer = ({ teams, players, enableCaptains = true, enableRetentio
                 onClick={() => setSelectedTeam(team.id)}
                 className={`tab-button ${selectedTeam === team.id ? 'active' : ''} ${
                   selectedTeam === team.id
-                    ? 'bg-amber-400 text-slate-900 shadow-xl border-amber-500'
+                    ? 'bg-amber-400 text-slate-900 border-amber-500 shadow-sm'
                     : 'bg-white bg-opacity-20 text-gray-800 hover:text-gray-900 hover:bg-white hover:bg-opacity-30 border-white border-opacity-30'
-                } whitespace-nowrap py-2 px-4 font-medium text-sm flex items-center rounded-lg border shadow-lg min-w-fit`}
+                } whitespace-nowrap py-2 px-4 font-medium text-sm flex items-center rounded-lg border min-w-fit`}
               >
                 <TeamLogo team={team} size="xs" className="mr-2" /> {cleanTeamName(team.name)}
                 {teamPlayerCount > 0 && (
@@ -110,19 +110,19 @@ const TeamSquadViewer = ({ teams, players, enableCaptains = true, enableRetentio
         <div className="p-6">
           {/* Team Header */}
           <div className="mb-6">
-            <div className="flex items-center justify-between mb-4">
-              <h2 className="text-2xl font-bold text-gray-900 flex items-center gap-3">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 mb-4">
+              <h2 className="text-xl font-bold text-gray-900 flex items-center gap-3 min-w-0">
                 <TeamLogo team={currentTeam} size="md" rounded="rounded-xl" />
-                {cleanTeamName(currentTeam.name)}
+                <span className="truncate">{cleanTeamName(currentTeam.name)}</span>
               </h2>
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center gap-4 shrink-0">
                 <div className="text-right">
-                  <div className="text-sm text-gray-500">Total Players</div>
-                  <div className="text-xl font-semibold text-gray-900">{teamPlayers.length}</div>
+                  <div className="text-[11px] uppercase tracking-wide text-gray-500">Total Players</div>
+                  <div className="text-xl font-bold text-gray-900">{teamPlayers.length}</div>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm text-gray-500">Budget Remaining</div>
-                  <div className="text-xl font-semibold text-green-600">
+                  <div className="text-[11px] uppercase tracking-wide text-gray-500">Budget Remaining</div>
+                  <div className="text-xl font-bold text-green-600">
                     {formatCurrency(currentTeam.budget)}
                   </div>
                 </div>
@@ -154,7 +154,6 @@ const TeamSquadViewer = ({ teams, players, enableCaptains = true, enableRetentio
                         key: 'captain',
                         value: captain ? 1 : 0,
                         label: 'Captain',
-                        wrap: 'bg-purple-50',
                         text: 'text-purple-600',
                       },
                     ]
@@ -165,7 +164,6 @@ const TeamSquadViewer = ({ teams, players, enableCaptains = true, enableRetentio
                         key: 'retained',
                         value: teamRetainedPlayers.length,
                         label: 'Retained',
-                        wrap: 'bg-indigo-50',
                         text: 'text-indigo-600',
                       },
                     ]
@@ -174,14 +172,12 @@ const TeamSquadViewer = ({ teams, players, enableCaptains = true, enableRetentio
                   key: 'bought',
                   value: boughtPlayers.length,
                   label: 'Bought',
-                  wrap: 'bg-blue-50',
                   text: 'text-blue-600',
                 },
                 {
                   key: 'spent',
                   value: formatCurrency(totalSpent),
                   label: 'Total Spent',
-                  wrap: 'bg-green-50',
                   text: 'text-green-600',
                 },
                 {
@@ -192,7 +188,6 @@ const TeamSquadViewer = ({ teams, players, enableCaptains = true, enableRetentio
                       : 0
                   ),
                   label: 'Avg Price',
-                  wrap: 'bg-orange-50',
                   text: 'text-orange-600',
                 },
               ];
@@ -202,9 +197,9 @@ const TeamSquadViewer = ({ teams, players, enableCaptains = true, enableRetentio
               return (
                 <div className={`grid grid-cols-2 ${cols} gap-4 mb-6`}>
                   {tiles.map((t) => (
-                    <div key={t.key} className={`${t.wrap} rounded-lg p-3 text-center`}>
+                    <div key={t.key} className="gbx-squad-stat text-center">
                       <div className={`text-2xl font-bold ${t.text}`}>{t.value}</div>
-                      <div className={`text-xs ${t.text}`}>{t.label}</div>
+                      <div className="text-xs text-gray-500">{t.label}</div>
                     </div>
                   ))}
                 </div>
@@ -215,34 +210,34 @@ const TeamSquadViewer = ({ teams, players, enableCaptains = true, enableRetentio
           {/* Captain Section */}
           {enableCaptains && captain && (
             <div className="mb-6">
-              <div className="bg-purple-50 border-2 border-purple-300 border-opacity-70 rounded-lg p-4 shadow-md">
-                <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+              <div className="gbx-squad-section">
+                <h4 className="text-base font-semibold text-gray-900 mb-3 flex items-center">
                   <span className="text-2xl mr-3">👑</span>
                   Team Captain
                   <span className="ml-2 text-sm text-gray-500">(1)</span>
                 </h4>
-                <div className="bg-white bg-opacity-15 border-2 border-gray-200 border-opacity-50 rounded-xl p-3 hover:shadow-2xl hover:bg-opacity-25 hover:border-gray-300 hover:border-opacity-70 transition-colors duration-200">
+                <div className="gbx-squad-row">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center space-x-3">
-                      <div className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-semibold">
+                      <div className="w-6 h-6 bg-purple-600 text-white rounded-full flex items-center justify-center text-xs font-semibold shrink-0">
                         C
                       </div>
-                      <div>
-                        <h5 className="font-medium text-gray-900 flex items-center">
+                      <div className="min-w-0">
+                        <h5 className="font-semibold text-gray-900 flex items-center gap-2 text-sm">
                           <PlayerNameLink player={captain} />
-                          <span className="ml-2 text-lg">👑</span>
+                          <span className="text-base">👑</span>
                         </h5>
-                        <p className="text-sm text-gray-600">{captain.role}</p>
-                        <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-1 bg-purple-100 text-purple-800">
+                        <p className="text-xs text-gray-600">{captain.role}</p>
+                        <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium mt-1 bg-purple-100 text-purple-800">
                           Captain
                         </span>
                       </div>
                     </div>
-                    <div className="text-right">
-                      <div className="text-lg font-semibold text-purple-600">
+                    <div className="text-right shrink-0">
+                      <div className="text-sm font-semibold text-purple-600">
                         {formatCurrency(captainAmount)}
                       </div>
-                      <div className="text-xs text-gray-500">
+                      <div className="text-[11px] text-gray-500">
                         {captain.status === 'retained' ? 'Retention Cost' : 'Assignment Cost'}
                       </div>
                     </div>
@@ -260,8 +255,8 @@ const TeamSquadViewer = ({ teams, players, enableCaptains = true, enableRetentio
               const style = getCategoryStyle(category);
 
               return (
-                <div key={category} className={`${style.bg} ${style.border} border rounded-lg p-4`}>
-                  <h4 className="text-lg font-semibold text-gray-900 mb-3 flex items-center">
+                <div key={category} className="gbx-squad-section">
+                  <h4 className="text-base font-semibold text-gray-900 mb-3 flex items-center">
                     <span className="text-2xl mr-3">{style.icon}</span>
                     {style.name}
                     <span className="ml-2 text-sm text-gray-500">({categoryPlayers.length})</span>
@@ -271,7 +266,7 @@ const TeamSquadViewer = ({ teams, players, enableCaptains = true, enableRetentio
                     {categoryPlayers.map((player, index) => (
                       <div
                         key={player.id}
-                        className="bg-white bg-opacity-15 border-2 border-gray-200 border-opacity-50 rounded-xl p-3 hover:shadow-2xl hover:bg-opacity-25 hover:border-gray-300 hover:border-opacity-70 transition-colors duration-200"
+                        className="gbx-squad-row"
                       >
                         <div className="flex items-center justify-between gap-2">
                           <div className="flex items-center space-x-3 min-w-0">
@@ -279,12 +274,12 @@ const TeamSquadViewer = ({ teams, players, enableCaptains = true, enableRetentio
                               {index + 1}
                             </div>
                             <div className="min-w-0">
-                              <h5 className="font-medium text-gray-900 flex items-center">
+                              <h5 className="font-semibold text-gray-900 flex items-center text-sm">
                                 <PlayerNameLink player={player} />
                               </h5>
-                              <p className="text-sm text-gray-600">{player.role}</p>
+                              <p className="text-xs text-gray-600">{player.role}</p>
                               <span
-                                className={`inline-flex items-center px-2 py-1 rounded-full text-xs font-medium mt-1 ${style.badge}`}
+                                className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium mt-1 ${style.badge}`}
                               >
                                 {formatCategoryLabel(category)}
                               </span>
@@ -293,17 +288,17 @@ const TeamSquadViewer = ({ teams, players, enableCaptains = true, enableRetentio
                           <div className="text-right shrink-0">
                             {player.status === 'retained' ? (
                               <div>
-                                <div className="text-lg font-semibold text-purple-600 whitespace-nowrap">
+                                <div className="text-sm font-semibold text-purple-600 whitespace-nowrap">
                                   {formatCurrency(player.retentionAmount || player.finalBid)}
                                 </div>
-                                <div className="text-xs text-gray-500">Retention Cost</div>
+                                <div className="text-[11px] text-gray-500">Retention Cost</div>
                               </div>
                             ) : (
                               <div>
-                                <div className="text-lg font-semibold text-green-600 whitespace-nowrap">
+                                <div className="text-sm font-semibold text-green-600 whitespace-nowrap">
                                   {formatCurrency(player.finalBid)}
                                 </div>
-                                <div className="text-xs text-gray-500">Auction Price</div>
+                                <div className="text-[11px] text-gray-500">Auction Price</div>
                               </div>
                             )}
                           </div>
@@ -382,7 +377,7 @@ const TeamSquadViewer = ({ teams, players, enableCaptains = true, enableRetentio
                   return (
                     <div
                       key={category}
-                      className={`${style.bg} ${style.border} border rounded-lg p-3 text-center`}
+                      className="gbx-squad-stat text-center"
                     >
                       <div className="text-2xl mb-1">{style.icon}</div>
                       <div className="text-xl font-bold text-gray-900">{categoryPlayers.length}</div>
