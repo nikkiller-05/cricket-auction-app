@@ -56,7 +56,7 @@ const getTeamStyle = (teamId, teams) => {
 
 const CATEGORY_STYLES = {
   captain: 'bg-purple-100 text-purple-800 border-purple-300',
-  batter: 'bg-gray-200 text-gray-800 border-gray-400',
+  batter: 'bg-blue-100 text-blue-800 border-blue-300',
   bowler: 'bg-red-100 text-red-800 border-red-300',
   allrounder: 'bg-orange-100 text-orange-800 border-orange-300',
   'wicket-keeper': 'bg-green-100 text-green-800 border-green-300',
