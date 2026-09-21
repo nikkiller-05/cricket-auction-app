@@ -40,6 +40,16 @@
   .gbx-bg-light { animation: none; }
 }
 
+/* Auction Setup page: same unified gold focus ring as the dashboard (was a
+   stray focus:ring-blue-400 on every field). Checkboxes keep their own
+   semantic amber/purple accent (captains vs retention), not overridden. */
+.gbx-setup-page input:not([type="checkbox"]):not([type="radio"]):focus,
+.gbx-setup-page select:focus,
+.gbx-setup-page textarea:focus {
+  --tw-ring-color: rgba(245, 168, 0, 0.5) !important;
+  border-color: rgba(245, 168, 0, 0.6) !important;
+}
+
 /* ==================================================================
    AUCTION DASHBOARD THEME (single source of truth)
    Scoped to .dash-root[data-theme]. Change colors here → applies
@@ -440,6 +450,24 @@
 .dash-root[data-theme="dark"] input::placeholder,
 .dash-root[data-theme="dark"] textarea::placeholder { color: rgba(255, 255, 255, 0.42) !important; }
 .dash-root[data-theme="dark"] select option { color: #0f172a; }
+
+/* ===== Unified focus ring, every native control, both themes =====
+   Was 10+ ad-hoc colors (cyan/indigo/blue/purple/green) scattered across
+   Custom Bid, player search/filters, player/price/settings forms, team
+   name/captain search. Overriding --tw-ring-color beats each inline
+   focus:ring-* utility regardless of which one a given field used. */
+.dash-root input:not([type="checkbox"]):not([type="radio"]):focus,
+.dash-root select:focus,
+.dash-root textarea:focus {
+  --tw-ring-color: rgba(245, 168, 0, 0.45) !important;
+  border-color: rgba(245, 168, 0, 0.55) !important;
+}
+.dash-root input:not([type="checkbox"]):not([type="radio"]):disabled,
+.dash-root select:disabled,
+.dash-root textarea:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
 
 /* Neutralize pastel input borders. */
 .dash-root[data-theme="light"] .border-blue-300 { border-color: rgba(180, 140, 40, 0.30) !important; }
