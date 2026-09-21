@@ -70,7 +70,7 @@ const TournamentsDirectory = () => {
     return (
       <button
         onClick={() => navigate(`/a/${ev.slug}`)}
-        className={`group text-left rounded-2xl border ${ring} bg-white/[0.04] p-4 flex items-center gap-4 hover:bg-white/[0.07] hover:-translate-y-0.5 transition-[transform,background-color,border-color,box-shadow] duration-200`}
+        className={`group w-full min-w-0 text-left rounded-2xl border ${ring} bg-white/[0.04] p-4 flex items-center gap-4 hover:bg-white/[0.07] hover:-translate-y-0.5 transition-[transform,background-color,border-color,box-shadow] duration-200`}
       >
         {ev.logo_url
           ? <img src={ev.logo_url} alt="" className="w-14 h-14 rounded-xl object-cover bg-white/10 shrink-0 ring-1 ring-white/10" />
