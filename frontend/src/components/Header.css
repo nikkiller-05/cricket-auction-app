@@ -1086,7 +1086,7 @@
   
   .dropdown-menu {
     position: fixed;
-    top: 4rem;
+    top: calc(var(--gbx-header-h, 4rem) + 0.5rem);
     right: 1rem;
     left: auto;
     min-width: 200px;
@@ -1095,7 +1095,7 @@
   
   .download-dropdown-menu {
     position: fixed;
-    top: 4rem;
+    top: calc(var(--gbx-header-h, 4rem) + 0.5rem);
     right: 1rem;
     left: auto;
     min-width: 250px;
@@ -1166,7 +1166,7 @@
   
   .dropdown-menu {
     position: fixed;
-    top: 3.5rem;
+    top: calc(var(--gbx-header-h, 3.5rem) + 0.5rem);
     right: 0.5rem;
     left: auto;
     min-width: 160px;
@@ -1176,7 +1176,7 @@
   
   .download-dropdown-menu {
     position: fixed;
-    top: 3.5rem;
+    top: calc(var(--gbx-header-h, 3.5rem) + 0.5rem);
     right: 0.5rem;
     left: auto;
     min-width: 200px;
@@ -1398,7 +1398,7 @@
   .gbx-status { padding: 0.32rem 0.62rem; font-size: 0.68rem; }
   .gbx-progress { padding: 0.25rem 1rem 0.45rem; }
   .gbx-progress-word { display: none; }
-  .gbx-menu { position: fixed; top: 3.75rem; right: 0.75rem; }
+  .gbx-menu { position: fixed; top: calc(var(--gbx-header-h, 3.75rem) + 0.5rem); right: 0.75rem; }
 }
 
 /* <=480px: the header switches to a 3-row grid (brand+actions / tournament
@@ -1433,8 +1433,8 @@
   .gbx-wordmark { display: inline; }
   .gbx-hd-primary .gbx-pa-txt { display: inline; }
   .gbx-hd-primary .gbx-pa { padding: 0 0.9rem; }
-  /* Open dropdowns below the taller three-row header. */
-  .gbx-menu, .download-dropdown-menu, .dropdown-menu { top: 7rem; }
+  /* Open dropdowns below the taller three-row header — measured, not guessed. */
+  .gbx-menu, .download-dropdown-menu, .dropdown-menu { top: calc(var(--gbx-header-h, 7rem) + 0.5rem); }
 }
 
 /* Focus States for Accessibility */
