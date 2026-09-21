@@ -379,13 +379,6 @@ const TeamManagement = memo(({ teams, auctionData, onTeamsUpdate, onPlayersUpdat
       return;
     }
     
-    console.log('🎯 Assigning retention:', {
-      teamId,
-      playerId,
-      amount: numericAmount,
-      originalAmount: amount
-    });
-    
     // Pass the amount directly to avoid state timing issues
     await assignRetention(teamId, playerId, numericAmount);
     

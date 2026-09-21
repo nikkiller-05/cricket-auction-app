@@ -64,14 +64,12 @@ const PlayerUpload = ({ onUploadSuccess, onDataRefresh }) => {
     formData.append('playerFile', file);
 
     try {
-      console.log('Uploading file...');
   const response = await axios.post(`${API_BASE_URL}/api/players/upload`, formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
       
-      console.log('Upload response:', response.data);
       setMessage(`Successfully uploaded ${response.data.playerCount} players from ${response.data.fileName}`);
       setFile(null);
       setValidationResult(null);

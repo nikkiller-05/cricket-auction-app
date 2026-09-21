@@ -116,7 +116,6 @@ export default function useAuctionData({
 
     socketConnection.on('settingsUpdated', (settings) => {
       setAuctionData((prev) => ({ ...prev, settings }));
-      console.log('Settings updated in real-time:', settings);
     });
 
     socketConnection.on('fileUploaded', (fileInfo) => {
