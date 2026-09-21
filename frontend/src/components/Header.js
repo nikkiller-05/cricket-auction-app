@@ -49,22 +49,6 @@ const Header = memo(({
   const menuButtonRef = useRef(null);
   const downloadDropdownRef = useRef(null);
   const controlsRef = useRef(null);
-  const headerRef = useRef(null);
-
-  // Mobile dropdowns are position:fixed (escaping the header's overflow-x
-  // clipping) so they can't just use top:100% of their trigger. Measure the
-  // real header height (it varies: 1-row desktop vs 3-row phone grid, plus
-  // the progress strip, plus tournament-name wrapping) instead of guessing a
-  // fixed rem value that drifts out of sync with the actual layout.
-  useEffect(() => {
-    const el = headerRef.current;
-    if (!el || typeof ResizeObserver === 'undefined') return undefined;
-    const setVar = () => el.style.setProperty('--gbx-header-h', `${el.offsetHeight}px`);
-    setVar();
-    const ro = new ResizeObserver(setVar);
-    ro.observe(el);
-    return () => ro.disconnect();
-  }, []);
 
   // Derived auction phase from the authoritative auctionStatus + progress.
   // 'stopped' means NOT STARTED before any player is completed, else PAUSED.
@@ -82,6 +66,10 @@ const Header = memo(({
       (canConfigure &&
         (onResetAuction || onStartFastTrack || onEndFastTrack || (onEndAuction && !isEnded) || (onReopen && isEnded))));
   const progressPct = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+  // Any dropdown open? Temporarily lift the header's overflow clipping so the
+  // dropdown can pop out below its OWN trigger (same as desktop) instead of
+  // being pinned under the whole header.
+  const anyMenuOpen = isDropdownOpen || isDownloadDropdownOpen || isControlsOpen;
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -150,7 +138,7 @@ const Header = memo(({
   };
 
   return (
-    <header className="header" ref={headerRef}>
+    <header className={`header${anyMenuOpen ? ' header--menu-open' : ''}`}>
       <div className="header-container gbx-hd">
 
         {/* Brand */}
