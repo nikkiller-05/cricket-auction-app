@@ -1213,38 +1213,6 @@
 .gbx-hd-tourn { display: flex; align-items: center; gap: 0.55rem; min-width: 0; flex: 0 1 auto; }
 .gbx-hd-spacer { flex: 1 1 auto; min-width: 0.5rem; }
 
-@media (max-width: 480px) {
-  .header-container.gbx-hd {
-    display: grid;
-    grid-template-columns: 1fr auto;
-    grid-template-areas:
-      "brand   actions"
-      "tourn   tourn"
-      "status  primary";
-    column-gap: 0.5rem;
-    row-gap: 0.45rem;
-    align-items: center;
-  }
-  .gbx-hd-brand { grid-area: brand; justify-self: start; }
-  .gbx-hd-actions { grid-area: actions; justify-self: end; }
-  .gbx-hd-tourn { grid-area: tourn; display: block; width: 100%; min-width: 0; }
-  .gbx-hd-status { grid-area: status; justify-self: start; }
-  .gbx-hd-primary { grid-area: primary; justify-self: end; }
-  .gbx-hd-spacer { display: none; }
-  .gbx-hd-sep { display: none; }
-  /* Tournament owns a genuine full-width row — no artificial width cap. */
-  .gbx-hd-tournament {
-    display: block; max-width: 100%; width: 100%; min-width: 0;
-    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-    font-size: 0.9rem;
-  }
-  .gbx-wordmark { display: inline; }
-  .gbx-hd-primary .gbx-pa-txt { display: inline; }
-  .gbx-hd-primary .gbx-pa { padding: 0 0.9rem; }
-  /* Open dropdowns below the taller two-row header. */
-  .gbx-menu, .download-dropdown-menu, .dropdown-menu { top: 7rem; }
-}
-
 /* Brand → Tournament */
 .gbx-hd-sep { width: 1px; height: 1.15rem; background: rgba(255,255,255,0.18); flex-shrink: 0; }
 .gbx-hd-tournament {
@@ -1426,10 +1394,47 @@
 @media (max-width: 640px) {
   .gbx-hd-tournament { max-width: 15ch; font-size: 0.82rem; }
   .gbx-hd-sep { display: none; }
-  .gbx-status { padding: 0.3rem 0.58rem; font-size: 0.62rem; }
+  /* Keep the status pill in the 10-12px readable range, not sub-10px. */
+  .gbx-status { padding: 0.32rem 0.62rem; font-size: 0.68rem; }
   .gbx-progress { padding: 0.25rem 1rem 0.45rem; }
   .gbx-progress-word { display: none; }
   .gbx-menu { position: fixed; top: 3.75rem; right: 0.75rem; }
+}
+
+/* <=480px: the header switches to a 3-row grid (brand+actions / tournament
+   full-width / status+primary) so the tournament name is never sacrificed.
+   This block MUST come after the 640px block above so its full-width
+   tournament + repositioned dropdown rules aren't clobbered by it. */
+@media (max-width: 480px) {
+  .header-container.gbx-hd {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    grid-template-areas:
+      "brand   actions"
+      "tourn   tourn"
+      "status  primary";
+    column-gap: 0.5rem;
+    row-gap: 0.45rem;
+    align-items: center;
+  }
+  .gbx-hd-brand { grid-area: brand; justify-self: start; }
+  .gbx-hd-actions { grid-area: actions; justify-self: end; }
+  .gbx-hd-tourn { grid-area: tourn; display: block; width: 100%; min-width: 0; }
+  .gbx-hd-status { grid-area: status; justify-self: start; }
+  .gbx-hd-primary { grid-area: primary; justify-self: end; }
+  .gbx-hd-spacer { display: none; }
+  .gbx-hd-sep { display: none; }
+  /* Tournament owns a genuine full-width row — no artificial width cap. */
+  .gbx-hd-tournament {
+    display: block; max-width: 100%; width: 100%; min-width: 0;
+    white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+    font-size: 0.9rem;
+  }
+  .gbx-wordmark { display: inline; }
+  .gbx-hd-primary .gbx-pa-txt { display: inline; }
+  .gbx-hd-primary .gbx-pa { padding: 0 0.9rem; }
+  /* Open dropdowns below the taller three-row header. */
+  .gbx-menu, .download-dropdown-menu, .dropdown-menu { top: 7rem; }
 }
 
 /* Focus States for Accessibility */

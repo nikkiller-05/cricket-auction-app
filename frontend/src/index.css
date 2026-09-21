@@ -856,6 +856,13 @@
   --gbx-shadow-card: 0 8px 24px rgba(50, 40, 20, 0.08);
 }
 
+html {
+  /* Belt-and-suspenders guard: no page should ever scroll horizontally.
+     Components that genuinely need horizontal scroll (tabs, tickers, wide
+     tables) contain it internally via their own overflow-x-auto. */
+  overflow-x: hidden;
+}
+
 body {
   margin: 0;
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto',
@@ -866,6 +873,7 @@ body {
   color: #0f172a;
   background-color: var(--canvas);
   min-height: 100vh;
+  overflow-x: hidden;
 }
 
 /* Modern "twilight aurora" — promoted to its own fixed GPU layer so it is
