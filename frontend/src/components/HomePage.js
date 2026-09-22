@@ -106,9 +106,9 @@ const AuthModal = ({ onClose }) => {
           )}
           <input type="password" placeholder="Password" value={form.password} onChange={set('password')} className={authInputCls} />
           {err && <p className="text-rose-300 text-sm bg-rose-500/10 rounded-lg px-3 py-2">{err}</p>}
-          <button disabled={busy} className="w-full rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 font-bold py-2.5 hover:-translate-y-0.5 transition disabled:opacity-50">
-            {busy ? 'Please wait…' : mode === 'signin' ? 'Sign In' : 'Create account'}
-          </button>
+          <Button type="submit" variant="primary" size="md" loading={busy} className="w-full">
+            {mode === 'signin' ? 'Sign In' : 'Create account'}
+          </Button>
         </form>
         <p className="mt-4 text-center text-xs text-indigo-200/60">
           {mode === 'signin'
@@ -192,21 +192,15 @@ const HomePage = () => {
                   <span className="hidden sm:inline text-sm font-semibold text-indigo-100/80 max-w-[9rem] truncate">
                     {session.user?.name || session.user?.username}
                   </span>
-                  <button
-                    onClick={() => navigate(session.destination)}
-                    className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 text-sm font-bold px-5 py-1.5 hover:-translate-y-0.5 transition"
-                  >
+                  <Button variant="primary" size="sm" onClick={() => navigate(session.destination)}>
                     {session.destinationLabel}
-                  </button>
-                  <button
-                    onClick={handleLogout}
-                    className="rounded-full border border-white/20 text-indigo-100/80 text-sm font-semibold px-4 py-1.5 hover:text-white hover:border-white/40 transition"
-                  >
+                  </Button>
+                  <Button variant="glass" size="sm" onClick={handleLogout}>
                     Logout
-                  </button>
+                  </Button>
                 </div>
               ) : (
-                <button onClick={() => setShowAuth(true)} className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 text-sm font-bold px-5 py-1.5 hover:-translate-y-0.5 transition">Sign In</button>
+                <Button variant="primary" size="sm" onClick={() => setShowAuth(true)}>Sign In</Button>
               )}
             </div>
           </div>
@@ -232,8 +226,8 @@ const HomePage = () => {
               ))}
             </div>
             <div className="mt-6 flex flex-wrap items-center justify-center gap-3 gbx-fade-up" style={{ animationDelay: '200ms' }}>
-              <button onClick={scrollToEnter} className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 font-bold px-6 py-3 hover:-translate-y-0.5 transition shadow-lg">Get started</button>
-              <button onClick={() => navigate('/tournaments')} className="rounded-full border border-white/20 text-indigo-100/90 font-semibold px-6 py-3 hover:text-white hover:border-white/40 transition">Browse tournaments</button>
+              <Button variant="primary" size="lg" onClick={scrollToEnter}>Get started</Button>
+              <Button variant="glass" size="lg" onClick={() => navigate('/tournaments')}>Browse tournaments</Button>
             </div>
           </div>
         </header>
