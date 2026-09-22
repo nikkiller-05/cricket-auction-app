@@ -8,6 +8,7 @@ import BrandFooter from './BrandFooter';
 import TeamSquadsModal from './TeamSquadsModal';
 import PlayerAvatar from './PlayerAvatar';
 import PlayerCardModal from './PlayerCardModal';
+import Button from './Button';
 
 // Distinct accent per team card (cycled) — mirrors the squad export palette.
 const TEAM_ACCENTS = [
@@ -270,15 +271,17 @@ const PublicCompletedAuction = ({ event }) => {
             </span>
           </button>
           <div className="flex items-center gap-2 shrink-0">
-            <button onClick={() => navigate('/tournaments')} className="hidden sm:inline-flex rounded-full border border-white/20 text-indigo-100/80 text-sm font-semibold px-4 py-1.5 hover:text-white hover:border-white/40 transition" title="All tournaments">All tournaments</button>
+            <Button variant="glass" size="sm" onClick={() => navigate('/tournaments')} className="hidden sm:inline-flex" title="All tournaments">All tournaments</Button>
             <div className="relative" ref={menuRef}>
-            <button
+            <Button
+              variant="primary"
+              size="sm"
               onClick={() => setMenuOpen((v) => !v)}
               disabled={loading || !!err}
-              className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 text-sm font-bold px-4 py-1.5 hover:-translate-y-0.5 transition disabled:opacity-50 disabled:translate-y-0"
+              loading={!!(downloadingKind || posterBusy)}
             >
               {(downloadingKind || posterBusy) ? 'Preparing…' : '⬇ Download ▾'}
-            </button>
+            </Button>
             {menuOpen && (
               <div className="absolute right-0 mt-2 w-64 rounded-2xl border border-white/10 bg-[#14121c] shadow-2xl z-50 overflow-hidden">
                 <button onClick={downloadPoster} className="flex w-full items-start gap-3 px-4 py-3 text-left hover:bg-white/5">
@@ -341,7 +344,7 @@ const PublicCompletedAuction = ({ event }) => {
         ) : err ? (
           <div className="py-20 text-center">
             <p className="text-amber-100/90 mb-4">{err}</p>
-            <button onClick={() => navigate('/')} className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 font-bold px-5 py-2.5">Go home</button>
+            <Button variant="primary" size="md" onClick={() => navigate('/')}>Go home</Button>
           </div>
         ) : (
           <>

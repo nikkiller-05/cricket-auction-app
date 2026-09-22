@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import { API_BASE_URL } from '../config';
 import BrandFooter from './BrandFooter';
+import Button from './Button';
 
 // Public showcase of every tournament, grouped by lifecycle status. Each card
 // deep-links to the single clean spectator URL /a/{slug}, which itself decides
@@ -117,7 +118,7 @@ const TournamentsDirectory = () => {
         {error ? (
           <div className="py-20 text-center">
             <p className="text-amber-100/90 mb-4">{error}</p>
-            <button onClick={() => navigate('/')} className="rounded-full bg-gradient-to-b from-amber-400 to-amber-500 text-slate-900 font-bold px-5 py-2.5">Go home</button>
+            <Button variant="primary" size="md" onClick={() => navigate('/')}>Go home</Button>
           </div>
         ) : events === null ? (
           <div className="py-24 text-center">
