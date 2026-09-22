@@ -59,12 +59,24 @@ const useCountUp = (target, duration = 450) => {
  *   - isFastTrack: boolean
  *   - rightSlot: optional ReactNode rendered below the bid panel (e.g. team bid buttons)
  */
-const Stat = ({ label, value }) => (
-  <div className="gbx-live-stat flex flex-col items-center justify-center text-center rounded-xl px-2.5 py-1.5 sm:py-2 min-w-[58px] bg-white/[0.07] border border-white/10 hover:bg-white/[0.12] transition-colors duration-200">
-    <div className="text-sm sm:text-base md:text-lg font-extrabold leading-tight text-white drop-shadow-sm">
+const Stat = ({ label, value, big = false }) => (
+  <div
+    className={`gbx-live-stat flex flex-col items-center justify-center text-center rounded-xl bg-white/[0.07] border border-white/10 hover:bg-white/[0.12] transition-colors duration-200 ${
+      big ? 'px-3.5 sm:px-4 py-2 sm:py-2.5 min-w-[70px] sm:min-w-[84px]' : 'px-2.5 py-1.5 sm:py-2 min-w-[58px]'
+    }`}
+  >
+    <div
+      className={`font-extrabold leading-tight text-white drop-shadow-sm ${
+        big ? 'text-base sm:text-lg md:text-2xl lg:text-3xl' : 'text-sm sm:text-base md:text-lg'
+      }`}
+    >
       {value}
     </div>
-    <div className="text-[9px] sm:text-[10px] uppercase tracking-[0.15em] opacity-75 mt-0.5 font-semibold">
+    <div
+      className={`uppercase tracking-[0.15em] opacity-75 mt-0.5 font-semibold ${
+        big ? 'text-[10px] sm:text-xs' : 'text-[9px] sm:text-[10px]'
+      }`}
+    >
       {label}
     </div>
   </div>
@@ -209,34 +221,44 @@ const LiveBiddingCardInner = ({
                   href={player.cricHeroesLink}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="gbx-live-player-name text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-amber-100 via-white to-amber-100 bg-clip-text text-transparent hover:from-amber-200 hover:to-amber-200 transition-all break-words"
+                  className={`gbx-live-player-name font-extrabold tracking-tight bg-gradient-to-r from-amber-100 via-white to-amber-100 bg-clip-text text-transparent hover:from-amber-200 hover:to-amber-200 transition-all break-words ${
+                    spectator ? 'text-3xl sm:text-4xl md:text-5xl lg:text-6xl' : 'text-2xl sm:text-3xl md:text-4xl'
+                  }`}
                   style={{ WebkitTapHighlightColor: 'transparent' }}
                 >
                   {player.name}
                 </a>
               ) : (
-                <h3 className="gbx-live-player-name text-2xl sm:text-3xl md:text-4xl font-extrabold tracking-tight bg-gradient-to-r from-amber-100 via-white to-amber-100 bg-clip-text text-transparent break-words">
+                <h3
+                  className={`gbx-live-player-name font-extrabold tracking-tight bg-gradient-to-r from-amber-100 via-white to-amber-100 bg-clip-text text-transparent break-words ${
+                    spectator ? 'text-3xl sm:text-4xl md:text-5xl lg:text-6xl' : 'text-2xl sm:text-3xl md:text-4xl'
+                  }`}
+                >
                   {player.name}
                 </h3>
               )}
               {player.role && (
-                <span className="gbx-live-player-role mt-2 self-center sm:self-start inline-block text-[10px] sm:text-xs font-bold uppercase tracking-[0.15em] px-2.5 py-1 rounded-full bg-gradient-to-r from-amber-500/30 to-yellow-600/30 border border-white/30 shadow-lg">
+                <span
+                  className={`gbx-live-player-role mt-2 self-center sm:self-start inline-block font-bold uppercase tracking-[0.15em] rounded-full bg-gradient-to-r from-amber-500/30 to-yellow-600/30 border border-white/30 shadow-lg ${
+                    spectator ? 'text-xs sm:text-sm px-3 py-1.5' : 'text-[10px] sm:text-xs px-2.5 py-1'
+                  }`}
+                >
                   {player.role}
                 </span>
               )}
             </div>
 
             {meta && (
-              <p className="mt-1 text-sm sm:text-base text-white/85 font-medium">{meta}</p>
+              <p className={`mt-1 text-white/85 font-medium ${spectator ? 'text-base sm:text-lg' : 'text-sm sm:text-base'}`}>{meta}</p>
             )}
             {player.city && (
-              <p className="mt-0.5 text-xs sm:text-sm text-white/70">📍 {player.city}</p>
+              <p className={`mt-0.5 text-white/70 ${spectator ? 'text-sm sm:text-base' : 'text-xs sm:text-sm'}`}>📍 {player.city}</p>
             )}
 
             {stats.length > 0 ? (
               <div className="mt-3 sm:mt-4 flex flex-wrap justify-center sm:justify-start gap-2">
                 {stats.map((s) => (
-                  <Stat key={s.label} label={s.label} value={s.value} />
+                  <Stat key={s.label} label={s.label} value={s.value} big={spectator} />
                 ))}
               </div>
             ) : (
@@ -260,7 +282,9 @@ const LiveBiddingCardInner = ({
               </div>
               <div key={bump} className="gbx-bid-bump inline-block">
                 <p
-                  className="text-3xl sm:text-4xl md:text-5xl font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)] tabular-nums"
+                  className={`font-black text-white drop-shadow-[0_2px_8px_rgba(0,0,0,0.3)] tabular-nums ${
+                    spectator ? 'text-4xl sm:text-5xl md:text-6xl lg:text-7xl' : 'text-3xl sm:text-4xl md:text-5xl'
+                  }`}
                   style={{ animation: 'bidAmountPulse 1.5s ease-in-out infinite' }}
                 >
                   {formatCurrency(animatedBid)}
@@ -290,10 +314,16 @@ const LiveBiddingCardInner = ({
                       src={leadingTeamLogo}
                       alt=""
                       crossOrigin="anonymous"
-                      className="mb-3 h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28 object-contain rounded-2xl bg-white/90 border border-white/40 shadow-lg"
+                      className={`mb-3 object-contain rounded-2xl bg-white/90 border border-white/40 shadow-lg ${
+                        spectator ? 'h-24 w-24 sm:h-28 sm:w-28 md:h-32 md:w-32' : 'h-20 w-20 sm:h-24 sm:w-24 md:h-28 md:w-28'
+                      }`}
                     />
                   )}
-                  <p className="max-w-full truncate text-xl sm:text-2xl md:text-3xl font-extrabold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.25)]">
+                  <p
+                    className={`max-w-full truncate font-extrabold text-white drop-shadow-[0_2px_6px_rgba(0,0,0,0.25)] ${
+                      spectator ? 'text-2xl sm:text-3xl md:text-4xl' : 'text-xl sm:text-2xl md:text-3xl'
+                    }`}
+                  >
                     {leadingTeamName}
                   </p>
                   {leadingTeamBudget != null && (
