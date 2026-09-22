@@ -18,6 +18,8 @@ const SIZES = {
   xl: { box: 'w-32 h-32', text: 'text-3xl', px: 128 },
   '2xl': { box: 'w-40 h-40 sm:w-48 sm:h-48 lg:w-56 lg:h-56', text: 'text-5xl', px: 224 },
   '3xl': { box: 'w-48 h-48 sm:w-60 sm:h-60 lg:w-72 lg:h-72', text: 'text-6xl', px: 288 },
+  // Broadcast/projector-scale spotlight (spectator live-bidding hero only).
+  '4xl': { box: 'w-56 h-56 sm:w-72 sm:h-72 lg:w-80 lg:h-80 xl:w-96 xl:h-96', text: 'text-7xl', px: 384 },
 };
 
 const GRADIENTS = [

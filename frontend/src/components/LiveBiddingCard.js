@@ -210,7 +210,13 @@ const LiveBiddingCardInner = ({
           <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/40 to-transparent" />
           {/* Player photo in rounded frame */}
           <div className="relative shrink-0">
-            <PlayerAvatar player={player} size={spectator ? '3xl' : '2xl'} shape="rounded" position="top" className="border-[6px] border-white shadow-2xl ring-2 ring-white/30" />
+            <PlayerAvatar
+              player={player}
+              size={spectator ? '4xl' : '2xl'}
+              shape="rounded"
+              position="top"
+              className={`border-white shadow-2xl ring-2 ring-white/30 ${spectator ? 'border-[8px]' : 'border-[6px]'}`}
+            />
           </div>
 
           {/* Info */}
