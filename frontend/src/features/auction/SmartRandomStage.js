@@ -44,6 +44,16 @@ const STAT_FIELDS = [
 
 const hasValue = (v) => v !== undefined && v !== null && String(v).trim() !== '' && String(v) !== '0';
 
+// Initials for the poster fallback when a player has no photo.
+const initialsOf = (name = '') =>
+  name
+    .split(' ')
+    .filter(Boolean)
+    .map((w) => w[0])
+    .join('')
+    .toUpperCase()
+    .slice(0, 2) || '?';
+
 const prefersReducedMotion = () =>
   typeof window !== 'undefined' &&
   window.matchMedia &&
@@ -140,9 +150,6 @@ const SmartRandomStage = ({
   const basePrice = settings?.basePrice ?? 0;
   // Spectators get the full-width card, so show a bigger player image there.
   const avatarSize = isAdmin ? '2xl' : '3xl';
-  // Revealed player (broadcast moment) gets an extra-large photo for spectators
-  // only — projector/stream viewing benefit, admin card stays as-is.
-  const revealedAvatarSize = isAdmin ? '2xl' : '4xl';
 
   return (
     <div className="gbx-live-card relative overflow-hidden rounded-3xl border border-white/15 bg-gradient-to-br from-[#0b0a06] via-[#1c1608] to-[#2a1f08] text-white shadow-2xl mb-8">
@@ -269,46 +276,40 @@ const SmartRandomStage = ({
           )}
 
           {stage === 'revealed' && selectedPlayer && (
-            <>
-              <button
-                type="button"
-                onClick={() => setShowProfile(true)}
-                className="mb-3 rounded-3xl transition hover:opacity-90 active:scale-[0.98]"
-                title="View player profile"
-              >
-                <PlayerAvatar player={selectedPlayer} size={revealedAvatarSize} shape="rounded" />
-              </button>
-              <button
-                type="button"
-                onClick={() => setShowProfile(true)}
-                className={`font-bold text-white hover:text-amber-200 transition ${
-                  isAdmin ? 'text-2xl' : 'text-2xl sm:text-3xl'
-                }`}
-              >
-                {selectedPlayer.name}
-              </button>
-              {selectedPlayer.role && (
-                <div
-                  className={`mb-3 font-semibold uppercase tracking-widest text-amber-300 ${
-                    isAdmin ? 'text-xs' : 'text-xs sm:text-sm'
-                  }`}
+            isAdmin ? (
+              <>
+                <button
+                  type="button"
+                  onClick={() => setShowProfile(true)}
+                  className="mb-3 rounded-3xl transition hover:opacity-90 active:scale-[0.98]"
+                  title="View player profile"
                 >
-                  {formatRoleLabel(selectedPlayer.role)}
-                </div>
-              )}
-              <div className="mb-4 grid w-full max-w-sm grid-cols-2 gap-x-6 gap-y-1 text-sm sm:grid-cols-4">
-                {STAT_FIELDS.filter((f) => hasValue(selectedPlayer[f.key])).map((f) => (
-                  <div key={f.key} className="flex flex-col items-center">
-                    <span className="font-bold text-white">{selectedPlayer[f.key]}</span>
-                    <span className="text-[10px] uppercase tracking-wide text-white/50">{f.label}</span>
+                  <PlayerAvatar player={selectedPlayer} size="2xl" shape="rounded" />
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowProfile(true)}
+                  className="text-2xl font-bold text-white hover:text-amber-200 transition"
+                >
+                  {selectedPlayer.name}
+                </button>
+                {selectedPlayer.role && (
+                  <div className="mb-3 text-xs font-semibold uppercase tracking-widest text-amber-300">
+                    {formatRoleLabel(selectedPlayer.role)}
                   </div>
-                ))}
-              </div>
-              <div className={`mb-4 text-white/70 ${isAdmin ? 'text-sm' : 'text-sm sm:text-base'}`}>
-                Base Price:{' '}
-                <span className="font-bold text-emerald-400">{formatCurrency(basePrice)}</span>
-              </div>
-              {isAdmin && (
+                )}
+                <div className="mb-4 grid w-full max-w-sm grid-cols-2 gap-x-6 gap-y-1 text-sm sm:grid-cols-4">
+                  {STAT_FIELDS.filter((f) => hasValue(selectedPlayer[f.key])).map((f) => (
+                    <div key={f.key} className="flex flex-col items-center">
+                      <span className="font-bold text-white">{selectedPlayer[f.key]}</span>
+                      <span className="text-[10px] uppercase tracking-wide text-white/50">{f.label}</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="mb-4 text-sm text-white/70">
+                  Base Price:{' '}
+                  <span className="font-bold text-emerald-400">{formatCurrency(basePrice)}</span>
+                </div>
                 <div className="flex flex-wrap items-center justify-center gap-3">
                   <button
                     type="button"
@@ -327,8 +328,66 @@ const SmartRandomStage = ({
                     ↩ Go Back
                   </button>
                 </div>
-              )}
-            </>
+              </>
+            ) : (
+              /* Spectator broadcast poster: the photo fills the entire block,
+                 with name / role / stats / base price overlaid at the bottom. */
+              <button
+                type="button"
+                onClick={() => setShowProfile(true)}
+                title="View player profile"
+                className="group relative -m-5 block w-[calc(100%+2.5rem)] overflow-hidden rounded-xl transition active:scale-[0.99]"
+              >
+                <div className="relative h-[440px] w-full sm:h-[560px] lg:h-[640px]">
+                  {selectedPlayer.imageUrl ? (
+                    <img
+                      src={selectedPlayer.imageUrl}
+                      alt={selectedPlayer.name}
+                      crossOrigin="anonymous"
+                      className="absolute inset-0 h-full w-full object-cover object-top"
+                    />
+                  ) : (
+                    <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-indigo-600 to-purple-700">
+                      <span className="text-8xl font-black tracking-wider text-white drop-shadow-lg sm:text-9xl">
+                        {initialsOf(selectedPlayer.name)}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Bottom scrim for text legibility over any photo. */}
+                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent" />
+
+                  {/* Overlaid details. */}
+                  <div className="absolute inset-x-0 bottom-0 p-5 text-left sm:p-7">
+                    {selectedPlayer.role && (
+                      <span className="inline-block rounded-full bg-amber-400/95 px-3 py-1 text-xs font-bold uppercase tracking-widest text-black shadow sm:text-sm">
+                        {formatRoleLabel(selectedPlayer.role)}
+                      </span>
+                    )}
+                    <h3 className="mt-2 text-4xl font-extrabold leading-tight text-white drop-shadow-[0_2px_10px_rgba(0,0,0,0.7)] sm:text-6xl">
+                      {selectedPlayer.name}
+                    </h3>
+                    {STAT_FIELDS.some((f) => hasValue(selectedPlayer[f.key])) && (
+                      <div className="mt-3 flex flex-wrap gap-2">
+                        {STAT_FIELDS.filter((f) => hasValue(selectedPlayer[f.key])).map((f) => (
+                          <span
+                            key={f.key}
+                            className="rounded-lg bg-white/15 px-3 py-1.5 text-sm text-white backdrop-blur-sm"
+                          >
+                            <span className="font-bold">{selectedPlayer[f.key]}</span>{' '}
+                            <span className="text-white/70">{f.label}</span>
+                          </span>
+                        ))}
+                      </div>
+                    )}
+                    <div className="mt-3 text-base text-white/90 sm:text-lg">
+                      Base Price:{' '}
+                      <span className="font-bold text-emerald-400">{formatCurrency(basePrice)}</span>
+                    </div>
+                  </div>
+                </div>
+              </button>
+            )
           )}
         </div>
       </div>
