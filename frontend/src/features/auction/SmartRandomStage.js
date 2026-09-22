@@ -140,6 +140,9 @@ const SmartRandomStage = ({
   const basePrice = settings?.basePrice ?? 0;
   // Spectators get the full-width card, so show a bigger player image there.
   const avatarSize = isAdmin ? '2xl' : '3xl';
+  // Revealed player (broadcast moment) gets an extra-large photo for spectators
+  // only — projector/stream viewing benefit, admin card stays as-is.
+  const revealedAvatarSize = isAdmin ? '2xl' : '4xl';
 
   return (
     <div className="gbx-live-card relative overflow-hidden rounded-3xl border border-white/15 bg-gradient-to-br from-[#0b0a06] via-[#1c1608] to-[#2a1f08] text-white shadow-2xl mb-8">
@@ -273,17 +276,23 @@ const SmartRandomStage = ({
                 className="mb-3 rounded-3xl transition hover:opacity-90 active:scale-[0.98]"
                 title="View player profile"
               >
-                <PlayerAvatar player={selectedPlayer} size={avatarSize} shape="rounded" />
+                <PlayerAvatar player={selectedPlayer} size={revealedAvatarSize} shape="rounded" />
               </button>
               <button
                 type="button"
                 onClick={() => setShowProfile(true)}
-                className="text-2xl font-bold text-white hover:text-amber-200 transition"
+                className={`font-bold text-white hover:text-amber-200 transition ${
+                  isAdmin ? 'text-2xl' : 'text-2xl sm:text-3xl'
+                }`}
               >
                 {selectedPlayer.name}
               </button>
               {selectedPlayer.role && (
-                <div className="mb-3 text-xs font-semibold uppercase tracking-widest text-amber-300">
+                <div
+                  className={`mb-3 font-semibold uppercase tracking-widest text-amber-300 ${
+                    isAdmin ? 'text-xs' : 'text-xs sm:text-sm'
+                  }`}
+                >
                   {formatRoleLabel(selectedPlayer.role)}
                 </div>
               )}
@@ -295,7 +304,7 @@ const SmartRandomStage = ({
                   </div>
                 ))}
               </div>
-              <div className="mb-4 text-sm text-white/70">
+              <div className={`mb-4 text-white/70 ${isAdmin ? 'text-sm' : 'text-sm sm:text-base'}`}>
                 Base Price:{' '}
                 <span className="font-bold text-emerald-400">{formatCurrency(basePrice)}</span>
               </div>
