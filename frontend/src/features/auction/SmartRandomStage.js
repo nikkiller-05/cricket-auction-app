@@ -340,12 +340,24 @@ const SmartRandomStage = ({
               >
                 <div className="relative h-[440px] w-full sm:h-[560px] lg:h-[640px]">
                   {selectedPlayer.imageUrl ? (
-                    <img
-                      src={selectedPlayer.imageUrl}
-                      alt={selectedPlayer.name}
-                      crossOrigin="anonymous"
-                      className="absolute inset-0 h-full w-full object-cover object-top"
-                    />
+                    <>
+                      {/* Blurred backdrop fills the block on any aspect ratio. */}
+                      <img
+                        src={selectedPlayer.imageUrl}
+                        alt=""
+                        aria-hidden="true"
+                        crossOrigin="anonymous"
+                        className="absolute inset-0 h-full w-full scale-110 object-cover opacity-60 blur-2xl"
+                      />
+                      <div className="absolute inset-0 bg-black/30" />
+                      {/* Full, uncropped player photo on top. */}
+                      <img
+                        src={selectedPlayer.imageUrl}
+                        alt={selectedPlayer.name}
+                        crossOrigin="anonymous"
+                        className="absolute inset-0 z-10 mx-auto h-full w-full object-contain object-top"
+                      />
+                    </>
                   ) : (
                     <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-indigo-600 to-purple-700">
                       <span className="text-8xl font-black tracking-wider text-white drop-shadow-lg sm:text-9xl">
@@ -355,10 +367,10 @@ const SmartRandomStage = ({
                   )}
 
                   {/* Bottom scrim for text legibility over any photo. */}
-                  <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-black/90 via-black/25 to-transparent" />
+                  <div className="pointer-events-none absolute inset-0 z-20 bg-gradient-to-t from-black/90 via-black/25 to-transparent" />
 
                   {/* Overlaid details. */}
-                  <div className="absolute inset-x-0 bottom-0 p-5 text-left sm:p-7">
+                  <div className="absolute inset-x-0 bottom-0 z-30 p-5 text-left sm:p-7">
                     {selectedPlayer.role && (
                       <span className="inline-block rounded-full bg-amber-400/95 px-3 py-1 text-xs font-bold uppercase tracking-widest text-black shadow sm:text-sm">
                         {formatRoleLabel(selectedPlayer.role)}
