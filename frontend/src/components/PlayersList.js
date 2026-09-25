@@ -1,4 +1,4 @@
-import React, { useState, memo, useMemo, useCallback, useEffect } from 'react';
+import React, { useState, memo, useMemo, useCallback, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { useNotification } from './NotificationSystem';
 import { formatCurrency } from '../lib/format';
@@ -64,6 +64,264 @@ const CATEGORY_STYLES = {
 const getCategoryStyle = (category) =>
   CATEGORY_STYLES[category] || 'bg-gray-100 text-gray-800 border-gray-300';
 
+const getStatusStyle = (status) => {
+  switch (status) {
+    case 'sold':
+      return 'bg-green-100 text-green-800 border-green-300';
+    case 'assigned':
+      return 'bg-purple-100 text-purple-800 border-purple-300';
+    case 'retained':
+      return 'bg-cyan-100 text-cyan-800 border-cyan-300';
+    case 'available':
+      return 'bg-yellow-100 text-yellow-800 border-yellow-300';
+    case 'unsold':
+      return 'bg-red-100 text-red-800 border-red-300';
+    default:
+      return 'bg-gray-100 text-gray-800 border-gray-300';
+  }
+};
+
+const statusLabel = (status) => {
+  switch (status) {
+    case 'assigned': return 'Captain';
+    case 'retained': return 'Retained';
+    case 'sold': return 'Sold';
+    case 'unsold': return 'Unsold';
+    case 'available': return 'Available';
+    default: return status;
+  }
+};
+
+// The players table/cards re-render on EVERY live-bid tick (the server sends
+// the full players array on each bid, so `player` objects get a new identity
+// even though ~all of them are unchanged). Each row is memoized with a
+// field-level comparator (not reference equality) so only the row whose
+// actual displayed values changed re-renders — the win that matters during a
+// fast live auction with a large player list.
+const rowFieldsEqual = (a, b) =>
+  a.player.id === b.player.id &&
+  a.player.name === b.player.name &&
+  a.player.role === b.player.role &&
+  a.player.cricHeroesLink === b.player.cricHeroesLink &&
+  a.player.category === b.player.category &&
+  a.player.status === b.player.status &&
+  a.player.currentBid === b.player.currentBid &&
+  a.player.finalBid === b.player.finalBid &&
+  a.player.retentionAmount === b.player.retentionAmount &&
+  a.player.team === b.player.team &&
+  a.isCaptain === b.isCaptain &&
+  a.isCurrentlyBidding === b.isCurrentlyBidding &&
+  a.canStartBiddingForPlayer === b.canStartBiddingForPlayer &&
+  a.canPerformBidActions === b.canPerformBidActions &&
+  a.canConfigure === b.canConfigure &&
+  a.loading === b.loading &&
+  a.teamName === b.teamName &&
+  a.teamStyle === b.teamStyle &&
+  a.onStartBidding === b.onStartBidding &&
+  a.onEdit === b.onEdit &&
+  a.onDelete === b.onDelete &&
+  a.onEditPrice === b.onEditPrice;
+
+const PlayerTableRow = memo(function PlayerTableRow({
+  player, team, teamName, teamStyle, isCaptain, isCurrentlyBidding, canStartBiddingForPlayer,
+  canPerformBidActions, canConfigure, loading, onStartBidding, onEdit, onDelete, onEditPrice, onDataRefresh,
+}) {
+  return (
+    <tr className={`gbx-player-row ${isCurrentlyBidding ? 'gbx-row-active bg-amber-50/70' : 'transition-colors'}`}>
+      <td className="px-6 py-4 whitespace-nowrap text-center">
+        <div className="flex flex-col items-center">
+          <PlayerAvatar player={player} size="md" className="mb-2" />
+          <div>
+            <div className="text-lg font-bold text-gray-900 flex items-center justify-center">
+              {player.cricHeroesLink ? (
+                <a
+                  href={player.cricHeroesLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 hover:underline transition-colors duration-200 active:text-blue-900"
+                  style={{ WebkitTapHighlightColor: 'transparent' }}
+                >
+                  {player.name}
+                </a>
+              ) : (
+                player.name
+              )}
+              {isCaptain && (
+                <span className="ml-2 text-lg bg-yellow-100 px-1 py-0.5 rounded-full border border-yellow-300">👑</span>
+              )}
+              {player.status === 'retained' && (
+                <span className="ml-2 text-sm bg-cyan-100 px-1 py-0.5 rounded-full border border-cyan-300">🔒</span>
+              )}
+              {isCurrentlyBidding && (
+                <span className="ml-2 bg-yellow-200 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium animate-pulse border border-yellow-400">
+                  LIVE
+                </span>
+              )}
+            </div>
+            <div className="text-sm text-gray-500 text-center">{formatRoleLabel(player.role)}</div>
+          </div>
+        </div>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-center">
+        <div className="flex justify-center">
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getCategoryStyle(player.category)}`}>
+            {player.category === 'wicket-keeper' ? 'keeper' : player.category}
+          </span>
+        </div>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-center">
+        <div className="flex justify-center">
+          <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusStyle(player.status)}`}>
+            {statusLabel(player.status)}
+          </span>
+        </div>
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 text-center">
+        {player.status === 'sold' ? (
+          <span className="font-bold text-emerald-600">{formatCurrency(player.finalBid)}</span>
+        ) : player.status === 'assigned' ? (
+          <span className="font-bold text-purple-600">Captain</span>
+        ) : player.status === 'retained' ? (
+          <span className="font-bold text-cyan-600">{formatCurrency(player.retentionAmount || player.finalBid)}</span>
+        ) : isCurrentlyBidding && player.currentBid > 0 ? (
+          <span className="font-bold text-indigo-600">{formatCurrency(player.currentBid)}</span>
+        ) : (
+          <span className="text-slate-300">—</span>
+        )}
+      </td>
+      <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 text-center">
+        <div className="flex items-center justify-center">
+          {team ? (
+            <span className={`px-3 py-1 rounded-full text-xs font-bold inline-block ${teamStyle}`}>
+              {getTeamIcon()} {teamName}
+            </span>
+          ) : <span className="text-slate-300">—</span>}
+        </div>
+      </td>
+      {canPerformBidActions && (
+        <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
+          <div className="flex flex-wrap items-center justify-center gap-2">
+            <PlayerImageUpload playerId={player.id} onUploaded={() => onDataRefresh && onDataRefresh()} />
+            {canStartBiddingForPlayer && (
+              <Button variant="primary" size="sm" onClick={() => onStartBidding(player.id)} disabled={loading}>
+                {loading ? 'Starting…' : '🔨 Start Bidding'}
+              </Button>
+            )}
+            {isCurrentlyBidding && (
+              <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-700 border border-amber-200 animate-pulse">
+                🔥 Bidding
+              </span>
+            )}
+            {canConfigure && (
+              <>
+                <IconBtn title="Edit player" onClick={() => onEdit(player)}>
+                  <IcoPencil />
+                </IconBtn>
+                <IconBtn title="Delete player" danger onClick={() => onDelete(player)}>
+                  <IcoTrash />
+                </IconBtn>
+              </>
+            )}
+            {canConfigure && player.status === 'sold' && (
+              <Button variant="secondary" size="sm" onClick={() => onEditPrice(player)}>
+                💰 Edit Price
+              </Button>
+            )}
+          </div>
+        </td>
+      )}
+    </tr>
+  );
+}, rowFieldsEqual);
+
+const PlayerMobileCard = memo(function PlayerMobileCard({
+  player, team, teamName, teamStyle, isCaptain, isCurrentlyBidding, canStartBiddingForPlayer,
+  canPerformBidActions, canConfigure, loading, onStartBidding, onEdit, onDelete, onEditPrice, onDataRefresh,
+}) {
+  return (
+    <div className={`gbx-player-row-mobile p-4 ${isCurrentlyBidding ? 'bg-amber-50/70' : ''}`}>
+      <div className="flex items-start gap-3">
+        <PlayerAvatar player={player} size="md" />
+        <div className="min-w-0 flex-1">
+          <div className="flex items-center flex-wrap gap-1.5">
+            <span className="text-base font-bold text-gray-900">
+              {player.cricHeroesLink ? (
+                <a
+                  href={player.cricHeroesLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="text-blue-600 hover:text-blue-800 hover:underline"
+                >
+                  {player.name}
+                </a>
+              ) : player.name}
+            </span>
+            {isCaptain && <span className="text-sm">👑</span>}
+            {player.status === 'retained' && <span className="text-sm">🔒</span>}
+            {isCurrentlyBidding && (
+              <span className="bg-yellow-200 text-yellow-800 px-2 py-0.5 rounded-full text-[10px] font-semibold animate-pulse border border-yellow-400">LIVE</span>
+            )}
+          </div>
+          <div className="text-xs text-gray-500">{formatRoleLabel(player.role)}</div>
+          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border ${getCategoryStyle(player.category)}`}>
+              {player.category === 'wicket-keeper' ? 'keeper' : player.category}
+            </span>
+            <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border ${getStatusStyle(player.status)}`}>
+              {statusLabel(player.status)}
+            </span>
+            {player.status === 'sold' ? (
+              <span className="text-[11px] font-bold text-emerald-600">{formatCurrency(player.finalBid)}</span>
+            ) : player.status === 'assigned' ? (
+              <span className="text-[11px] font-bold text-purple-600">Captain</span>
+            ) : player.status === 'retained' ? (
+              <span className="text-[11px] font-bold text-cyan-600">{formatCurrency(player.retentionAmount || player.finalBid)}</span>
+            ) : isCurrentlyBidding && player.currentBid > 0 ? (
+              <span className="text-[11px] font-bold text-indigo-600">{formatCurrency(player.currentBid)}</span>
+            ) : null}
+            {team && (
+              <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${teamStyle}`}>
+                {getTeamIcon()} {teamName}
+              </span>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {canPerformBidActions && (
+        <div className="mt-3 flex flex-wrap items-center gap-2">
+          <PlayerImageUpload playerId={player.id} onUploaded={() => onDataRefresh && onDataRefresh()} />
+          {canStartBiddingForPlayer && (
+            <Button variant="primary" size="sm" onClick={() => onStartBidding(player.id)} disabled={loading}>
+              {loading ? 'Starting…' : '🔨 Start Bidding'}
+            </Button>
+          )}
+          {isCurrentlyBidding && (
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-700 border border-amber-200 animate-pulse">
+              🔥 Bidding
+            </span>
+          )}
+          {canConfigure && (
+            <>
+              <IconBtn title="Edit player" onClick={() => onEdit(player)}>
+                <IcoPencil />
+              </IconBtn>
+              <IconBtn title="Delete player" danger onClick={() => onDelete(player)}>
+                <IcoTrash />
+              </IconBtn>
+            </>
+          )}
+          {canConfigure && player.status === 'sold' && (
+            <Button variant="secondary" size="sm" onClick={() => onEditPrice(player)}>
+              💰 Edit Price
+            </Button>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}, rowFieldsEqual);
+
 const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole, canConfigure: canConfigureProp, onDataRefresh }) => {
   const { showWarning, showError, showConfirm, showSuccess } = useNotification();
   const [loading, setLoading] = useState(false);
@@ -120,8 +378,15 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
   const canStartBidding = (auctionStatus === 'running' || auctionStatus === 'fast-track');
   const canPerformBidActions = canConfigure || ['super-admin', 'admin', 'sub-admin'].includes(userRole);
 
+  // Read via a ref (not a closure over currentBid) so handleStartBidding keeps
+  // a STABLE identity across live-bid ticks — required for the row-level
+  // memoization below to actually skip re-rendering unaffected rows.
+  const currentBidRef = useRef(currentBid);
+  useEffect(() => { currentBidRef.current = currentBid; }, [currentBid]);
+
   const handleStartBidding = useCallback(async (playerId) => {
-    if (currentBid && currentBid.playerId !== playerId) {
+    const activeBid = currentBidRef.current;
+    if (activeBid && activeBid.playerId !== playerId) {
       showWarning('Another player is currently being bid on. Please complete or cancel that auction first.', 'Bidding In Progress');
       return;
     }
@@ -134,7 +399,7 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
     } finally {
       setLoading(false);
     }
-  }, [currentBid, showWarning, showError]);
+  }, [showWarning, showError]);
 
   // Correct a sold player's price without reverting the auction.
   const [editPricePlayer, setEditPricePlayer] = useState(null);
@@ -168,22 +433,18 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
     });
   }, [players, debouncedSearch, categoryFilter, statusFilter]);
 
-  const getStatusStyle = (status) => {
-    switch (status) {
-      case 'sold':
-        return 'bg-green-100 text-green-800 border-green-300';
-      case 'assigned':
-        return 'bg-purple-100 text-purple-800 border-purple-300';
-      case 'retained':
-        return 'bg-cyan-100 text-cyan-800 border-cyan-300';
-      case 'available':
-        return 'bg-yellow-100 text-yellow-800 border-yellow-300';
-      case 'unsold':
-        return 'bg-red-100 text-red-800 border-red-300';
-      default:
-        return 'bg-gray-100 text-gray-800 border-gray-300';
-    }
-  };
+  // Team lookups recomputed only when `teams` itself changes (rare — only on
+  // sell/config, never on a plain bid tick), so per-row team info stays a
+  // cheap, stable primitive across rapid bidding instead of a fresh object.
+  const captainIds = useMemo(
+    () => new Set((teams || []).map((t) => t.captain).filter(Boolean)),
+    [teams]
+  );
+  const teamById = useMemo(() => {
+    const map = new Map();
+    (teams || []).forEach((t) => map.set(t.id, t));
+    return map;
+  }, [teams]);
 
   return (
     <div className="gbx-players-list space-y-6">
@@ -286,131 +547,32 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
             </thead>
             <tbody className="divide-y divide-slate-100">
               {filteredPlayers.map((player) => {
-                const team = teams?.find(t => t.id === player.team);
+                const team = teamById.get(player.team);
                 const isCurrentlyBidding = currentBid?.playerId === player.id;
-                const canStartBiddingForPlayer = canStartBidding && 
-                                               player.status === 'available' && 
+                const canStartBiddingForPlayer = canStartBidding &&
+                                               player.status === 'available' &&
                                                player.category !== 'captain' &&
                                                !currentBid;
 
                 return (
-                  <tr key={player.id} className={`gbx-player-row ${isCurrentlyBidding ? 'gbx-row-active bg-amber-50/70' : 'transition-colors'}`}>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <div className="flex flex-col items-center">
-                        <PlayerAvatar player={player} size="md" className="mb-2" />
-                        <div>
-                          <div className="text-lg font-bold text-gray-900 flex items-center justify-center">
-                            {player.cricHeroesLink ? (
-                              <a
-                                href={player.cricHeroesLink}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                                className="text-blue-600 hover:text-blue-800 hover:underline transition-colors duration-200 active:text-blue-900"
-                                style={{ WebkitTapHighlightColor: 'transparent' }}
-                              >
-                                {player.name}
-                              </a>
-                            ) : (
-                              player.name
-                            )}
-                            {teams?.some(t => t.captain === player.id) && (
-                              <span className="ml-2 text-lg bg-yellow-100 px-1 py-0.5 rounded-full border border-yellow-300">👑</span>
-                            )}
-                            {player.status === 'retained' && (
-                              <span className="ml-2 text-sm bg-cyan-100 px-1 py-0.5 rounded-full border border-cyan-300">🔒</span>
-                            )}
-                            {isCurrentlyBidding && (
-                              <span className="ml-2 bg-yellow-200 text-yellow-800 px-2 py-1 rounded-full text-xs font-medium animate-pulse border border-yellow-400">
-                                LIVE
-                              </span>
-                            )}
-                          </div>
-                          <div className="text-sm text-gray-500 text-center">{formatRoleLabel(player.role)}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <div className="flex justify-center">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getCategoryStyle(player.category)}`}>
-                          {player.category === 'wicket-keeper' ? 'keeper' : player.category}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-center">
-                      <div className="flex justify-center">
-                        <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium border ${getStatusStyle(player.status)}`}>
-                          {player.status === 'assigned' ? 'Captain' : 
-                           player.status === 'retained' ? 'Retained' :
-                           player.status === 'sold' ? 'Sold' :
-                           player.status === 'unsold' ? 'Unsold' :
-                           player.status === 'available' ? 'Available' :
-                           player.status}
-                        </span>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 text-center">
-                      {player.status === 'sold' ? (
-                        <span className="font-bold text-emerald-600">{formatCurrency(player.finalBid)}</span>
-                      ) : player.status === 'assigned' ? (
-                        <span className="font-bold text-purple-600">Captain</span>
-                      ) : player.status === 'retained' ? (
-                        <span className="font-bold text-cyan-600">{formatCurrency(player.retentionAmount || player.finalBid)}</span>
-                      ) : isCurrentlyBidding && player.currentBid > 0 ? (
-                        <span className="font-bold text-indigo-600">{formatCurrency(player.currentBid)}</span>
-                      ) : (
-                        <span className="text-slate-300">—</span>
-                      )}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-slate-900 text-center">
-                      <div className="flex items-center justify-center">
-                        {team ? (
-                          <span className={`px-3 py-1 rounded-full text-xs font-bold inline-block ${getTeamStyle(player.team, teams)}`}>
-                            {getTeamIcon()} {cleanTeamName(team.name)}
-                          </span>
-                        ) : <span className="text-slate-300">—</span>}
-                      </div>
-                    </td>
-                    {canPerformBidActions && (
-                      <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-center">
-                        <div className="flex flex-wrap items-center justify-center gap-2">
-                          <PlayerImageUpload
-                            playerId={player.id}
-                            onUploaded={() => onDataRefresh && onDataRefresh()}
-                          />
-                          {canStartBiddingForPlayer && (
-                            <Button
-                              variant="primary"
-                              size="sm"
-                              onClick={() => handleStartBidding(player.id)}
-                              disabled={loading}
-                            >
-                              {loading ? 'Starting…' : '🔨 Start Bidding'}
-                            </Button>
-                          )}
-                          {isCurrentlyBidding && (
-                            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-700 border border-amber-200 animate-pulse">
-                              🔥 Bidding
-                            </span>
-                          )}
-                          {canConfigure && (
-                            <>
-                              <IconBtn title="Edit player" onClick={() => openEditPlayer(player)}>
-                                <IcoPencil />
-                              </IconBtn>
-                              <IconBtn title="Delete player" danger onClick={() => handleDeletePlayer(player)}>
-                                <IcoTrash />
-                              </IconBtn>
-                            </>
-                          )}
-                          {canConfigure && player.status === 'sold' && (
-                            <Button variant="secondary" size="sm" onClick={() => setEditPricePlayer(player)}>
-                              💰 Edit Price
-                            </Button>
-                          )}
-                        </div>
-                      </td>
-                    )}
-                  </tr>
+                  <PlayerTableRow
+                    key={player.id}
+                    player={player}
+                    team={team}
+                    teamName={team ? cleanTeamName(team.name) : null}
+                    teamStyle={team ? getTeamStyle(player.team, teams) : null}
+                    isCaptain={captainIds.has(player.id)}
+                    isCurrentlyBidding={isCurrentlyBidding}
+                    canStartBiddingForPlayer={canStartBiddingForPlayer}
+                    canPerformBidActions={canPerformBidActions}
+                    canConfigure={canConfigure}
+                    loading={loading}
+                    onStartBidding={handleStartBidding}
+                    onEdit={openEditPlayer}
+                    onDelete={handleDeletePlayer}
+                    onEditPrice={setEditPricePlayer}
+                    onDataRefresh={onDataRefresh}
+                  />
                 );
               })}
             </tbody>
@@ -434,106 +596,31 @@ const PlayersList = memo(({ players, teams, currentBid, auctionStatus, userRole,
             horizontal scrolling to reach — the table above is desktop/tablet only. */}
         <div className="md:hidden divide-y divide-slate-100">
           {filteredPlayers.map((player) => {
-            const team = teams?.find((t) => t.id === player.team);
+            const team = teamById.get(player.team);
             const isCurrentlyBidding = currentBid?.playerId === player.id;
             const canStartBiddingForPlayer = canStartBidding &&
                                            player.status === 'available' &&
                                            player.category !== 'captain' &&
                                            !currentBid;
             return (
-              <div key={player.id} className={`gbx-player-row-mobile p-4 ${isCurrentlyBidding ? 'bg-amber-50/70' : ''}`}>
-                <div className="flex items-start gap-3">
-                  <PlayerAvatar player={player} size="md" />
-                  <div className="min-w-0 flex-1">
-                    <div className="flex items-center flex-wrap gap-1.5">
-                      <span className="text-base font-bold text-gray-900">
-                        {player.cricHeroesLink ? (
-                          <a
-                            href={player.cricHeroesLink}
-                            target="_blank"
-                            rel="noopener noreferrer"
-                            className="text-blue-600 hover:text-blue-800 hover:underline"
-                          >
-                            {player.name}
-                          </a>
-                        ) : player.name}
-                      </span>
-                      {teams?.some((t) => t.captain === player.id) && <span className="text-sm">👑</span>}
-                      {player.status === 'retained' && <span className="text-sm">🔒</span>}
-                      {isCurrentlyBidding && (
-                        <span className="bg-yellow-200 text-yellow-800 px-2 py-0.5 rounded-full text-[10px] font-semibold animate-pulse border border-yellow-400">LIVE</span>
-                      )}
-                    </div>
-                    <div className="text-xs text-gray-500">{formatRoleLabel(player.role)}</div>
-                    <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border ${getCategoryStyle(player.category)}`}>
-                        {player.category === 'wicket-keeper' ? 'keeper' : player.category}
-                      </span>
-                      <span className={`inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium border ${getStatusStyle(player.status)}`}>
-                        {player.status === 'assigned' ? 'Captain' :
-                         player.status === 'retained' ? 'Retained' :
-                         player.status === 'sold' ? 'Sold' :
-                         player.status === 'unsold' ? 'Unsold' :
-                         player.status === 'available' ? 'Available' :
-                         player.status}
-                      </span>
-                      {player.status === 'sold' ? (
-                        <span className="text-[11px] font-bold text-emerald-600">{formatCurrency(player.finalBid)}</span>
-                      ) : player.status === 'assigned' ? (
-                        <span className="text-[11px] font-bold text-purple-600">Captain</span>
-                      ) : player.status === 'retained' ? (
-                        <span className="text-[11px] font-bold text-cyan-600">{formatCurrency(player.retentionAmount || player.finalBid)}</span>
-                      ) : isCurrentlyBidding && player.currentBid > 0 ? (
-                        <span className="text-[11px] font-bold text-indigo-600">{formatCurrency(player.currentBid)}</span>
-                      ) : null}
-                      {team && (
-                        <span className={`px-2 py-0.5 rounded-full text-[11px] font-bold ${getTeamStyle(player.team, teams)}`}>
-                          {getTeamIcon()} {cleanTeamName(team.name)}
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                </div>
-
-                {canPerformBidActions && (
-                  <div className="mt-3 flex flex-wrap items-center gap-2">
-                    <PlayerImageUpload
-                      playerId={player.id}
-                      onUploaded={() => onDataRefresh && onDataRefresh()}
-                    />
-                    {canStartBiddingForPlayer && (
-                      <Button
-                        variant="primary"
-                        size="sm"
-                        onClick={() => handleStartBidding(player.id)}
-                        disabled={loading}
-                      >
-                        {loading ? 'Starting…' : '🔨 Start Bidding'}
-                      </Button>
-                    )}
-                    {isCurrentlyBidding && (
-                      <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-100 text-amber-700 border border-amber-200 animate-pulse">
-                        🔥 Bidding
-                      </span>
-                    )}
-                    {canConfigure && (
-                      <>
-                        <IconBtn title="Edit player" onClick={() => openEditPlayer(player)}>
-                          <IcoPencil />
-                        </IconBtn>
-                        <IconBtn title="Delete player" danger onClick={() => handleDeletePlayer(player)}>
-                          <IcoTrash />
-                        </IconBtn>
-                      </>
-                    )}
-                    {canConfigure && player.status === 'sold' && (
-                      <Button variant="secondary" size="sm" onClick={() => setEditPricePlayer(player)}>
-                        💰 Edit Price
-                      </Button>
-                    )}
-                  </div>
-                )}
-              </div>
+              <PlayerMobileCard
+                key={player.id}
+                player={player}
+                team={team}
+                teamName={team ? cleanTeamName(team.name) : null}
+                teamStyle={team ? getTeamStyle(player.team, teams) : null}
+                isCaptain={captainIds.has(player.id)}
+                isCurrentlyBidding={isCurrentlyBidding}
+                canStartBiddingForPlayer={canStartBiddingForPlayer}
+                canPerformBidActions={canPerformBidActions}
+                canConfigure={canConfigure}
+                loading={loading}
+                onStartBidding={handleStartBidding}
+                onEdit={openEditPlayer}
+                onDelete={handleDeletePlayer}
+                onEditPrice={setEditPricePlayer}
+                onDataRefresh={onDataRefresh}
+              />
             );
           })}
           {filteredPlayers.length === 0 && (

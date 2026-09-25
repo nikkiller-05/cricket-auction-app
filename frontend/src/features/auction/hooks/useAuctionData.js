@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import io from 'socket.io-client';
 import axios from 'axios';
 import { API_BASE_URL } from '../../../config';
@@ -160,23 +160,23 @@ export default function useAuctionData({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const fetchAuctionData = async () => {
+  const fetchAuctionData = useCallback(async () => {
     try {
       const response = await axios.get(`${API_BASE_URL}/api/auction/data`);
       setAuctionData(response.data);
     } catch (error) {
       console.error('Error fetching auction data:', error);
     }
-  };
+  }, []);
 
   // Callbacks passed to child components that edit teams/players in place.
-  const handleTeamsUpdate = (updatedTeams) => {
+  const handleTeamsUpdate = useCallback((updatedTeams) => {
     setAuctionData((prev) => ({ ...prev, teams: updatedTeams }));
-  };
+  }, []);
 
-  const handlePlayersUpdate = (updatedPlayers) => {
+  const handlePlayersUpdate = useCallback((updatedPlayers) => {
     setAuctionData((prev) => ({ ...prev, players: updatedPlayers }));
-  };
+  }, []);
 
   return {
     auctionData,
