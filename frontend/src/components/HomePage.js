@@ -218,7 +218,7 @@ const HomePage = () => {
             />
             <h1 className="text-2xl md:text-4xl font-extrabold text-white tracking-tight max-w-2xl gbx-fade-up">Run live player auctions like a pro</h1>
             <p className="mt-3 text-base md:text-lg text-indigo-200/90 font-light max-w-xl gbx-fade-up" style={{ animationDelay: '80ms' }}>
-              Real-time bidding, self-serve player registration, automatic team budgets and live stats — for cricket and every sport.
+              Real-time bidding, self-serve player registration, automatic team budgets and live stats — for cricket auctions, with more sports coming soon.
             </p>
             <div className="mt-4 flex flex-wrap items-center justify-center gap-2 gbx-fade-up" style={{ animationDelay: '140ms' }}>
               {['⚡ Real-time bidding', '📝 Self-serve registration', '💰 Auto team budgets', '📥 Instant exports'].map((b) => (
@@ -228,6 +228,27 @@ const HomePage = () => {
             <div className="mt-6 flex flex-wrap items-center justify-center gap-3 gbx-fade-up" style={{ animationDelay: '200ms' }}>
               <Button variant="primary" size="lg" onClick={scrollToEnter}>Get started</Button>
               <Button variant="glass" size="lg" onClick={() => navigate('/tournaments')}>Browse tournaments</Button>
+            </div>
+
+            {/* Product preview: a real screenshot of the live bidding screen,
+                framed like a browser window so the landing page shows the
+                actual product instead of just text. */}
+            <div className="mt-10 w-full max-w-3xl mx-auto gbx-fade-up" style={{ animationDelay: '260ms' }}>
+              <div className="rounded-2xl border border-white/15 bg-[#0b0a06]/80 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.7)] overflow-hidden">
+                <div className="flex items-center gap-1.5 px-4 py-2.5 bg-black/30 border-b border-white/10">
+                  <span className="h-2.5 w-2.5 rounded-full bg-rose-400/70" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-amber-400/70" />
+                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-400/70" />
+                  <span className="ml-3 text-[11px] font-medium text-indigo-200/50 truncate">goldenbidx.com/dashboard</span>
+                </div>
+                <img
+                  src="/screenshot-live-bidding.png"
+                  alt="Live bidding screen with player photo, stats and current bid"
+                  className="w-full h-auto block"
+                  loading="lazy"
+                />
+              </div>
+              <p className="mt-3 text-center text-xs text-indigo-200/50">The live bidding screen — real player photos, stats and bids update instantly for every viewer.</p>
             </div>
           </div>
         </header>
@@ -302,11 +323,12 @@ const HomePage = () => {
         {/* Who it's for */}
         <section className="gbx-reveal px-4 py-6">
           <div className="max-w-4xl mx-auto text-center">
-            <h2 className="text-2xl md:text-3xl font-extrabold text-white mb-4">Built for every auction</h2>
+            <h2 className="text-2xl md:text-3xl font-extrabold text-white mb-4">Built for cricket auctions of every kind</h2>
             <div className="flex flex-wrap justify-center gap-2.5">
-              {['🏏 Box cricket', '🏢 Corporate leagues', '🏆 Gully tournaments', '⚽ Football', '🎾 Tennis', '🏸 Badminton', '👥 Community clubs'].map((c) => (
+              {['🏏 Box cricket', '🏢 Corporate leagues', '🏆 Gully tournaments', '🎓 School & college', '👥 Community clubs', '🏟️ Franchise leagues'].map((c) => (
                 <span key={c} className="rounded-full border border-white/15 bg-white/[0.05] px-4 py-2 text-sm font-medium text-indigo-100/90">{c}</span>
               ))}
+              <span className="rounded-full border border-amber-300/30 bg-amber-400/10 px-4 py-2 text-sm font-medium text-amber-200">➕ More sports coming soon</span>
             </div>
           </div>
         </section>
@@ -317,7 +339,7 @@ const HomePage = () => {
             <h2 className="text-center text-2xl md:text-3xl font-extrabold text-white mb-8">Frequently asked</h2>
             <div className="space-y-3">
               {[
-                ['Is it only for cricket?', 'No — it works for any sport. You choose the team count, budgets, base price and bidding steps.'],
+                ['Is it only for cricket?', 'Currently only cricket is supported. Other sports are on the roadmap and will be added soon.'],
                 ['How do players register?', 'Share your event’s registration link. Players self-register with a photo, role and stats — no manual data entry for you.'],
                 ['Can spectators watch live?', 'Yes. Share the public link and anyone can follow every bid live, then browse the final results afterwards.'],
                 ['Do I need to install anything?', 'No. Everything runs in the browser on a phone or laptop.'],
