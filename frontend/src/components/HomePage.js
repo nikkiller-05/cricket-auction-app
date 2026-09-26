@@ -229,27 +229,6 @@ const HomePage = () => {
               <Button variant="primary" size="lg" onClick={scrollToEnter}>Get started</Button>
               <Button variant="glass" size="lg" onClick={() => navigate('/tournaments')}>Browse tournaments</Button>
             </div>
-
-            {/* Product preview: a real screenshot of the live bidding screen,
-                framed like a browser window so the landing page shows the
-                actual product instead of just text. */}
-            <div className="mt-10 w-full max-w-3xl mx-auto gbx-fade-up" style={{ animationDelay: '260ms' }}>
-              <div className="rounded-2xl border border-white/15 bg-[#0b0a06]/80 shadow-[0_30px_80px_-30px_rgba(0,0,0,0.7)] overflow-hidden">
-                <div className="flex items-center gap-1.5 px-4 py-2.5 bg-black/30 border-b border-white/10">
-                  <span className="h-2.5 w-2.5 rounded-full bg-rose-400/70" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-amber-400/70" />
-                  <span className="h-2.5 w-2.5 rounded-full bg-emerald-400/70" />
-                  <span className="ml-3 text-[11px] font-medium text-indigo-200/50 truncate">goldenbidx.com/dashboard</span>
-                </div>
-                <img
-                  src="/screenshot-live-bidding.png"
-                  alt="Live bidding screen with player photo, stats and current bid"
-                  className="w-full h-auto block"
-                  loading="lazy"
-                />
-              </div>
-              <p className="mt-3 text-center text-xs text-indigo-200/50">The live bidding screen — real player photos, stats and bids update instantly for every viewer.</p>
-            </div>
           </div>
         </header>
 
