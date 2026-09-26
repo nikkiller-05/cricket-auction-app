@@ -868,3 +868,33 @@ button:not(:disabled):active {
     transform: none;
   }
 }
+
+/* ===== Player poster card (PlayerCardModal upgrade) ===== */
+@keyframes gbxCrestIn {
+  0% { transform: scale(1.35); opacity: 0; }
+  100% { transform: scale(1); opacity: var(--crest-opacity, 0.16); }
+}
+@keyframes gbxCardConfetti {
+  0% { transform: translateY(-12px) rotate(0deg); opacity: 0; }
+  10% { opacity: 1; }
+  100% { transform: translateY(190px) rotate(420deg); opacity: 0; }
+}
+@keyframes gbxFoilSheen {
+  0% { background-position: -140% 0, 0 0; }
+  60%, 100% { background-position: 140% 0, 0 0; }
+}
+.gbx-foil {
+  background-image:
+    linear-gradient(115deg, transparent 20%, rgba(255,255,255,0.75) 45%, rgba(255,255,255,0.2) 55%, transparent 75%),
+    linear-gradient(to bottom, #fde68a, #f59e0b);
+  background-size: 220% 100%, 100% 100%;
+  background-position: -140% 0, 0 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  animation: gbxFoilSheen 2.6s ease-in-out infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .gbx-crest-in { animation: none !important; opacity: var(--crest-opacity, 0.16) !important; }
+  .gbx-foil { animation: none !important; }
+  .gbx-card-confetti { display: none !important; }
+}

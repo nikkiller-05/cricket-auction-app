@@ -8,6 +8,7 @@ import TeamStandingsStrip from '../features/auction/TeamStandingsStrip';
 import StatCards from '../features/auction/StatCards';
 import LiveStatusPanel from '../features/auction/LiveStatusPanel';
 import { formatCurrency } from '../lib/currency';
+import { abbreviateTeamName } from '../lib/format';
 
 // Standalone, auto-playing showcase of the REAL auction UI, driven by
 // scripted/fictional data (no live socket/API). Sample entries use well-known
@@ -89,7 +90,7 @@ const DemoAdminControls = ({ teams, currentAmount, startingBudget }) => {
             >
               {canBid && <span className="pointer-events-none absolute inset-x-2 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent" />}
               <div className="relative flex flex-col items-center leading-tight">
-                <span className="tracking-wide">{team.name}</span>
+                <span className="tracking-wide">{abbreviateTeamName(team.name)}</span>
                 <span className={`text-[10px] mt-0.5 font-semibold ${canBid ? 'text-white/85' : 'text-white/30'}`}>{formatCurrency(team.budget)}</span>
               </div>
               <span className="pointer-events-none absolute inset-x-0 bottom-0 h-1 bg-black/25">

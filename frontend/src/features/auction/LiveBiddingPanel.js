@@ -2,7 +2,7 @@ import React from 'react';
 import axios from 'axios';
 import LiveBiddingCard from '../../components/LiveBiddingCard';
 import { API_BASE_URL } from '../../config';
-import { formatCurrency, cleanTeamName } from '../../lib/format';
+import { formatCurrency, cleanTeamName, abbreviateTeamName } from '../../lib/format';
 import { computeNextBid } from '../../domain/bidding';
 
 // The live bidding card + admin bid controls (team bids, custom/big bid, sell,
@@ -124,7 +124,7 @@ const LiveBiddingPanel = ({
                       <span className="pointer-events-none absolute inset-x-2 top-0 h-px bg-gradient-to-r from-transparent via-white/80 to-transparent" />
                     )}
                     <div className="relative flex flex-col items-center leading-tight">
-                      <span className="tracking-wide">{cleanTeamName(team.name)}</span>
+                      <span className="tracking-wide">{abbreviateTeamName(team.name)}</span>
                       <span
                         className={`text-[10px] mt-0.5 font-semibold ${canBid ? 'text-white/85' : 'text-white/30'}`}
                       >
