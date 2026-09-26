@@ -125,6 +125,16 @@ const HomePage = () => {
   // Reflect any persisted login (organizer console or auction admin) in the nav.
   const [session, setSession] = useState(() => getPrimarySession());
   const [showAuth, setShowAuth] = useState(false);
+  // Real live/upcoming tournaments for the homepage teaser strip (null = loading).
+  const [publicEvents, setPublicEvents] = useState(null);
+
+  useEffect(() => {
+    let active = true;
+    axios.get(`${API_BASE_URL}/api/registrations/public-events`)
+      .then(({ data }) => { if (active) setPublicEvents(data.events || []); })
+      .catch(() => { if (active) setPublicEvents([]); });
+    return () => { active = false; };
+  }, []);
 
   // Create Auction: signed-in organizers go straight to their console; everyone else signs in first.
   const handleCreateAuction = () => {
@@ -277,6 +287,61 @@ const HomePage = () => {
             </div>
           </div>
         </main>
+
+        {/* Live & Upcoming Tournaments — real data, only shown when there's
+            something real to show (never a fake/empty placeholder). NOTE:
+            deliberately no `gbx-reveal` class — that scroll-fade-in relies on
+            a one-time IntersectionObserver set up on mount, but this section
+            only appears after the async events fetch resolves, so it would
+            never get observed and would stay invisible (opacity:0) forever. */}
+        {(() => {
+          const live = (publicEvents || []).filter((e) => e.status === 'live');
+          const upcoming = (publicEvents || []).filter((e) => e.status !== 'live' && e.status !== 'completed');
+          const teaser = [...live, ...upcoming].slice(0, 4);
+          if (!teaser.length) return null;
+          return (
+            <section className="px-4 py-10">
+              <div className="max-w-5xl mx-auto">
+                <div className="flex items-center justify-between gap-3 mb-5">
+                  <h2 className="text-xl sm:text-2xl font-extrabold text-white">Live &amp; upcoming tournaments</h2>
+                  <button onClick={() => navigate('/tournaments')} className="shrink-0 text-sm font-semibold text-amber-300 hover:text-amber-200 transition">View all →</button>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2">
+                  {teaser.map((ev) => (
+                    <button
+                      key={ev.id}
+                      onClick={() => navigate(`/a/${ev.slug}`)}
+                      className="group w-full min-w-0 text-left rounded-2xl border border-white/10 hover:border-amber-300/40 bg-white/[0.04] hover:bg-white/[0.07] p-4 flex items-center gap-4 transition-[transform,background-color,border-color] duration-200 hover:-translate-y-0.5"
+                    >
+                      {ev.logo_url ? (
+                        <img src={ev.logo_url} alt="" className="w-12 h-12 rounded-xl object-cover bg-white/10 shrink-0 ring-1 ring-white/10" />
+                      ) : (
+                        <div className="w-12 h-12 rounded-xl bg-amber-400/20 grid place-items-center text-amber-200 font-black shrink-0">
+                          {(ev.name || '?').split(/\s+/).slice(0, 2).map((w) => w[0]).join('').toUpperCase()}
+                        </div>
+                      )}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 min-w-0">
+                          <h3 className="font-bold text-white truncate min-w-0">{ev.name}</h3>
+                          {ev.status === 'live' ? (
+                            <span className="inline-flex items-center gap-1.5 rounded-full bg-emerald-500/15 border border-emerald-400/30 text-emerald-300 text-[10px] font-bold px-2 py-0.5 uppercase tracking-wide shrink-0">
+                              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" /> Live
+                            </span>
+                          ) : (
+                            <span className="rounded-full bg-amber-400/15 border border-amber-300/30 text-amber-200 text-[10px] font-bold px-2 py-0.5 uppercase tracking-wide shrink-0">Upcoming</span>
+                          )}
+                        </div>
+                        <span className="mt-1 inline-block text-sm font-semibold text-amber-300 group-hover:text-amber-200">
+                          {ev.status === 'live' ? 'Watch live' : 'View'} →
+                        </span>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </section>
+          );
+        })()}
 
         {/* How it works */}
         <section id="features" className="gbx-reveal px-4 py-10 scroll-mt-16">
