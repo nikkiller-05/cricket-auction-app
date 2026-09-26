@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="g" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#7f1d1d"/><stop offset="1" stop-color="#ef4444"/>
+    </linearGradient>
+  </defs>
+  <path d="M60 6 L104 20 V60 C104 88 84 106 60 114 C36 106 16 88 16 60 V20 Z" fill="url(#g)" stroke="#ffffff" stroke-opacity="0.5" stroke-width="3"/>
+  <path d="M60 6 L104 20 V60 C104 88 84 106 60 114 C36 106 16 88 16 60 V20 Z" fill="none" stroke="#000000" stroke-opacity="0.12" stroke-width="1"/>
+  <text x="60" y="52" text-anchor="middle" font-family="Arial, sans-serif" font-weight="900" font-size="34" fill="#ffffff">WC</text>
+  <text x="60" y="84" text-anchor="middle" font-size="26">⚔️</text>
+</svg>

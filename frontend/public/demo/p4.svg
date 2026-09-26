@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" width="400" height="400">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#4a044e"/>
+      <stop offset="1" stop-color="#a855f7"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="50%" cy="28%" r="60%">
+      <stop offset="0" stop-color="#ffffff" stop-opacity="0.22"/>
+      <stop offset="1" stop-color="#ffffff" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="400" height="400" fill="url(#bg)"/>
+  <rect width="400" height="400" fill="url(#glow)"/>
+  <g stroke="#ffffff" stroke-opacity="0.10" fill="none" stroke-width="6">
+    <circle cx="200" cy="470" r="150"/>
+    <circle cx="200" cy="470" r="210"/>
+  </g>
+  <!-- shoulders / jersey -->
+  <path d="M70 400 C 80 300, 140 270, 200 270 C 260 270, 320 300, 330 400 Z" fill="#9333ea"/>
+  <path d="M182 272 L200 298 L218 272 Z" fill="#ffffff" fill-opacity="0.85"/>
+  <text x="200" y="374" text-anchor="middle" font-family="Arial, sans-serif" font-weight="800" font-size="40" fill="#ffffff" fill-opacity="0.85">23</text>
+  <!-- neck -->
+  <rect x="181" y="238" width="38" height="48" rx="15" fill="#b87a4e"/>
+  <!-- ears -->
+  <circle cx="137" cy="188" r="12" fill="#b87a4e"/>
+  <circle cx="263" cy="188" r="12" fill="#b87a4e"/>
+  <!-- head -->
+  <circle cx="200" cy="186" r="64" fill="#b87a4e"/>
+  <!-- hair sides under cap -->
+  <path d="M140 176 q6 -30 60 -30 q54 0 60 30 l0 6 q-60 -22 -120 0 Z" fill="#00000018"/>
+  <!-- cap crown (sits on top third) -->
+  <path d="M140 158 C 140 120, 168 106, 200 106 C 232 106, 260 120, 260 158 C 220 142, 180 142, 140 158 Z" fill="#6b21a8"/>
+  <!-- cap brim (protrudes forward, above brows) -->
+  <path d="M126 160 C 150 150, 250 150, 274 160 C 272 172, 250 176, 200 176 C 150 176, 128 172, 126 160 Z" fill="#6b21a8"/>
+  <!-- button -->
+  <circle cx="200" cy="112" r="4" fill="#ffffff" fill-opacity="0.6"/>
+  <!-- brows -->
+  <path d="M166 186 q11 -6 22 0" stroke="#26201a" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M212 186 q11 -6 22 0" stroke="#26201a" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- eyes -->
+  <circle cx="177" cy="197" r="5.5" fill="#26201a"/>
+  <circle cx="223" cy="197" r="5.5" fill="#26201a"/>
+  <!-- nose -->
+  <path d="M200 202 l -5 15 q5 4 10 0" stroke="#00000022" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- smile -->
+  <path d="M181 228 q19 15 38 0" stroke="#26201a" stroke-width="4" fill="none" stroke-linecap="round"/>
+</svg>

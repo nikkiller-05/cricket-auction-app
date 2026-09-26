@@ -304,6 +304,7 @@ const HomePage = () => {
             </div>
             <div className="mt-6 flex flex-wrap items-center justify-center gap-3 gbx-fade-up" style={{ animationDelay: '200ms' }}>
               <Button variant="primary" size="lg" onClick={scrollToEnter}>Get started</Button>
+              <Button variant="glass" size="lg" onClick={() => navigate('/demo')}>▶ Watch live demo</Button>
               <Button variant="glass" size="lg" onClick={() => navigate('/tournaments')}>Browse tournaments</Button>
             </div>
           </div>
