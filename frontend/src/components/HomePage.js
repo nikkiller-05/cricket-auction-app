@@ -11,6 +11,54 @@ const IcoMail = (p) => (<svg viewBox="0 0 24 24" fill="currentColor" width="18" 
 
 const authInputCls = 'w-full rounded-lg border border-white/20 bg-white/10 text-white placeholder-white/40 px-3 py-2.5 focus:outline-none focus:ring-2 focus:ring-amber-300/50';
 
+// Original, hand-drawn flat-icon sport art for the hero background decoration
+// (not a photo/screenshot — zero licensing or likeness risk, crisp at any size).
+const SportBadge = ({ className = '', children }) => (
+  <div className={`rounded-full border border-amber-200/[0.14] bg-gradient-to-br from-amber-400/[0.06] to-white/[0.015] grid place-items-center ${className}`}>
+    <div className="w-[52%] h-[52%] text-amber-100/[0.16]">{children}</div>
+  </div>
+);
+const CricketIcon = () => (
+  <svg viewBox="0 0 64 64" className="w-full h-full" fill="currentColor">
+    <g transform="rotate(14 24 30)">
+      <rect x="20" y="4" width="8" height="20" rx="4" />
+      <path d="M15 23 L33 23 L33 47 Q33 53 27 53 L21 53 Q15 53 15 47 Z" />
+    </g>
+    <circle cx="48" cy="44" r="9" />
+    <path d="M42 40 Q48 44 42 48 M54 40 Q48 44 54 48" stroke="#0b0a06" strokeWidth="1.6" fill="none" opacity="0.55" />
+  </svg>
+);
+const FootballIcon = () => (
+  <svg viewBox="0 0 64 64" className="w-full h-full" fill="none" stroke="currentColor">
+    <circle cx="32" cy="32" r="26" strokeWidth="3" />
+    <polygon points="32,23 40.6,29.2 37.3,39.3 26.7,39.3 23.4,29.2" fill="currentColor" stroke="none" />
+    <polygon points="46.8,11.6 49.1,18.5 43.2,22.8 37.3,18.5 39.5,11.6" fill="currentColor" stroke="none" />
+    <polygon points="56,39.8 50.1,44.1 44.2,39.8 46.4,32.9 53.7,32.9" fill="currentColor" stroke="none" />
+    <polygon points="32,57.2 26.1,52.9 28.4,46 35.6,46 37.9,52.9" fill="currentColor" stroke="none" />
+    <polygon points="8,39.8 10.3,32.9 17.6,32.9 19.8,39.8 13.9,44.1" fill="currentColor" stroke="none" />
+    <polygon points="17.2,11.6 24.5,11.6 26.7,18.5 20.8,22.8 14.9,18.5" fill="currentColor" stroke="none" />
+  </svg>
+);
+const BadmintonIcon = () => (
+  <svg viewBox="0 0 64 64" className="w-full h-full" fill="currentColor">
+    <path d="M25 44 L14 12 L50 12 L39 44 Z" opacity="0.18" stroke="none" />
+    <path
+      d="M27 44 L18 12 M29.5 44 L25 12 M32 44 L32 12 M34.5 44 L39 12 M37 44 L46 12"
+      stroke="currentColor"
+      strokeWidth="2"
+      fill="none"
+      strokeLinecap="round"
+    />
+    <circle cx="32" cy="47" r="7" />
+  </svg>
+);
+const BasketballIcon = () => (
+  <svg viewBox="0 0 64 64" className="w-full h-full" fill="none" stroke="currentColor">
+    <circle cx="32" cy="32" r="26" strokeWidth="3" />
+    <path d="M32 6 V58 M6 32 H58 M12 14 Q32 32 12 50 M52 14 Q32 32 52 50" strokeWidth="2.5" strokeLinecap="round" />
+  </svg>
+);
+
 // Downscale a chosen image to a small square-ish JPEG data URL for the avatar.
 const compressAvatarDataUrl = (file, maxDim = 160) => new Promise((resolve, reject) => {
   const img = new Image();
@@ -180,6 +228,25 @@ const HomePage = () => {
         <div className="absolute top-44 -right-24 h-80 w-80 rounded-full bg-indigo-500/10 blur-3xl" style={{ animation: 'gbxFloat 11s ease-in-out infinite reverse' }} />
       </div>
 
+      {/* Multi-sport icon badges (original flat-icon art, not a photo — no
+          licensing/likeness risk, crisp at any resolution). Cricket is what
+          we support today; the others hint at the roadmap without claiming
+          they work yet (the FAQ/copy already says "cricket only, more soon"). */}
+      <div className="pointer-events-none absolute inset-0 overflow-hidden hidden sm:block" aria-hidden="true">
+        <SportBadge className="absolute -right-8 top-4 h-40 w-40 lg:h-48 lg:w-48 -rotate-6">
+          <CricketIcon />
+        </SportBadge>
+        <SportBadge className="absolute left-2 top-56 h-28 w-28 lg:h-32 lg:w-32 rotate-12">
+          <FootballIcon />
+        </SportBadge>
+        <SportBadge className="absolute right-24 top-96 h-24 w-24 lg:h-28 lg:w-28 -rotate-12">
+          <BadmintonIcon />
+        </SportBadge>
+        <SportBadge className="absolute left-24 top-8 h-24 w-24 lg:h-28 lg:w-28 rotate-6">
+          <BasketballIcon />
+        </SportBadge>
+      </div>
+
       <div className="relative z-10 min-h-screen flex flex-col">
         {/* Top nav */}
         <nav className="sticky top-0 z-30 backdrop-blur-xl bg-gradient-to-b from-black/70 to-black/15 border-b border-amber-300/25 shadow-[0_16px_34px_-18px_rgba(0,0,0,0.95)]">
@@ -343,8 +410,38 @@ const HomePage = () => {
           );
         })()}
 
-        {/* How it works */}
+        {/* Why GoldenBidX — full feature grid (capabilities we actually ship). */}
         <section id="features" className="gbx-reveal px-4 py-10 scroll-mt-16">
+          <div className="max-w-5xl mx-auto">
+            <h2 className="text-center text-2xl md:text-3xl font-extrabold text-white mb-2">Everything your auction needs</h2>
+            <p className="text-center text-indigo-200/70 mb-8">From the first bid to the final squad — built in, not bolted on.</p>
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+              {[
+                { icon: '⚡', title: 'Real-Time Bidding', desc: 'Instant updates for every operator, team and spectator.' },
+                { icon: '🎲', title: 'Smart Random & Reveal', desc: 'A dramatic mystery-card reveal builds suspense before every bid.' },
+                { icon: '💰', title: 'Auto Team Budgets', desc: 'Purse and squad limits enforced automatically, live.' },
+                { icon: '👁️', title: 'Live Spectator Sync', desc: 'Anyone with the link follows every bid — no refresh needed.' },
+                { icon: '⏪', title: 'Undo & Revert', desc: 'Made a mistake mid-auction? Fix it safely without breaking the flow.' },
+                { icon: '📥', title: 'Squad & Poster Exports', desc: 'One-tap Excel, team squad images and a shareable results poster.' },
+                { icon: '📊', title: 'Full Auction Stats', desc: 'Spend, highest/lowest bids and category breakdowns, live.' },
+                { icon: '🔗', title: 'Shareable Results Page', desc: 'A clean public link with final squads and highlights, after the auction.' },
+              ].map((f) => (
+                <div
+                  key={f.title}
+                  className="group relative overflow-hidden rounded-xl border border-white/10 bg-white/[0.04] p-4 text-center transition-all duration-300 hover:-translate-y-0.5 hover:border-amber-300/40 hover:bg-white/[0.07]"
+                >
+                  <span className="absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r from-transparent via-amber-300/70 to-transparent" />
+                  <div className="text-2xl mb-1.5">{f.icon}</div>
+                  <h5 className="text-white font-semibold text-sm mb-1">{f.title}</h5>
+                  <p className="text-blue-200/80 text-xs leading-snug">{f.desc}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* How it works */}
+        <section className="gbx-reveal px-4 py-10 scroll-mt-16">
           <div className="max-w-5xl mx-auto">
             <h2 className="text-center text-2xl md:text-3xl font-extrabold text-white mb-2">How it works</h2>
             <p className="text-center text-indigo-200/70 mb-8">From setup to sold in three simple steps.</p>
@@ -425,6 +522,10 @@ const HomePage = () => {
                 <span className="font-extrabold text-white"><span className="text-amber-300">Golden</span>BidX</span>
               </div>
               <p className="text-indigo-200/60">Live player auctions, made effortless. Bid · Build · Win.</p>
+              <div className="mt-3 flex items-center gap-2">
+                <a href="https://wa.me/918867976531" target="_blank" rel="noreferrer" aria-label="WhatsApp" className="grid h-8 w-8 place-items-center rounded-full border border-white/15 bg-white/[0.04] text-indigo-200/70 hover:text-white hover:border-white/30 transition"><IcoWhatsApp width={15} height={15} /></a>
+                <a href="mailto:contactus@goldenbidx.com" aria-label="Email" className="grid h-8 w-8 place-items-center rounded-full border border-white/15 bg-white/[0.04] text-indigo-200/70 hover:text-white hover:border-white/30 transition"><IcoMail width={15} height={15} /></a>
+              </div>
             </div>
             <div>
               <div className="text-white font-semibold mb-2">Product</div>
@@ -435,7 +536,7 @@ const HomePage = () => {
               </ul>
             </div>
             <div>
-              <div className="text-white font-semibold mb-2">Contact</div>
+              <div className="text-white font-semibold mb-2">Support</div>
               <ul className="space-y-1.5 text-indigo-200/70">
                 <li><a href="https://wa.me/918867976531" target="_blank" rel="noreferrer" className="hover:text-white transition">WhatsApp</a></li>
                 <li><a href="mailto:contactus@goldenbidx.com" className="hover:text-white transition">contactus@goldenbidx.com</a></li>
