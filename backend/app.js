@@ -30,6 +30,7 @@ const playerRoutes = require('./routes/playerRoutes');
 const teamRoutes = require('./routes/teamRoutes');
 const downloadRoutes = require('./routes/downloadRoutes');
 const registrationRoutes = require('./routes/registrationRoutes');
+const feedbackRoutes = require('./routes/feedbackRoutes');
 
 app.use('/api/auth', authRoutes);
 app.use('/api/auction', auctionRoutes);
@@ -38,6 +39,7 @@ app.use('/api/teams', teamRoutes);
 app.use('/api/downloads', downloadRoutes.router);
 app.use('/api', downloadRoutes.legacy);
 app.use('/api/registrations', registrationRoutes);
+app.use('/api/feedback', feedbackRoutes);
 
 // Lightweight health check for uptime pingers (keeps the free-tier instance warm).
 app.get(['/health', '/'], (req, res) => res.json({ ok: true, ts: Date.now() }));

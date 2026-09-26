@@ -131,7 +131,8 @@ const DemoAdminControls = ({ teams, currentAmount, startingBudget }) => {
 };
 
 const DemoPage = () => {
-  const { theme } = useTheme();
+  const { theme, toggleTheme } = useTheme();
+  const isLight = theme === 'light';
   const [view, setView] = useState('spectator'); // 'spectator' | 'organizer'
   const [idx, setIdx] = useState(0);
   const [phase, setPhase] = useState('revealing'); // 'revealing' | 'revealed' | 'bidding'
@@ -139,6 +140,7 @@ const DemoPage = () => {
   const [teams, setTeams] = useState(emptyTeamState);
   const [history, setHistory] = useState([]);
   const [celebration, setCelebration] = useState(null);
+  const [lightbox, setLightbox] = useState(null); // { img, title } | null — full-screenshot viewer
 
   const player = PLAYERS[idx];
   const bid = phase === 'bidding' ? player.ladder[step] : player.ladder[0];
@@ -231,50 +233,91 @@ const DemoPage = () => {
     <div className="gbx-dashboard dash-root min-h-screen overflow-x-hidden" data-theme={theme}>
       <SaleCelebration celebration={celebration} onDone={handleCelebrationDone} />
 
-      <header className="sticky top-0 z-30 flex items-center justify-between gap-3 px-4 sm:px-6 py-3 bg-gradient-to-b from-black/80 to-black/40 backdrop-blur-xl border-b border-amber-300/25">
-        <Link to="/" className="flex items-center gap-2 text-white font-extrabold">
-          <span className="text-amber-300">Golden</span>BidX
-        </Link>
-        <span className="flex items-center gap-2 rounded-full border border-amber-300/30 bg-amber-400/10 px-3 py-1 text-[11px] font-semibold uppercase tracking-wide text-amber-200">
-          <span className="relative flex h-2 w-2">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
-            <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+      {/* Same header structure as Tournaments/Register/Console — logo + Golden/Bid/X
+          wordmark — but genuinely re-themed for light/dark, matching the exact
+          palette the console uses (warm amber gradient bar in light, not a
+          generic white one). */}
+      <header className={`sticky top-0 z-30 backdrop-blur-xl border-b transition-colors ${isLight ? 'bg-gradient-to-r from-amber-300/90 via-amber-200/80 to-amber-300/90 border-amber-500/50 shadow-[0_16px_30px_-14px_rgba(110,75,12,0.55)]' : 'bg-gradient-to-b from-black/70 to-black/15 border-amber-300/25 shadow-[0_16px_34px_-18px_rgba(0,0,0,0.95)]'}`}>
+        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between gap-3">
+          <Link to="/" className="flex items-center gap-2 min-w-0 group" title="Home">
+            <img src="/auction-logo.png" alt="" className="h-10 w-auto shrink-0 drop-shadow-[0_1px_3px_rgba(0,0,0,0.55)]" />
+            <span className="font-extrabold tracking-tight text-lg truncate">
+              <span className={`text-transparent bg-clip-text bg-gradient-to-r ${isLight ? 'from-amber-600 to-amber-800' : 'from-amber-200 to-amber-400'}`}>Golden</span>
+              <span className={isLight ? 'text-slate-900' : 'text-white'}>Bid</span>
+              <span className={`text-transparent bg-clip-text bg-gradient-to-r ${isLight ? 'from-amber-600 to-amber-800' : 'from-amber-200 to-amber-400'}`}>X</span>
+            </span>
+          </Link>
+          <span className={`hidden sm:flex items-center gap-2 rounded-full border px-3 py-1 text-[11px] font-semibold uppercase tracking-wide ${isLight ? 'border-amber-700/30 bg-white/50 text-amber-900' : 'border-amber-300/30 bg-amber-400/10 text-amber-200'}`}>
+            <span className="relative flex h-2 w-2">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75" />
+              <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500" />
+            </span>
+            Live demo · sample data
           </span>
-          Live demo · sample data
-        </span>
-        <Link to="/" className="text-indigo-100/80 hover:text-white text-sm font-semibold transition">← Home</Link>
+          <div className="flex items-center gap-2 shrink-0">
+            <button
+              type="button"
+              onClick={toggleTheme}
+              title={theme === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'}
+              aria-label="Toggle theme"
+              className={`grid h-9 w-9 place-items-center rounded-full border transition ${isLight ? 'border-amber-800/30 text-amber-900 hover:text-amber-950 hover:border-amber-800/60' : 'border-white/20 text-indigo-100/80 hover:text-white hover:border-white/40'}`}
+            >
+              {theme === 'dark' ? (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-[18px] h-[18px]" aria-hidden="true"><circle cx="12" cy="12" r="4" /><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4" /></svg>
+              ) : (
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2} strokeLinecap="round" strokeLinejoin="round" className="w-[18px] h-[18px]" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3 7 7 0 0 0 21 12.8z" /></svg>
+              )}
+            </button>
+            <Link to="/" className={`rounded-full border text-sm font-semibold px-4 py-1.5 transition ${isLight ? 'border-amber-800/30 text-amber-900 hover:text-amber-950 hover:border-amber-800/60' : 'border-white/20 text-indigo-100/80 hover:text-white hover:border-white/40'}`}>Home</Link>
+          </div>
+        </div>
       </header>
 
       {/* Other product screens — real pages, shown as screenshots (sample data) */}
       <div className="max-w-5xl mx-auto px-4 pt-6">
-        <p className="text-center text-[11px] font-bold uppercase tracking-[0.2em] text-amber-300/80 mb-3">More of the product</p>
+        <p className={`text-center text-[11px] font-bold uppercase tracking-[0.2em] mb-3 ${isLight ? 'text-amber-700/80' : 'text-amber-300/80'}`}>More of the product</p>
         <div className="grid sm:grid-cols-2 gap-4">
           {[
             { img: '/demo/shot-registration.png', title: 'Player registration', desc: 'Players self-register with photo, role & stats.', to: '/tournaments', cta: 'Browse events →' },
             { img: '/demo/shot-console.png', title: 'Organizer console', desc: 'Create events, track registrations, launch auctions.', to: '/console', cta: 'Open console →' },
           ].map((s) => (
-            <Link
+            <div
               key={s.title}
-              to={s.to}
-              className="group block rounded-2xl border border-white/15 bg-[#12100c] overflow-hidden shadow-xl hover:border-amber-300/40 transition"
+              className={`group rounded-2xl border overflow-hidden shadow-xl transition ${isLight ? 'bg-white/90 border-amber-900/10 shadow-[0_12px_34px_-20px_rgba(120,90,20,0.45)] hover:border-amber-400/60' : 'bg-[#12100c] border-white/15 hover:border-amber-300/40'}`}
             >
-              <div className="flex items-center gap-1.5 px-3 py-2 bg-black/30 border-b border-white/10">
+              <div className={`flex items-center gap-1.5 px-3 py-2 border-b ${isLight ? 'bg-amber-50/70 border-amber-200/60' : 'bg-black/30 border-white/10'}`}>
                 <span className="h-2.5 w-2.5 rounded-full bg-red-400/70" />
                 <span className="h-2.5 w-2.5 rounded-full bg-amber-400/70" />
                 <span className="h-2.5 w-2.5 rounded-full bg-emerald-400/70" />
-                <span className="ml-2 text-[11px] font-semibold text-indigo-100/70">{s.title}</span>
+                <span className={`ml-2 text-[11px] font-semibold ${isLight ? 'text-slate-700' : 'text-indigo-100/70'}`}>{s.title}</span>
               </div>
-              <div className="h-52 sm:h-56 overflow-hidden">
-                <img src={s.img} alt={`${s.title} screen`} className="w-full object-cover object-top group-hover:scale-[1.02] transition-transform duration-300" loading="lazy" />
-              </div>
+              <button type="button" onClick={() => setLightbox(s)} className="relative block w-full h-64 sm:h-72 overflow-hidden">
+                <img src={s.img} alt={`${s.title} screen`} className="h-full w-full object-cover object-top group-hover:scale-[1.02] transition-transform duration-300" loading="lazy" />
+                <span className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1.5 bg-black/65 py-1.5 text-[11px] font-semibold text-white opacity-0 group-hover:opacity-100 transition">
+                  🔍 Click to view full screenshot
+                </span>
+              </button>
               <div className="flex items-center justify-between gap-3 px-4 py-3">
-                <p className="text-xs text-indigo-100/70">{s.desc}</p>
-                <span className="shrink-0 text-xs font-semibold text-amber-300 group-hover:text-amber-200">{s.cta}</span>
+                <p className={`text-xs ${isLight ? 'text-slate-600' : 'text-indigo-100/70'}`}>{s.desc}</p>
+                <Link to={s.to} className={`shrink-0 text-xs font-semibold transition ${isLight ? 'text-amber-700 hover:text-amber-800' : 'text-amber-300 hover:text-amber-200'}`}>{s.cta}</Link>
               </div>
-            </Link>
+            </div>
           ))}
         </div>
       </div>
+
+      {/* Full-screenshot lightbox */}
+      {lightbox && (
+        <div className="fixed inset-0 z-[20000] overflow-y-auto bg-black/85 p-4 sm:p-8" onClick={() => setLightbox(null)} role="dialog" aria-modal="true">
+          <div className="relative mx-auto w-full max-w-2xl" onClick={(e) => e.stopPropagation()}>
+            <div className="sticky top-0 z-10 mb-2 flex items-center justify-between rounded-xl bg-black/75 px-4 py-2 backdrop-blur">
+              <span className="text-sm font-semibold text-white">{lightbox.title}</span>
+              <button type="button" onClick={() => setLightbox(null)} aria-label="Close" className="grid h-8 w-8 place-items-center rounded-full bg-white/10 text-white hover:bg-white/20 transition">✕</button>
+            </div>
+            <img src={lightbox.img} alt={`${lightbox.title} full screenshot`} className="w-full rounded-xl shadow-2xl" />
+          </div>
+        </div>
+      )}
 
       {/* View switcher */}
       <div className="flex justify-center gap-2 pt-5">
@@ -287,7 +330,11 @@ const DemoPage = () => {
             type="button"
             onClick={() => setView(v.id)}
             className={`rounded-full px-4 py-2 text-sm font-semibold transition border ${
-              view === v.id ? 'bg-amber-400 text-slate-900 border-amber-300' : 'bg-white/[0.05] text-indigo-100/80 border-white/15 hover:bg-white/[0.09]'
+              view === v.id
+                ? 'bg-amber-400 text-slate-900 border-amber-300'
+                : isLight
+                  ? 'bg-amber-50 text-slate-700 border-amber-200 hover:bg-amber-100'
+                  : 'bg-white/[0.05] text-indigo-100/80 border-white/15 hover:bg-white/[0.09]'
             }`}
           >
             {v.label}

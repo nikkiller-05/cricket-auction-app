@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import axios from 'axios';
 import Button from './Button';
 import BrandFooter from './BrandFooter';
+import FeedbackWidget from './FeedbackWidget';
 import { API_BASE_URL } from '../config';
 import { getPrimarySession, clearAllSessions, saveSession } from '../lib/session';
 
@@ -78,7 +79,9 @@ const compressAvatarDataUrl = (file, maxDim = 160) => new Promise((resolve, reje
 });
 
 // Sign in / sign up (self-serve organizer) — opens over the landing page.
-const AuthModal = ({ onClose }) => {
+// `onAuthed` decides what happens post-auth (stay put vs go to console);
+// falls back to the console for any caller that doesn't specify one.
+const AuthModal = ({ onClose, onAuthed }) => {
   const navigate = useNavigate();
   const [mode, setMode] = useState('signin');
   const [form, setForm] = useState({ username: '', password: '', name: '', email: '', phone: '', website: '' });
@@ -89,7 +92,8 @@ const AuthModal = ({ onClose }) => {
 
   const finish = (data) => {
     saveSession(data.token, data.user);
-    navigate('/console');
+    if (onAuthed) onAuthed(data);
+    else navigate('/console');
   };
 
   const submit = async (e) => {
@@ -173,6 +177,10 @@ const HomePage = () => {
   // Reflect any persisted login (organizer console or auction admin) in the nav.
   const [session, setSession] = useState(() => getPrimarySession());
   const [showAuth, setShowAuth] = useState(false);
+  // Where to land after a successful sign-in: most triggers (nav Sign In,
+  // feedback prompt) should just keep the visitor on this same page; only
+  // "Create Auction" actually wants the console as its destination.
+  const [authIntent, setAuthIntent] = useState('stay'); // 'stay' | 'console'
   // Real live/upcoming tournaments for the homepage teaser strip (null = loading).
   const [publicEvents, setPublicEvents] = useState(null);
 
@@ -187,7 +195,17 @@ const HomePage = () => {
   // Create Auction: signed-in organizers go straight to their console; everyone else signs in first.
   const handleCreateAuction = () => {
     if (session) navigate('/console');
-    else setShowAuth(true);
+    else { setAuthIntent('console'); setShowAuth(true); }
+  };
+
+  const openSignIn = () => { setAuthIntent('stay'); setShowAuth(true); };
+
+  // After a successful sign-in/sign-up: refresh the nav's session state, close
+  // the modal, and only navigate away if that specific flow asked for it.
+  const handleAuthed = () => {
+    setSession(getPrimarySession());
+    setShowAuth(false);
+    if (authIntent === 'console') navigate('/console');
   };
 
   const scrollToEnter = () => {
@@ -277,13 +295,13 @@ const HomePage = () => {
                   </Button>
                 </div>
               ) : (
-                <Button variant="primary" size="sm" onClick={() => setShowAuth(true)}>Sign In</Button>
+                <Button variant="primary" size="sm" onClick={openSignIn}>Sign In</Button>
               )}
             </div>
           </div>
         </nav>
 
-        {showAuth && <AuthModal onClose={() => setShowAuth(false)} />}
+        {showAuth && <AuthModal onClose={() => setShowAuth(false)} onAuthed={handleAuthed} />}
 
         {/* Hero */}
         <header className="pt-10 pb-4">
@@ -496,6 +514,13 @@ const HomePage = () => {
                 </details>
               ))}
             </div>
+          </div>
+        </section>
+
+        {/* Feedback */}
+        <section className="gbx-reveal px-4 py-6">
+          <div className="max-w-2xl mx-auto">
+            <FeedbackWidget session={session} onRequireAuth={openSignIn} />
           </div>
         </section>
 

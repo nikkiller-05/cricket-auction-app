@@ -369,3 +369,38 @@ CREATE POLICY "service_role full access"
 - Starting a fresh auction (reset/upload) overwrites the snapshot, so a stale
   auction is never silently restored.
 
+---
+
+## Homepage feedback (star ratings)
+
+A small "How are we doing?" widget on the public homepage lets any visitor
+leave a 1–5 star rating plus an optional short comment, so we get a signal on
+how the site is being received. Public, unauthenticated `POST /api/feedback`.
+
+### One-time SQL setup
+
+Run in **Supabase SQL Editor**:
+
+```sql
+CREATE TABLE IF NOT EXISTS homepage_feedback (
+  id         uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  rating     integer NOT NULL CHECK (rating BETWEEN 1 AND 5),
+  comment    text,
+  page       text NOT NULL DEFAULT 'homepage',
+  created_at timestamptz NOT NULL DEFAULT now()
+);
+
+ALTER TABLE homepage_feedback ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "service_role full access" ON homepage_feedback;
+CREATE POLICY "service_role full access"
+  ON homepage_feedback FOR ALL
+  TO service_role
+  USING (true) WITH CHECK (true);
+```
+
+The backend writes with the service-role key (same as every other table here),
+so no client ever talks to Supabase directly — the frontend only calls the
+Express `POST /api/feedback` endpoint. View submissions any time in the
+Supabase Table Editor.
+
